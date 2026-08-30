@@ -146,20 +146,11 @@
             white-space: nowrap;
         }
 
-        .model-meta-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            font-size: 0.7rem;
-            color: var(--text-muted);
-            font-family: 'Fira Code', monospace;
-        }
-
         .compile-btn {
             background: rgba(0, 243, 255, 0.12);
             border: 1px solid rgba(0, 243, 255, 0.35);
             color: var(--accent-cyan);
-            padding: 0.4rem 0.75rem;
+            padding: 0.45rem 0.75rem;
             border-radius: var(--radius-sm);
             font-size: 0.75rem;
             font-weight: 600;
@@ -181,7 +172,7 @@
             background: rgba(16, 185, 129, 0.15);
             border: 1px solid rgba(16, 185, 129, 0.4);
             color: var(--accent-emerald);
-            padding: 0.4rem 0.75rem;
+            padding: 0.45rem 0.75rem;
             border-radius: var(--radius-sm);
             font-size: 0.75rem;
             font-weight: 600;
@@ -204,7 +195,7 @@
             font-size: 0.72rem;
             font-weight: 600;
             text-align: center;
-            padding: 0.35rem;
+            padding: 0.4rem;
             border-radius: var(--radius-sm);
             border: 1px solid rgba(16, 185, 129, 0.4);
         }
@@ -217,7 +208,7 @@
 
         .progress-bar-bg {
             width: 100%;
-            height: 4px;
+            height: 5px;
             background: rgba(255, 255, 255, 0.1);
             border-radius: 9999px;
             overflow: hidden;
@@ -227,7 +218,7 @@
             height: 100%;
             width: 0%;
             background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple));
-            transition: width 0.3s ease;
+            transition: width 0.2s ease;
         }
 
         .progress-status-text {
@@ -236,6 +227,9 @@
             font-family: 'Fira Code', monospace;
             display: flex;
             justify-content: space-between;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .sidebar-footer {
@@ -385,24 +379,25 @@
             background: var(--bg-surface);
             border: 1px solid var(--border);
             border-radius: var(--radius-lg);
-            padding: 2rem;
+            padding: 2.25rem 2rem;
             text-align: center;
             display: flex;
             flex-direction: column;
             align-items: center;
             gap: 1rem;
             margin-top: 2rem;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
         }
 
         .empty-state-icon {
-            width: 48px;
-            height: 48px;
+            width: 52px;
+            height: 52px;
             border-radius: 50%;
             background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.4rem;
+            font-size: 1.5rem;
             color: #000;
         }
 
@@ -864,10 +859,10 @@
 
         <div class="sidebar-footer">
             <div style="display: flex; justify-content: space-between; font-family: 'Fira Code', monospace;">
-                <span>Local Storage:</span>
-                <span id="storageEstimate" style="color: var(--accent-cyan);">IndexedDB Ready</span>
+                <span>Storage Engine:</span>
+                <span style="color: var(--accent-cyan);">IndexedDB Offline Cache</span>
             </div>
-            <div>Zero background downloads without user trigger. 100% Sovereign.</div>
+            <div>Zero background downloads on page load. 100% Private In-Browser AI.</div>
         </div>
     </aside>
 
@@ -909,12 +904,12 @@
                     <div class="empty-state-icon">✦</div>
                     <h2 style="font-size: 1.15rem; font-weight: 600;">Welcome to UOR-R4 Geometric AI</h2>
                     <p style="font-size: 0.88rem; color: var(--text-secondary); max-width: 480px; line-height: 1.6;">
-                        To protect your bandwidth and device memory, no models are downloaded automatically.
+                        To protect your bandwidth and device memory, no models are downloaded automatically on startup.
                         <br><br>
                         Select your preferred intelligence tier in the <b>left sidebar</b> and click <b>"Download & Compile"</b> to initialize the neural substrate locally in your browser.
                     </p>
                     <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
-                        <button class="compile-btn" onclick="requestCompileModel('qwen2.5-0.5b')" style="width: auto; padding: 0.5rem 1rem;">
+                        <button class="compile-btn" onclick="requestCompileModel('qwen2.5-0.5b')" style="width: auto; padding: 0.5rem 1.25rem;">
                             ⚡ Quick Start with Qwen 2.5 (280MB)
                         </button>
                     </div>
@@ -1006,14 +1001,13 @@
             }
         };
 
-        let compiledModels = new Set();
+        const compiledModels = new Set();
         let activeModelId = null;
         let activeDevice = 'wasm';
         let generator = null;
         let dynamicSession = null;
         let isGenerating = false;
         let chatHistory = [];
-        let bgWorker = null;
 
         let currentE8Coords = [0, 0, 0, 0, 0, 0, 0, 0];
         let currentChi = 0, currentDelta = 0, currentAlpha = 0;
@@ -1186,7 +1180,7 @@
             }
         }
 
-        window.requestCompileModel = function(modelId) {
+        window.requestCompileModel = async function(modelId) {
             const progBox = document.getElementById(`progbox-${modelId}`);
             const btnBox = document.getElementById(`btnbox-${modelId}`);
             const bar = document.getElementById(`bar-${modelId}`);
@@ -1195,66 +1189,11 @@
 
             progBox.style.display = 'flex';
             btnBox.innerHTML = `<span style="font-size: 0.72rem; color: var(--accent-cyan); font-family: 'Fira Code', monospace;">Compiling Substrate...</span>`;
+            stage.innerText = 'Initializing stream...';
+            pct.innerText = '0%';
+            bar.style.width = '0%';
 
-            if(!bgWorker) {
-                bgWorker = new Worker('./assets/js/uor_background_worker.js');
-            }
-
-            bgWorker.onmessage = async function(e) {
-                const data = e.data;
-                const mId = data.modelId;
-                if(data.type === 'progress') {
-                    const mBar = document.getElementById(`bar-${mId}`);
-                    const mStage = document.getElementById(`stage-${mId}`);
-                    const mPct = document.getElementById(`pct-${mId}`);
-                    if(mBar) mBar.style.width = `${data.progress}%`;
-                    if(mPct) mPct.innerText = `${data.progress}% (${data.speed || ''})`;
-                    if(mStage) mStage.innerText = data.stage;
-                } else if (data.type === 'completed') {
-                    compiledModels.add(mId);
-                    const mProgBox = document.getElementById(`progbox-${mId}`);
-                    const mBtnBox = document.getElementById(`btnbox-${mId}`);
-                    if(mProgBox) mProgBox.style.display = 'none';
-                    if(mBtnBox) {
-                        mBtnBox.innerHTML = `
-                            <button class="activate-btn" onclick="activateModel('${mId}')">
-                                <span>⚡ Activate Model</span>
-                            </button>
-                        `;
-                    }
-                    showToast(`✨ ${data.modelName} Compiled & Saved in IndexedDB!`);
-                    await activateModel(mId);
-                }
-            };
-
-            bgWorker.postMessage({ action: 'compile_model', modelId: modelId });
-        };
-
-        window.activateModel = async function(modelId) {
-            activeModelId = modelId;
             const model = MODEL_INFO[modelId];
-
-            // Update UI cards
-            Object.keys(MODEL_INFO).forEach(id => {
-                const card = document.getElementById(`card-${id}`);
-                const btnBox = document.getElementById(`btnbox-${id}`);
-                if(id === modelId) {
-                    card.classList.add('active');
-                    btnBox.innerHTML = `<div class="active-pill">● Active in Reasoning</div>`;
-                } else if (compiledModels.has(id)) {
-                    card.classList.remove('active');
-                    btnBox.innerHTML = `
-                        <button class="activate-btn" onclick="activateModel('${id}')">
-                            <span>⚡ Switch to This</span>
-                        </button>
-                    `;
-                }
-            });
-
-            // Initialize Pipeline
-            const badgeText = document.getElementById('badgeText');
-            badgeText.innerText = `Loading ${model.name}...`;
-
             let device = 'wasm';
             let label = 'CPU SIMD Native';
 
@@ -1271,30 +1210,127 @@
             }
 
             activeDevice = device;
+            const dtype = device === 'webgpu' ? 'q4f16' : 'q4';
 
             try {
-                const dtype = device === 'webgpu' ? 'q4f16' : 'q4';
+                generator = await pipeline('text-generation', model.source, {
+                    dtype: dtype,
+                    device: device,
+                    progress_callback: (p) => {
+                        if (p.status === 'initiate') {
+                            stage.innerText = `Starting ${p.file ? p.file.slice(-18) : ''}...`;
+                        } else if (p.status === 'download') {
+                            stage.innerText = `Downloading ${p.file ? p.file.slice(-18) : ''}...`;
+                        } else if (p.status === 'progress') {
+                            const loadedPct = Math.round(p.progress || 0);
+                            bar.style.width = `${loadedPct}%`;
+                            pct.innerText = `${loadedPct}%`;
+                            if (p.loaded && p.total) {
+                                stage.innerText = `Streaming ${(p.loaded / (1024*1024)).toFixed(1)} MB / ${(p.total / (1024*1024)).toFixed(1)} MB`;
+                            }
+                        } else if (p.status === 'done') {
+                            bar.style.width = `100%`;
+                            pct.innerText = `100%`;
+                            stage.innerText = `Substrate Cached in IndexedDB`;
+                        }
+                    }
+                });
+
+                compiledModels.add(modelId);
+                activeModelId = modelId;
+
+                progBox.style.display = 'none';
+
+                // Update UI cards
+                Object.keys(MODEL_INFO).forEach(id => {
+                    const card = document.getElementById(`card-${id}`);
+                    const bBox = document.getElementById(`btnbox-${id}`);
+                    if(id === modelId) {
+                        card.classList.add('active');
+                        bBox.innerHTML = `<div class="active-pill">● Active in Reasoning</div>`;
+                    } else if (compiledModels.has(id)) {
+                        card.classList.remove('active');
+                        bBox.innerHTML = `
+                            <button class="activate-btn" onclick="activateModel('${id}')">
+                                <span>⚡ Switch to This</span>
+                            </button>
+                        `;
+                    } else {
+                        card.classList.remove('active');
+                        bBox.innerHTML = `
+                            <button class="compile-btn" onclick="requestCompileModel('${id}')">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"></path></svg>
+                                <span>Download & Compile</span>
+                            </button>
+                        `;
+                    }
+                });
+
+                const badgeText = document.getElementById('badgeText');
+                badgeText.innerText = `${model.name} (${label})`;
+                showToast(`✨ ${model.name} is ready for reasoning!`);
+
+                const emptyState = document.getElementById('emptyStatePrompt');
+                if (emptyState) emptyState.remove();
+
+            } catch (err) {
+                console.error("Compile error:", err);
+                stage.innerText = "Error compiling";
+                btnBox.innerHTML = `<button class="compile-btn" onclick="requestCompileModel('${modelId}')"><span>Retry</span></button>`;
+                showToast(`❌ Error loading ${model.name}: ` + (err.message || String(err)));
+            }
+        };
+
+        window.activateModel = async function(modelId) {
+            activeModelId = modelId;
+            const model = MODEL_INFO[modelId];
+
+            Object.keys(MODEL_INFO).forEach(id => {
+                const card = document.getElementById(`card-${id}`);
+                const btnBox = document.getElementById(`btnbox-${id}`);
+                if(id === modelId) {
+                    card.classList.add('active');
+                    btnBox.innerHTML = `<div class="active-pill">● Active in Reasoning</div>`;
+                } else if (compiledModels.has(id)) {
+                    card.classList.remove('active');
+                    btnBox.innerHTML = `
+                        <button class="activate-btn" onclick="activateModel('${id}')">
+                            <span>⚡ Switch to This</span>
+                        </button>
+                    `;
+                }
+            });
+
+            const badgeText = document.getElementById('badgeText');
+            badgeText.innerText = `Activating ${model.name}...`;
+
+            let device = 'wasm';
+            let label = 'CPU SIMD Native';
+            if (navigator.gpu) {
+                try {
+                    const adapter = await navigator.gpu.requestAdapter();
+                    if (adapter) {
+                        device = 'webgpu';
+                        label = 'WebGPU Accelerated';
+                    }
+                } catch(e){}
+            }
+
+            activeDevice = device;
+            const dtype = device === 'webgpu' ? 'q4f16' : 'q4';
+
+            try {
                 generator = await pipeline('text-generation', model.source, {
                     dtype: dtype,
                     device: device
                 });
                 badgeText.innerText = `${model.name} (${label})`;
-                showToast(`🚀 ${model.name} is Online and Ready!`);
+                showToast(`🚀 ${model.name} Activated!`);
 
                 const emptyState = document.getElementById('emptyStatePrompt');
-                if(emptyState) {
-                    resetChat();
-                }
-            } catch(err) {
-                console.warn("Pipeline init error on", device, err);
-                if(device === 'webgpu') {
-                    activeDevice = 'wasm';
-                    generator = await pipeline('text-generation', model.source, {
-                        dtype: 'q4',
-                        device: 'wasm'
-                    });
-                    badgeText.innerText = `${model.name} (CPU SIMD Native)`;
-                }
+                if(emptyState) emptyState.remove();
+            } catch(e) {
+                console.error("Activation error:", e);
             }
         };
 
