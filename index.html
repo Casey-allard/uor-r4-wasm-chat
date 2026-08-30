@@ -974,6 +974,7 @@
             const progressFill = document.getElementById('progressFill');
             const loadPercent = document.getElementById('loadPercent');
             const loadTitle = document.getElementById('loadTitle');
+            const loadSubtext = document.getElementById('loadSubtext');
             const welcomeMeta = document.getElementById('welcomeMeta');
             const chatInput = document.getElementById('chatInput');
             const sendBtn = document.getElementById('sendBtn');
@@ -992,6 +993,10 @@
                 loadTitle.innerText = `Loading ${modelId.split('/')[1] || modelId}...`;
                 loadPercent.innerText = '0%';
                 progressFill.style.width = '0%';
+                if(loadSubtext) {
+                    loadSubtext.innerText = 'Weights are cached in IndexedDB for instant startup on future visits.';
+                    loadSubtext.style.color = 'var(--text-muted)';
+                }
             }
 
             const progressCb = (p) => {
@@ -1013,26 +1018,60 @@
 
             let loadedPipe = null;
             let activeDevice = 'webgpu';
+            let lastError = null;
 
-            // Attempt WebGPU first for the selected model
-            if(navigator.gpu) {
+            // 1. Attempt WebGPU with q4f16 (Optimized WebGPU half-precision 4-bit)
+            if(navigator.gpu && !loadedPipe) {
                 try {
-                    console.log(`Loading ${modelId} on WebGPU (dtype: q4)...`);
+                    console.log(`[Tier 1] Loading ${modelId} on WebGPU with q4f16...`);
+                    loadedPipe = await pipeline('text-generation', modelId, {
+                        dtype: 'q4f16',
+                        device: 'webgpu',
+                        progress_callback: progressCb
+                    });
+                    activeDevice = 'webgpu';
+                } catch(err1) {
+                    console.warn(`[Tier 1 Failed] WebGPU q4f16 failed for ${modelId}:`, err1);
+                    lastError = err1;
+                }
+            }
+
+            // 2. Attempt WebGPU with q4 (Standard WebGPU 4-bit)
+            if(navigator.gpu && !loadedPipe) {
+                try {
+                    console.log(`[Tier 2] Loading ${modelId} on WebGPU with q4...`);
                     loadedPipe = await pipeline('text-generation', modelId, {
                         dtype: 'q4',
                         device: 'webgpu',
                         progress_callback: progressCb
                     });
                     activeDevice = 'webgpu';
-                } catch(webgpuErr) {
-                    console.warn(`WebGPU initialization failed for ${modelId}, falling back to WASM/CPU:`, webgpuErr);
+                } catch(err2) {
+                    console.warn(`[Tier 2 Failed] WebGPU q4 failed for ${modelId}:`, err2);
+                    lastError = err2;
                 }
             }
 
-            // If WebGPU failed or wasn't available, load the EXACT SAME model on WASM
+            // 3. Attempt WebGPU with fp16
+            if(navigator.gpu && !loadedPipe) {
+                try {
+                    console.log(`[Tier 3] Loading ${modelId} on WebGPU with fp16...`);
+                    loadedPipe = await pipeline('text-generation', modelId, {
+                        dtype: 'fp16',
+                        device: 'webgpu',
+                        progress_callback: progressCb
+                    });
+                    activeDevice = 'webgpu';
+                } catch(err3) {
+                    console.warn(`[Tier 3 Failed] WebGPU fp16 failed for ${modelId}:`, err3);
+                    lastError = err3;
+                }
+            }
+
+            // 4. Fallback to CPU / WASM for the EXACT SAME model
             if(!loadedPipe) {
                 try {
-                    console.log(`Loading ${modelId} on WASM/CPU (dtype: q4)...`);
+                    console.log(`[Tier 4] Loading ${modelId} on WASM/CPU with q4...`);
                     if(loadTitle) loadTitle.innerText = 'Compiling WASM Engine...';
                     loadedPipe = await pipeline('text-generation', modelId, {
                         dtype: 'q4',
@@ -1040,8 +1079,9 @@
                         progress_callback: progressCb
                     });
                     activeDevice = 'wasm';
-                } catch(wasmErr) {
-                    console.error(`WASM initialization failed for ${modelId}:`, wasmErr);
+                } catch(err4) {
+                    console.error(`[Tier 4 Failed] WASM failed for ${modelId}:`, err4);
+                    lastError = err4;
                 }
             }
 
@@ -1065,6 +1105,14 @@
                 footerStatus.innerText = '● Error';
                 footerStatus.style.color = 'var(--accent-amber)';
                 chatInput.placeholder = 'Failed to load model. Please refresh the page.';
+                if(loaderCard) {
+                    loaderCard.style.display = 'flex';
+                    loadTitle.innerText = `Initialization Failed for ${modelId.split('/')[1] || modelId}`;
+                    if(loadSubtext) {
+                        loadSubtext.innerText = lastError ? (lastError.message || String(lastError)) : "Could not compile model shaders.";
+                        loadSubtext.style.color = '#ef4444';
+                    }
+                }
             }
         }
 
