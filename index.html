@@ -3256,8 +3256,10 @@ echo ""
 
                     if (hasNativeFs || hasMcp) {
                         let activeToolDefs = [];
+                        let sourceDesc = "";
                         if (hasMcp) {
                             activeToolDefs = [...mcpTools];
+                            sourceDesc = "Local PC System & GitHub (via MCP Bridge)";
                         } else if (hasNativeFs) {
                             activeToolDefs = [
                                 {
@@ -3276,11 +3278,35 @@ echo ""
                                     inputSchema: { type: 'object', properties: { path: { type: 'string', description: 'Directory path (default: .)' } } }
                                 }
                             ];
+                            sourceDesc = `Mounted Local Folder: ${localDirectoryHandle.name}`;
                         }
 
-                        systemPrompt += `\n\n# LOCAL WORKSPACE & MCP TOOLS AVAILABLE:\nYou have real-time access to tools on the local project disk and tools:\n` +
-                            activeToolDefs.map(t => `<tool_def>\n${JSON.stringify(t, null, 2)}\n</tool_def>`).join('\n') +
-                            `\n\nTo invoke a tool, output ONLY a <tool_call> block formatted as valid JSON:\n<tool_call>\n{"name": "tool_name", "arguments": {"param": "value"}}\n</tool_call>\n\nWhen a <tool_response> is provided, analyze the result to answer the user's prompt or continue multi-step execution.`;
+                        systemPrompt += `\n\n# TOOLS & LOCAL WORKSPACE ACTIVE (${sourceDesc}):
+You are an autonomous AI assistant with active tools. You HAVE direct access to read files, write code, list directories, and execute actions on the user's workspace.
+NEVER say you cannot access files or lack tools. Whenever the user asks to inspect, read, create, list files, or run commands, YOU MUST CALL A TOOL immediately.
+
+To invoke a tool, output ONLY the tool call block in this format:
+<tool_call>
+{"name": "tool_name", "arguments": {"param": "value"}}
+</tool_call>
+
+Available Tools:
+` + activeToolDefs.map(t => `- ${t.name}: ${t.description}`).join('\n') + `
+
+Tool Schemas:
+` + activeToolDefs.map(t => `<tool_def>\n${JSON.stringify(t, null, 2)}\n</tool_def>`).join('\n') + `
+
+Example 1:
+User: "What files are in this directory?"
+Assistant: <tool_call>
+{"name": "list_directory", "arguments": {"path": "."}}
+</tool_call>
+
+Example 2:
+User: "Read Cargo.toml"
+Assistant: <tool_call>
+{"name": "read_file", "arguments": {"path": "Cargo.toml"}}
+</tool_call>`;
                     }
 
                     const messages = [
@@ -3341,9 +3367,13 @@ echo ""
                     speedBadge.innerText = `• ⚡ ${avgTps} tok/s (${generatedTokenCount} tok in ${totalDurationSec.toFixed(1)}s)`;
                 }
 
-                // Check for Tool Call in output
-                const toolCallMatch = fullResponse.match(/<tool_call>\s*([\s\S]*?)\s*<\/tool_call>/i);
-                if (toolCallMatch && recursionCount < 4 && mcpConnected) {
+                // Check for Tool Call in output (supports <tool_call>, ```tool_call, or ```json with name)
+                let toolCallMatch = fullResponse.match(/<tool_call>([\s\S]*?)(?:<\/tool_call>|$)/i);
+                if (!toolCallMatch) {
+                    toolCallMatch = fullResponse.match(/```(?:tool_call|json)\s*(\{[\s\S]*?"name"[\s\S]*?\})\s*```/i);
+                }
+
+                if (toolCallMatch && recursionCount < 5 && (mcpConnected || localDirectoryHandle)) {
                     let toolCallObj = null;
                     try {
                         toolCallObj = JSON.parse(toolCallMatch[1]);
