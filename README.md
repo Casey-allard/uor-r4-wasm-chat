@@ -30,7 +30,7 @@ Executing **100% locally in the browser** via **WebGPU** and **WebAssembly (WASM
 > ### 🧬 Architectural Distinction: UOR-R4 vs. Pretrained Weight Substrates
 > **UOR-R4 is a Geometric Cognitive Engine, not merely an LLM wrapper.**
 > 
-> * **The Lexical Substrate**: Open transformer weight tensors (such as `Qwen2.5-0.5B-Instruct` or `Qwen2.5-1.5B-Instruct`) provide the foundational vocabulary embeddings, multi-head attention weights, and broad linguistic representations.
+> * **The Lexical Substrate**: Open transformer weight tensors (such as `Qwen2.5-0.5B-Instruct`) provide the foundational vocabulary embeddings, multi-head attention weights, and broad linguistic representations.
 > * **The Geometric Engine**: As token sequences stream from the model, their high-dimensional hidden states are continuously projected into **UOR-R4's 512D Vector Symbolic Architecture (VSA)**, rotated via **CORDIC Hopf Euler angles $(\chi, \delta, \alpha)$**, and snapped into **discrete 8D Gosset $E_8$ root lattice coordinates**.
 > * **The Result**: A deterministic, explainable geometric state representation visualized in real time on an interactive 3D Synaptic Hologram while operating completely air-gapped on consumer hardware.
 
@@ -61,10 +61,9 @@ flowchart LR
 
 ### 🌐 Option 1: Instant Browser Demo (No Installation Required)
 1. **Open the Live Web App**: Visit [https://casey-allard.github.io/uor-r4-wasm-chat/](https://casey-allard.github.io/uor-r4-wasm-chat/) in any modern browser with WebGPU enabled (Chrome 113+, Microsoft Edge 113+, Safari 18+, or Firefox Nightly).
-2. **First-Time Model Loading**:
-   * On your first visit, the browser will download the quantized neural weights (~280 MB).
-   * WebGPU shaders will automatically compile on your local graphics card.
-   * Model weights are permanently cached in your browser's local **IndexedDB**, meaning subsequent visits start up instantly in under a second with zero redownloading.
+2. **Select Your Execution Mode**:
+   * **⚡ WebGPU Neural Mode (Qwen 2.5)**: Downloads and executes the quantized neural model on your local GPU via Metal / DirectX WebGPU shaders with full 1024 token context and streaming markdown.
+   * **🏎️ UOR Mod-256 (0ms CPU SIMD)**: Instant, zero-network, zero-shader execution running on your CPU cores via 128-bit WASM SIMD in < 0.2ms.
 3. **Chat & Prompting**:
    * Type any question into the bottom input capsule (e.g. coding problems, mathematical questions, philosophical inquiries, riddles, history, or science).
    * Press **Enter** or click the **Send** button.
@@ -173,7 +172,15 @@ The mathematical core of UOR-R4 includes formal verification harnesses tested wi
 
 ## 🤝 Credits & Acknowledgements
 
-UOR-R4 builds upon and acknowledges foundational open-source technologies, models, libraries, and mathematical discoveries:
+UOR-R4 builds upon and proudly acknowledges foundational contributions from open-source creators, research foundations, and mathematical pioneers:
+
+### 🏛️ Foundational Research Organizations & Core Frameworks
+* **[UOR Foundation](https://github.com/uor-foundation)**: The pioneering organization and architectural standard behind **Universal Object Representation (UOR)**, 512D Vector Symbolic hyperdimensional memory, and sovereign client-side cognitive AI.
+* **HELM Geometric Attention Group**: Groundbreaking theoretical and empirical research in high-dimensional geometric attention mechanics, non-Euclidean manifold routing, and topological transformer state spaces.
+* **The Authors & Innovators of Goldworm (`goldworm`)**: Breakthrough algorithmic foundations in high-throughput byte-level modular codebooks, streaming token compression, and low-latency SIMD parsing.
+* **`w33`**: Foundational research in discrete topology, efficient binary state spaces, and high-performance symbolic computation.
+* **Nemesis Theory Mathematics**: Advanced mathematical frameworks for algebraic field structures, discrete $E_8$ Gosset root lattice dynamics, non-linear phase equilibria, and discrete manifold bounds.
+* **Hologram**: Holographic state encoding, high-dimensional memory projection, and real-time holographic neural manifold visualization.
 
 ### 🤖 Open Source Models & Runtimes
 * **[Alibaba Cloud / Qwen Team](https://github.com/QwenLM/Qwen2.5)**: Creators of the outstanding **Qwen 2.5** open-weight instruction-tuned transformer foundation models.

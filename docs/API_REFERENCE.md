@@ -118,6 +118,12 @@ await generator(prompt, {
 
 ## 🤝 Credits & Dependencies
 
+* **[UOR Foundation](https://github.com/uor-foundation)**: Architectural standard for Universal Object Representation, 512D Vector Symbolic hyperdimensional memory, and sovereign geometric AI.
+* **HELM Geometric Attention Group**: High-dimensional geometric attention mechanisms and non-Euclidean manifold routing.
+* **The Authors of Goldworm (`goldworm`)**: Byte-level modular codebooks and streaming token compression.
+* **`w33`**: Discrete topology and high-performance symbolic computation research.
+* **Nemesis Theory Mathematics**: Algebraic field structures and discrete $E_8$ Gosset root lattice dynamics.
+* **Hologram**: Holographic memory projection and real-time neural manifold visualization.
 * **[Qwen 2.5](https://github.com/QwenLM/Qwen2.5)** by Alibaba Cloud (Apache 2.0).
 * **[Transformers.js](https://github.com/huggingface/transformers.js)** by Hugging Face (Apache 2.0).
 * **[ONNX Runtime Web](https://github.com/microsoft/onnxruntime)** by Microsoft (MIT).

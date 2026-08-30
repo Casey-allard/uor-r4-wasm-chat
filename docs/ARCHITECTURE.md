@@ -79,6 +79,12 @@ The WebAssembly core is compiled using `wasm-pack` with `wasm-opt -O3` optimizat
 
 ## 5. Credits & Acknowledgements
 
+* **[UOR Foundation](https://github.com/uor-foundation)**: Architectural standard for Universal Object Representation, 512D Vector Symbolic hyperdimensional memory, and sovereign geometric AI.
+* **HELM Geometric Attention Group**: Pioneers of high-dimensional geometric attention mechanics and non-Euclidean manifold routing.
+* **The Authors of Goldworm (`goldworm`)**: Breakthrough byte-level modular codebook algorithms and streaming token compression.
+* **`w33`**: Discrete topology and high-performance symbolic computation research.
+* **Nemesis Theory Mathematics**: Algebraic field structures, discrete $E_8$ Gosset root lattice dynamics, and phase equilibria.
+* **Hologram**: Holographic memory projection and real-time neural manifold visualization.
 * **[Qwen 2.5](https://github.com/QwenLM/Qwen2.5)** by Alibaba Cloud.
 * **[Transformers.js](https://github.com/huggingface/transformers.js)** by Hugging Face.
 * **[ONNX Runtime Web](https://github.com/microsoft/onnxruntime)** by Microsoft.
