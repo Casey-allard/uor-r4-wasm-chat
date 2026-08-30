@@ -98,20 +98,11 @@
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 0.2rem;
-        }
-
-        .chat-history-list::-webkit-scrollbar {
-            width: 4px;
-        }
-
-        .chat-history-list::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 4px;
+            gap: 0.25rem;
         }
 
         .history-item {
-            padding: 0.55rem 0.65rem;
+            padding: 0.6rem 0.75rem;
             border-radius: var(--radius-md);
             font-size: 0.84rem;
             color: var(--text-secondary);
@@ -142,7 +133,7 @@
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid var(--border-subtle);
             border-radius: var(--radius-md);
-            padding: 0.6rem 0.75rem;
+            padding: 0.65rem 0.75rem;
             display: flex;
             flex-direction: column;
             gap: 0.25rem;
@@ -264,21 +255,14 @@
             color: var(--accent-cyan);
         }
 
-        .status-indicator {
-            width: 7px;
-            height: 7px;
-            border-radius: 50%;
-            background: var(--accent-emerald);
-        }
-
-        /* CONVERSATION STREAM (768px Centered Column) */
+        /* CONVERSATION STREAM (768px Centered Column with generous bottom clearance) */
         .chat-scroll-area {
             flex: 1;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 2rem 1rem 4rem 1rem;
+            padding: 2rem 1rem 9.5rem 1rem;
             scroll-behavior: smooth;
         }
 
@@ -370,8 +354,9 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            background: linear-gradient(180deg, transparent 0%, var(--bg-main) 35%);
+            background: linear-gradient(180deg, transparent 0%, var(--bg-main) 45%);
             pointer-events: none;
+            z-index: 25;
         }
 
         .input-capsule {
@@ -384,14 +369,14 @@
             display: flex;
             align-items: center;
             gap: 0.75rem;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
             pointer-events: auto;
             transition: border-color 0.15s ease, box-shadow 0.15s ease;
         }
 
         .input-capsule:focus-within {
             border-color: rgba(255, 255, 255, 0.25);
-            box-shadow: 0 8px 36px rgba(0, 0, 0, 0.55);
+            box-shadow: 0 8px 36px rgba(0, 0, 0, 0.65);
         }
 
         .chat-input {
@@ -436,7 +421,7 @@
             font-family: 'Inter', sans-serif;
         }
 
-        /* 3D NEURAL BRAIN SIDECAR DRAWER (Like Claude Artifacts / Cursor Sidecar) */
+        /* 3D NEURAL BRAIN SIDECAR DRAWER */
         .telemetry-sidecar {
             width: 380px;
             background: var(--bg-sidebar);
@@ -530,27 +515,11 @@
             <span style="font-size: 0.75rem; color: var(--text-muted); font-family: 'Fira Code', monospace;">⌘K</span>
         </button>
 
-        <div class="sidebar-section-label">Recent Explorations</div>
-        <div class="chat-history-list">
-            <div class="history-item active" onclick="quickSend('hello!')">
+        <div class="sidebar-section-label">Active Session</div>
+        <div class="chat-history-list" id="sessionList">
+            <div class="history-item active">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                <span>Geometric Cognitive Core</span>
-            </div>
-            <div class="history-item" onclick="quickSend('explain quantum computing')">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                <span>Quantum Superposition</span>
-            </div>
-            <div class="history-item" onclick="quickSend('why is geometric attention deterministic')">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                <span>Deterministic E8 Lattices</span>
-            </div>
-            <div class="history-item" onclick="quickSend('what is the philosophy of mind')">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                <span>Philosophy of Mind</span>
-            </div>
-            <div class="history-item" onclick="quickSend('tell me a story')">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                <span>Gosset Manifold Odyssey</span>
+                <span id="sessionTitle">Current Conversation</span>
             </div>
         </div>
 
@@ -706,6 +675,7 @@
                     </div>
                 </div>
             `;
+            document.getElementById('sessionTitle').innerText = 'Current Conversation';
             if(dynamicSession) {
                 dynamicSession.reset();
                 persistentEngrams.clear();
@@ -775,6 +745,8 @@
             const text = inputEl.value.trim();
             if(!text || !dynamicSession) return;
 
+            document.getElementById('sessionTitle').innerText = text.slice(0, 24) + (text.length > 24 ? '...' : '');
+
             appendUserMessage(text);
             inputEl.value = '';
 
@@ -789,11 +761,6 @@
             } catch(err) {
                 console.error("Inference Error:", err);
             }
-        };
-
-        window.quickSend = function(phrase) {
-            document.getElementById('chatInput').value = phrase;
-            window.sendChat();
         };
 
         function appendUserMessage(text) {
@@ -829,7 +796,9 @@
 
         function scrollDown() {
             const area = document.getElementById('scrollArea');
-            area.scrollTop = area.scrollHeight;
+            setTimeout(() => {
+                area.scrollTop = area.scrollHeight;
+            }, 50);
         }
 
         function escapeHtml(str) {
