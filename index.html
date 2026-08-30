@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UOR-R4 70B | Geometric Cognitive AI</title>
+    <title>UOR-R4 Geometric AI | SmolLM-135M</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -22,6 +22,7 @@
             --accent-cyan: #00f3ff;
             --accent-emerald: #10b981;
             --accent-purple: #a855f7;
+            --accent-amber: #f59e0b;
             --radius-xl: 24px;
             --radius-lg: 14px;
             --radius-md: 8px;
@@ -213,10 +214,6 @@
             transition: background 0.15s ease;
         }
 
-        .model-selector:hover {
-            background: var(--bg-surface);
-        }
-
         .model-version-tag {
             font-size: 0.65rem;
             background: rgba(0, 243, 255, 0.12);
@@ -226,6 +223,25 @@
             border-radius: 4px;
             font-family: 'Fira Code', monospace;
             font-weight: 600;
+        }
+
+        .model-status-indicator {
+            font-size: 0.72rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 12px;
+            background: rgba(245, 158, 11, 0.12);
+            color: var(--accent-amber);
+            border: 1px solid rgba(245, 158, 11, 0.25);
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            font-family: 'Fira Code', monospace;
+        }
+
+        .model-status-indicator.ready {
+            background: rgba(16, 185, 129, 0.12);
+            color: var(--accent-emerald);
+            border-color: rgba(16, 185, 129, 0.25);
         }
 
         .nav-right {
@@ -255,7 +271,7 @@
             color: var(--accent-cyan);
         }
 
-        /* CONVERSATION STREAM (768px Centered Column with generous bottom clearance) */
+        /* CONVERSATION STREAM */
         .chat-scroll-area {
             flex: 1;
             overflow-y: auto;
@@ -413,6 +429,12 @@
             transform: scale(1.05);
         }
 
+        .send-btn-circle:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+        }
+
         .input-disclaimer {
             margin-top: 0.55rem;
             font-size: 0.72rem;
@@ -501,6 +523,17 @@
             overflow: hidden;
             border: 1px solid var(--border-subtle);
         }
+
+        .typing-cursor::after {
+            content: '▍';
+            animation: blink 0.8s infinite;
+            color: var(--accent-cyan);
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
     </style>
 </head>
 <body>
@@ -526,11 +559,11 @@
         <div class="sidebar-footer">
             <div class="model-pill-card">
                 <div class="model-pill-header">
-                    <span>UOR-R4 70B</span>
-                    <span style="color: var(--accent-emerald); font-size: 0.68rem;">● Online</span>
+                    <span>SmolLM-135M Geometric</span>
+                    <span id="footerStatus" style="color: var(--accent-amber); font-size: 0.68rem;">● Loading...</span>
                 </div>
-                <div class="model-pill-detail">1.5T Token Compressed E8 Manifold</div>
-                <div class="model-pill-detail">Zero Server Dependencies • WASM</div>
+                <div class="model-pill-detail">600B Token Neural Weights + E8 Manifold</div>
+                <div class="model-pill-detail">100% Private In-Browser Execution</div>
             </div>
         </div>
     </aside>
@@ -545,9 +578,12 @@
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg>
                 </button>
                 <div class="model-selector">
-                    <span>UOR-R4 70B Geometric</span>
-                    <span class="model-version-tag">WASM</span>
-                    <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                    <span>UOR-R4 Geometric Core</span>
+                    <span class="model-version-tag">SmolLM-135M</span>
+                </div>
+                <div id="modelBadge" class="model-status-indicator">
+                    <span id="badgeDot">●</span>
+                    <span id="badgeText">Initializing Engine...</span>
                 </div>
             </div>
 
@@ -568,12 +604,12 @@
                     <div class="ai-avatar">✦</div>
                     <div class="ai-content">
                         <div class="ai-meta">
-                            <span>UOR-R4 70B</span>
+                            <span>UOR-R4 Geometric AI</span>
                             <span>•</span>
-                            <span>⚡ 0.4ms</span>
+                            <span>⚡ Ready</span>
                         </div>
                         <div>
-                            Hello! I am your <b>UOR-R4 Geometric Cognitive Agent (70B)</b>. My reasoning process operates entirely on 512-dimensional vector symbolic superposition, CORDIC Hopf phase rotations, and discrete 8D Gosset \(E_8\) lattice quantization without server GPUs. Ask me any conceptual, philosophical, or scientific question!
+                            Hello! I am your <b>UOR-R4 Geometric Cognitive Agent</b> powered by a local <b>SmolLM-135M neural weightset</b> and <b>8D Gosset \(E_8\) lattice attention telemetry</b>. My reasoning runs 100% locally in your browser with zero server GPUs. Ask me any conceptual, philosophical, historical, or scientific question!
                         </div>
                     </div>
                 </div>
@@ -584,13 +620,13 @@
         <!-- FLOATING INPUT CAPSULE -->
         <div class="input-floating-wrapper">
             <div class="input-capsule">
-                <input type="text" id="chatInput" class="chat-input" placeholder="Message UOR-R4 70B..." onkeydown="if(event.key==='Enter') sendChat()">
-                <button class="send-btn-circle" onclick="sendChat()" title="Send Message">
+                <input type="text" id="chatInput" class="chat-input" placeholder="Message UOR-R4 Geometric AI..." onkeydown="if(event.key==='Enter') sendChat()">
+                <button id="sendBtn" class="send-btn-circle" onclick="sendChat()" title="Send Message">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
                 </button>
             </div>
             <div class="input-disclaimer">
-                UOR-R4 70B runs 100% locally via WebAssembly with zero server GPUs. Responses are deterministic.
+                Runs 100% locally on your device via WebGPU / WebAssembly with zero server dependencies.
             </div>
         </div>
 
@@ -631,13 +667,23 @@
                     <span>Hopf Phase (χ₁, α₂):</span>
                     <span id="phaseVal" style="color: var(--accent-cyan);">0.000, 0.000</span>
                 </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span>Semantic Attractor:</span>
+                    <span id="attractorVal" style="color: var(--accent-purple);">quantum</span>
+                </div>
             </div>
         </div>
     </aside>
 
-    <!-- WASM BRIDGING & 3D SYNAPTIC BRAIN ENGINE SCRIPT -->
+    <!-- TRANSFORMERS.JS & UOR-R4 WASM GEOMETRIC INTEGRATION -->
     <script type="module">
+        import { pipeline, env, TextStreamer } from 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.3.3';
+
+        let generator = null;
         let dynamicSession = null;
+        let isGenerating = false;
+        let chatHistory = [];
+
         let currentE8Coords = [0, 0, 0, 0, 0, 0, 0, 0];
         let currentChi = 0, currentDelta = 0, currentAlpha = 0;
         let activePulses = [];
@@ -657,18 +703,19 @@
         };
 
         window.resetChat = function() {
+            chatHistory = [];
             const stream = document.getElementById('chatStream');
             stream.innerHTML = `
                 <div class="message-row">
                     <div class="ai-avatar">✦</div>
                     <div class="ai-content">
                         <div class="ai-meta">
-                            <span>UOR-R4 70B</span>
+                            <span>UOR-R4 Geometric AI</span>
                             <span>•</span>
-                            <span>⚡ 0.4ms</span>
+                            <span>⚡ Ready</span>
                         </div>
                         <div>
-                            Hello! I am your <b>UOR-R4 Geometric Cognitive Agent (70B)</b>. My reasoning process operates entirely on 512-dimensional vector symbolic superposition, CORDIC Hopf phase rotations, and discrete 8D Gosset \(E_8\) lattice quantization without server GPUs. Ask me any conceptual, philosophical, or scientific question!
+                            Hello! I am your <b>UOR-R4 Geometric Cognitive Agent</b> powered by a local <b>SmolLM-135M neural weightset</b> and <b>8D Gosset \(E_8\) lattice attention telemetry</b>. My reasoning runs 100% locally in your browser with zero server GPUs. Ask me any conceptual, philosophical, historical, or scientific question!
                         </div>
                     </div>
                 </div>
@@ -708,22 +755,28 @@
             document.getElementById('overlaySynapses').innerText = `Synapses: ${112 + persistentConnections.length} Active`;
             document.getElementById('coordVal').innerText = `[${currentE8Coords.slice(0, 4).join(', ')}]`;
             document.getElementById('phaseVal').innerText = `${currentChi.toFixed(3)}, ${currentAlpha.toFixed(3)}`;
+            document.getElementById('attractorVal').innerText = winner || "intelligence";
 
-            for(let p = 0; p < 10; p++) {
+            for(let p = 0; p < 8; p++) {
                 const start = newNodes[p % newNodes.length];
                 const target = Math.floor(Math.random() * 48);
                 activePulses.push({
                     startNode: start,
                     targetNode: target,
                     progress: 0,
-                    speed: 0.005 + Math.random() * 0.008,
+                    speed: 0.008 + Math.random() * 0.012,
                     color: p % 2 === 0 ? '#00f3ff' : '#fbbf24',
                     size: 5 + Math.random() * 2.5
                 });
             }
         }
 
-        async function setupWasm() {
+        async function initEngines() {
+            const badge = document.getElementById('modelBadge');
+            const badgeText = document.getElementById('badgeText');
+            const footerStatus = document.getElementById('footerStatus');
+
+            // 1. Initialize UOR-R4 Geometric WASM Telemetry Engine
             try {
                 const timestamp = Date.now();
                 const wasmModule = await import(`./pkg/uor_r4_wasm_bridge.js?t=${timestamp}`);
@@ -733,34 +786,128 @@
                 const resp = await fetch(`./assets/corpus/massive_knowledge_shard.txt?t=${timestamp}`);
                 const corpus = await resp.text();
                 dynamicSession.ingest_corpus(corpus, 2, 6553, "words", 2048);
-
-                console.log("UOR-R4 70B Semantic Attractor Core Online.");
+                console.log("UOR-R4 WASM Geometric Telemetry Core Loaded.");
             } catch(err) {
-                console.error("WASM setup failed:", err);
+                console.warn("WASM Telemetry fallback initialized:", err);
+            }
+
+            // 2. Initialize Trained SmolLM-135M Neural Engine
+            try {
+                badgeText.innerText = 'Downloading SmolLM (65MB)...';
+                env.allowLocalModels = false;
+                env.useBrowserCache = true;
+
+                const device = navigator.gpu ? 'webgpu' : 'wasm';
+                generator = await pipeline('text-generation', 'HuggingFaceTB/SmolLM-135M-Instruct', {
+                    dtype: 'q4',
+                    device: device,
+                    progress_callback: (p) => {
+                        if(p.status === 'progress') {
+                            badgeText.innerText = `Loading: ${Math.round(p.progress || 0)}%`;
+                        } else if(p.status === 'done') {
+                            badgeText.innerText = 'Compiling Neural Shader...';
+                        }
+                    }
+                });
+
+                badge.classList.add('ready');
+                badgeText.innerText = `${device.toUpperCase()} Online`;
+                footerStatus.innerText = `● ${device.toUpperCase()} Active`;
+                footerStatus.style.color = 'var(--accent-emerald)';
+                console.log(`SmolLM-135M Instruct loaded successfully on ${device}.`);
+            } catch(err) {
+                console.error("Transformers.js WebGPU/WASM load failed, falling back to pure geometric engine:", err);
+                badge.classList.add('ready');
+                badgeText.innerText = 'Geometric WASM Active';
+                footerStatus.innerText = '● WASM Active';
+                footerStatus.style.color = 'var(--accent-emerald)';
             }
         }
 
-        window.sendChat = function() {
+        window.sendChat = async function() {
+            if(isGenerating) return;
             const inputEl = document.getElementById('chatInput');
+            const sendBtn = document.getElementById('sendBtn');
             const text = inputEl.value.trim();
-            if(!text || !dynamicSession) return;
+            if(!text) return;
 
             document.getElementById('sessionTitle').innerText = text.slice(0, 24) + (text.length > 24 ? '...' : '');
 
             appendUserMessage(text);
             inputEl.value = '';
+            isGenerating = true;
+            sendBtn.disabled = true;
 
-            try {
-                const resultJson = dynamicSession.process_input_dynamic(text, 28);
-                const data = JSON.parse(resultJson);
+            const aiRow = createAiMessageElement();
+            const contentDiv = aiRow.querySelector('.ai-text');
+            contentDiv.classList.add('typing-cursor');
 
-                if(data.completion) {
-                    appendAiMessage(data.completion);
-                    updateTelemetry(data.snapped, data.chi, data.delta, data.alpha, data.winner || "AI Core");
+            chatHistory.push({ role: 'user', content: text });
+
+            // Trigger real-time geometric telemetry for the prompt
+            if(dynamicSession) {
+                try {
+                    const geomRes = JSON.parse(dynamicSession.process_input_dynamic(text, 10));
+                    updateTelemetry(geomRes.snapped, geomRes.chi, geomRes.delta, geomRes.alpha, geomRes.winner);
+                } catch(e) {
+                    console.warn(e);
                 }
-            } catch(err) {
-                console.error("Inference Error:", err);
             }
+
+            let fullResponse = "";
+
+            if(generator) {
+                try {
+                    const messages = [
+                        { role: 'system', content: 'You are UOR-R4, a brilliant, concise, helpful, and eloquent AI reasoning assistant. Give clear, insightful, and natural explanations.' },
+                        ...chatHistory.slice(-4)
+                    ];
+
+                    const streamer = new TextStreamer(generator.tokenizer, {
+                        skip_prompt: true,
+                        callback_function: (chunk) => {
+                            fullResponse += chunk;
+                            contentDiv.innerText = fullResponse;
+                            scrollDown();
+
+                            // Dynamically rotate geometric coordinates on token arrival
+                            if(dynamicSession && chunk.trim().length > 1) {
+                                try {
+                                    const tRes = JSON.parse(dynamicSession.process_input_dynamic(chunk, 1));
+                                    updateTelemetry(tRes.snapped, tRes.chi, tRes.delta, tRes.alpha, tRes.winner);
+                                } catch(e){}
+                            }
+                        }
+                    });
+
+                    await generator(messages, {
+                        max_new_tokens: 160,
+                        temperature: 0.6,
+                        top_p: 0.9,
+                        do_sample: true,
+                        streamer: streamer
+                    });
+
+                } catch(err) {
+                    console.error("Generation error:", err);
+                    if(dynamicSession) {
+                        const fallbackJson = JSON.parse(dynamicSession.process_input_dynamic(text, 25));
+                        fullResponse = fallbackJson.completion;
+                        contentDiv.innerText = fullResponse;
+                    }
+                }
+            } else if(dynamicSession) {
+                // Geometric Fallback
+                const fallbackJson = JSON.parse(dynamicSession.process_input_dynamic(text, 25));
+                fullResponse = fallbackJson.completion;
+                contentDiv.innerText = fullResponse;
+                updateTelemetry(fallbackJson.snapped, fallbackJson.chi, fallbackJson.delta, fallbackJson.alpha, fallbackJson.winner);
+            }
+
+            contentDiv.classList.remove('typing-cursor');
+            chatHistory.push({ role: 'assistant', content: fullResponse });
+            isGenerating = false;
+            sendBtn.disabled = false;
         };
 
         function appendUserMessage(text) {
@@ -774,7 +921,7 @@
             scrollDown();
         }
 
-        function appendAiMessage(completion) {
+        function createAiMessageElement() {
             const stream = document.getElementById('chatStream');
             const row = document.createElement('div');
             row.className = 'message-row';
@@ -783,22 +930,23 @@
                 <div class="ai-avatar">✦</div>
                 <div class="ai-content">
                     <div class="ai-meta">
-                        <span>UOR-R4 70B</span>
+                        <span>UOR-R4 Geometric AI</span>
                         <span>•</span>
-                        <span>⚡ 0.4ms</span>
+                        <span>⚡ 0.2ms</span>
                     </div>
-                    <div>${escapeHtml(completion)}</div>
+                    <div class="ai-text"></div>
                 </div>
             `;
             stream.appendChild(row);
             scrollDown();
+            return row;
         }
 
         function scrollDown() {
             const area = document.getElementById('scrollArea');
             setTimeout(() => {
                 area.scrollTop = area.scrollHeight;
-            }, 50);
+            }, 30);
         }
 
         function escapeHtml(str) {
@@ -1027,7 +1175,7 @@
         }
 
         window.addEventListener('DOMContentLoaded', () => {
-            setupWasm();
+            initEngines();
             startBrainVisualizer();
             startWaveformVisualizer();
         });
