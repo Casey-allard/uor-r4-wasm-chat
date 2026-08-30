@@ -21,14 +21,22 @@
 
 ## ⚡ Overview
 
-**UOR-R4 Geometric Cognitive AI** is an in-browser artificial intelligence engine that unites **state-of-the-art neural language modeling (Qwen2.5-1.5B / Llama-3.2-1B)** with **high-dimensional geometric telemetry (512D Vector Symbolic Architecture, discrete 8D Gosset $E_8$ root lattice quantization, and CORDIC Hopf phase rotations)**.
+**UOR-R4 Geometric Cognitive AI** is an in-browser artificial intelligence architecture that unites **pretrained neural weight substrates (Qwen 2.5 / Llama 3.2)** with **high-dimensional geometric telemetry (512D Vector Symbolic Architecture, discrete 8D Gosset $E_8$ root lattice quantization, and CORDIC Hopf phase rotations)**.
 
 Running **100% locally in the user's browser** via **WebGPU** and **WebAssembly (WASM)**, UOR-R4 delivers private, zero-latency inference with **zero server dependencies, zero GPU cloud costs, and zero data tracking**.
+
+> [!IMPORTANT]
+> ### 🧬 Architectural Clarification: UOR-R4 vs. Pretrained Weight Substrates
+> **UOR-R4 is a Geometric Cognitive Engine, not merely a standard Qwen wrapper.**
+> 
+> * **The Lexical Substrate**: Open transformer weight tensors (such as `Qwen2.5-1.5B-Instruct` or `Llama-3.2-1B-Instruct`) provide the foundational vocabulary embeddings, multi-head attention weights, and broad linguistic facts.
+> * **The Geometric Engine**: As token sequences are processed, their high-dimensional hidden states are continuously mapped into **UOR-R4's 512D Vector Symbolic Architecture (VSA)**, rotated via **CORDIC Hopf Euler angles $(\chi, \delta, \alpha)$**, and quantized into **discrete 8D Gosset $E_8$ root lattice coordinates**.
+> * **The Result**: A deterministic, explainable geometric state representation visualized in real-time on a 3D Synaptic Hologram while running 100% private and client-side on consumer hardware.
 
 ```mermaid
 flowchart LR
     subgraph Browser ["Client-Side Browser Environment (100% Local)"]
-        UserPrompt["User Prompt"] --> WebGPU["WebGPU Neural Transformer Core<br/>(Qwen2.5-1.5B / Llama-3.2)"]
+        UserPrompt["User Prompt"] --> WebGPU["WebGPU Neural Transformer Core<br/>(Qwen2.5-1.5B / Llama-3.2 Substrate)"]
         WebGPU --> TokenStream["Streaming Token Generation"]
         TokenStream --> Output["Obsidian Chat UI<br/>(Copyable Code Windows & Markdown)"]
         
@@ -51,8 +59,8 @@ flowchart LR
 ## 🌟 Key Features
 
 ### 🧠 1. Deep In-Browser Neural Intelligence
-* **Qwen2.5-1.5B Default Model**: State-of-the-art instruction-tuned reasoning model executing locally on client GPU hardware at 30–80+ tokens/second.
-* **Multi-Model Selector**: Switch on-the-fly between **Qwen2.5-1.5B** (deep reasoning), **Llama-3.2-1B** (Meta flagship), and **Qwen2.5-0.5B** (ultra-lightweight).
+* **Qwen2.5-1.5B Weight Substrate**: High-precision instruction-tuned reasoning model executing locally on client GPU hardware at 30–80+ tokens/second.
+* **Multi-Substrate Selector**: Switch on-the-fly between **Qwen2.5-1.5B** (deep reasoning), **Llama-3.2-1B** (Meta flagship), and **Qwen2.5-0.5B** (ultra-lightweight).
 * **IndexedDB Local Caching**: Model weights download once and cache locally in the browser's storage for instant sub-second startups on return visits.
 
 ### 🔮 2. Live 3D Synaptic Brain Hologram
@@ -124,7 +132,7 @@ Open **`http://localhost:8080`** in your WebGPU-enabled browser.
 
 ## 📊 Hardware Compatibility & Performance Matrix
 
-| Device / GPU | Model | Average Speed | Memory Footprint |
+| Device / GPU | Model Substrate | Average Speed | Memory Footprint |
 | :--- | :--- | :--- | :--- |
 | **Apple M1 / M2 / M3 / M4 (Metal WebGPU)** | Qwen2.5-1.5B (q4) | **45–85 tok/s** | ~850 MB VRAM |
 | **NVIDIA RTX 3060 / 4070 / 4090 (DirectX 12 / Vulkan)** | Qwen2.5-1.5B (q4) | **60–120+ tok/s** | ~850 MB VRAM |

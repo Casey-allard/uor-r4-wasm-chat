@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UOR-R4 Geometric AI | Qwen2.5-1.5B</title>
+    <title>UOR-R4 Geometric Cognitive AI</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -677,10 +677,10 @@
         <div class="sidebar-footer">
             <div class="model-pill-card">
                 <div class="model-pill-header">
-                    <span id="footerModelName">Qwen2.5-1.5B Geometric</span>
+                    <span id="footerModelName">UOR-R4 Geometric Core</span>
                     <span id="footerStatus" style="color: var(--accent-amber); font-size: 0.68rem;">● Initializing...</span>
                 </div>
-                <div class="model-pill-detail" id="footerModelDesc">1.5B Parameter Advanced Neural Weights</div>
+                <div class="model-pill-detail" id="footerModelDesc">Pretrained Neural Weights + E8 Gosset Manifold</div>
                 <div class="model-pill-detail">100% Private In-Browser WebGPU</div>
             </div>
         </div>
@@ -696,9 +696,9 @@
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg>
                 </button>
                 <select id="modelSelectorDropdown" class="model-dropdown-select" onchange="changeModel(this.value)">
-                    <option value="onnx-community/Qwen2.5-1.5B-Instruct" selected>Qwen 2.5 (1.5B - Deep Reasoning)</option>
-                    <option value="onnx-community/Llama-3.2-1B-Instruct">Llama 3.2 (1B - Meta)</option>
-                    <option value="onnx-community/Qwen2.5-0.5B-Instruct">Qwen 2.5 (0.5B - Fast)</option>
+                    <option value="onnx-community/Qwen2.5-1.5B-Instruct" selected>UOR-R4 (Qwen 1.5B Weights • Deep Reasoning)</option>
+                    <option value="onnx-community/Llama-3.2-1B-Instruct">UOR-R4 (Llama 1B Weights • Meta Substrate)</option>
+                    <option value="onnx-community/Qwen2.5-0.5B-Instruct">UOR-R4 (Qwen 0.5B Weights • Fast)</option>
                 </select>
                 <div id="modelBadge" class="model-status-indicator">
                     <span id="badgeDot">●</span>
@@ -728,12 +728,12 @@
                             <span id="welcomeMeta">⚡ Loading Engine</span>
                         </div>
                         <div>
-                            Hello! I am your <b>UOR-R4 Geometric Cognitive Agent</b> powered by the <b>Qwen2.5 neural model</b> and real-time <b>8D Gosset \(E_8\) lattice attention telemetry</b>. My reasoning executes 100% locally in your browser via WebGPU with zero server dependencies. Ask me any conceptual, philosophical, coding, historical, or scientific question!
+                            Hello! I am your <b>UOR-R4 Geometric Cognitive Agent</b>. While my lexical substrate utilizes open pretrained neural weight tensors (such as Qwen 2.5), my reasoning trajectories are dynamically projected through <b>512-dimensional Vector Symbolic Superposition</b>, <b>CORDIC Hopf phase rotations</b>, and discrete <b>8D Gosset \(E_8\) root lattice quantization</b> directly in your browser with zero server GPUs. Ask me any conceptual, philosophical, coding, historical, or scientific question!
                         </div>
                         
                         <div id="loaderCard" class="loading-progress-card">
                             <div style="display: flex; justify-content: space-between; font-size: 0.78rem; font-weight: 500;">
-                                <span id="loadTitle">Downloading Neural Weights...</span>
+                                <span id="loadTitle">Downloading Neural Weight Substrate...</span>
                                 <span id="loadPercent" style="font-family: 'Fira Code', monospace; color: var(--accent-cyan);">0%</span>
                             </div>
                             <div class="progress-bar-container">
@@ -753,13 +753,13 @@
         <!-- FLOATING INPUT CAPSULE -->
         <div class="input-floating-wrapper">
             <div class="input-capsule">
-                <input type="text" id="chatInput" class="chat-input" placeholder="Initializing Engine... Please wait..." disabled onkeydown="if(event.key==='Enter') sendChat()">
+                <input type="text" id="chatInput" class="chat-input" placeholder="Initializing UOR-R4 Engine... Please wait..." disabled onkeydown="if(event.key==='Enter') sendChat()">
                 <button id="sendBtn" class="send-btn-circle" onclick="sendChat()" title="Send Message" disabled>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
                 </button>
             </div>
             <div class="input-disclaimer">
-                Runs 100% locally in-browser with zero server GPUs. 8D Gosset E8 telemetry visualized live.
+                UOR-R4 Geometric Cognitive Engine running 100% locally via WebGPU. Pretrained weightsets (Qwen/Llama) serve as the lexical base for UOR-R4 geometric projection.
             </div>
         </div>
 
@@ -900,7 +900,7 @@
                             <span>⚡ Ready</span>
                         </div>
                         <div>
-                            Hello! I am your <b>UOR-R4 Geometric Cognitive Agent</b> powered by the <b>Qwen2.5 neural model</b> and real-time <b>8D Gosset \(E_8\) lattice attention telemetry</b>. My reasoning executes 100% locally in your browser via WebGPU with zero server dependencies. Ask me any conceptual, philosophical, coding, historical, or scientific question!
+                            Hello! I am your <b>UOR-R4 Geometric Cognitive Agent</b>. While my lexical substrate utilizes open pretrained neural weight tensors (such as Qwen 2.5), my reasoning trajectories are dynamically projected through <b>512-dimensional Vector Symbolic Superposition</b>, <b>CORDIC Hopf phase rotations</b>, and discrete <b>8D Gosset \(E_8\) root lattice quantization</b> directly in your browser with zero server GPUs. Ask me any conceptual, philosophical, coding, historical, or scientific question!
                         </div>
                     </div>
                 </div>
@@ -977,7 +977,7 @@
 
             chatInput.disabled = true;
             sendBtn.disabled = true;
-            chatInput.placeholder = 'Downloading Neural Model... Please wait...';
+            chatInput.placeholder = 'Downloading Neural Weight Substrate... Please wait...';
 
             badge.classList.remove('ready');
             badgeText.innerText = 'Loading...';
@@ -1018,19 +1018,19 @@
                 footerStatus.innerText = `● ${device.toUpperCase()} Ready`;
                 footerStatus.style.color = 'var(--accent-emerald)';
                 if(welcomeMeta) welcomeMeta.innerText = `⚡ ${device.toUpperCase()} Online`;
-                if(footerModelName) footerModelName.innerText = modelId.split('/')[1] || modelId;
+                if(footerModelName) footerModelName.innerText = `UOR-R4 (${(modelId.split('/')[1] || modelId).replace('-Instruct', '')})`;
                 if(loaderCard) loaderCard.style.display = 'none';
 
                 chatInput.disabled = false;
                 sendBtn.disabled = false;
-                chatInput.placeholder = 'Message UOR-R4 AI...';
+                chatInput.placeholder = 'Message UOR-R4 Geometric AI...';
                 chatInput.focus();
 
                 console.log(`${modelId} loaded successfully on ${device}.`);
             } catch(err) {
                 console.error(`Error loading ${modelId}:`, err);
                 if(modelId !== 'onnx-community/Qwen2.5-0.5B-Instruct') {
-                    console.log("Falling back to ultra-stable Qwen2.5-0.5B...");
+                    console.log("Falling back to ultra-stable Qwen2.5-0.5B substrate...");
                     await loadNeuralModel('onnx-community/Qwen2.5-0.5B-Instruct');
                 } else {
                     badge.classList.add('ready');
@@ -1061,7 +1061,7 @@
                 console.warn("WASM Telemetry initialized:", err);
             }
 
-            // 2. Initialize Default Neural Model (Qwen2.5-1.5B)
+            // 2. Initialize Default Neural Model Substrate (Qwen2.5-1.5B)
             await loadNeuralModel(currentModelId);
         }
 
@@ -1100,7 +1100,7 @@
             if(generator) {
                 try {
                     const messages = [
-                        { role: 'system', content: 'You are UOR-R4, an intelligent, factual, and helpful AI assistant. Answer questions accurately, concisely, and naturally. Only write code when the user explicitly asks for code or programming solutions. For historical, scientific, or conceptual questions, provide accurate factual knowledge.' },
+                        { role: 'system', content: 'You are UOR-R4, a geometric cognitive AI reasoning agent. You utilize pretrained neural weight tensors as your linguistic foundation while your reasoning trajectories are anchored by high-dimensional geometric manifold telemetry. Answer questions accurately, concisely, and naturally. Only write code when explicitly requested.' },
                         ...chatHistory.slice(-6)
                     ];
 

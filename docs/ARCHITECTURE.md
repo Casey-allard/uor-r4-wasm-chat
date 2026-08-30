@@ -4,12 +4,17 @@ This document details the architectural design, data pipelines, and hardware exe
 
 ---
 
-## 1. High-Level Architectural Pipeline
+## 🧬 Architectural Definition: UOR-R4 vs. Weight Substrates
 
-The UOR-R4 platform operates across three interconnected layers:
-1. **The WebGPU Neural Core**: Executes quantized transformer weights on the user's local GPU using WebGPU compute pipelines and ONNX runtime shaders.
-2. **The Geometric State Engine (Rust/WASM)**: A high-performance WebAssembly module that binds tokens into 512D Vector Symbolic representations, applies CORDIC Hopf phase rotations, and quantizes activations into 8D Gosset $E_8$ lattices.
-3. **The 3D Holographic Rendering Engine**: A GPU-accelerated HTML5 Canvas / WebGL visualization layer rendering dynamic synaptic nodes, engram connections, pulse shockwaves, and live waveform telemetry.
+**UOR-R4 is a Geometric Cognitive Engine, not merely a standard LLM wrapper.**
+
+Modern large language models operate on high-dimensional vector spaces, but their internal state transitions remain opaque, continuous, and computationally isolated inside closed server farms. UOR-R4 introduces an explicit, deterministic **geometric state representation and telemetry framework**:
+
+1. **Pretrained Neural Weight Substrate (Qwen 2.5 / Llama 3.2)**: Provides foundational lexical token embeddings, pre-trained multi-head self-attention projections, and extensive factual knowledge.
+2. **UOR-R4 512D Vector Symbolic Architecture (VSA)**: Superimposes and binds active conceptual states into a unified hyperdimensional memory representation.
+3. **CORDIC Hopf Phase Engine**: Rotates active semantic states on the 3-sphere $S^3$ using fixed-point CORDIC shift-and-add arithmetic, extracting continuous Euler phase angles $(\chi, \delta, \alpha)$.
+4. **Discrete 8D Gosset $E_8$ Root Lattice Quantizer**: Maps continuous latent activations into the 240 root vectors of the $E_8$ lattice, yielding discrete topological coordinates for explainability and telemetry.
+5. **3D Holographic Synaptic Brain Visualizer**: Projects the real-time geometric and phase trajectories into a live interactive WebGL/Canvas neural manifold.
 
 ```
 +-------------------------------------------------------------------------+
@@ -23,7 +28,7 @@ The UOR-R4 platform operates across three interconnected layers:
 |              v                                        | Phase / Lattice |
 |  +-----------------------+     Hidden States          | Telemetry       |
 |  |  WebGPU NEURAL CORE   | --------------------+      |                 |
-|  | (Qwen2.5-1.5B / Llama)|                     |      |                 |
+|  | (Qwen2.5 / Llama Sub) |                     |      |                 |
 |  +-----------+-----------+                     |      |                 |
 |              | Generated Tokens                v      |                 |
 |              |                          +-------------+--------------+  |
