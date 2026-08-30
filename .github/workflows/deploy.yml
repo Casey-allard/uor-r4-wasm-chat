@@ -61,14 +61,11 @@ jobs:
         run: wasm-pack build --target web --release --out-dir pkg
 
       - name: Package Dashboard Bundle
-        # Consolidates index.html, pkg/, scripts, and assets/ into a clean distribution workspace
+        # Consolidates index.html, pkg/, and assets/ into a clean distribution workspace
         run: |
           mkdir -p dist
           cp index.html dist/
           cp coi-serviceworker.js dist/ 2>/dev/null || true
-          cp install_uor_protocol.command dist/ 2>/dev/null || true
-          cp start_mcp.command dist/ 2>/dev/null || true
-          cp mcp_bridge.js dist/ 2>/dev/null || true
           cp -r pkg dist/
           cp -r assets dist/ 2>/dev/null || true
 
