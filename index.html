@@ -1090,6 +1090,429 @@
             transform: translateY(0);
             opacity: 1;
         }
+        /* MCP SIDEBAR & TOP BADGES */
+        .sidebar-mcp-box {
+            margin: 0.6rem 0.85rem 0.4rem 0.85rem;
+            padding: 0.55rem 0.75rem;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+            transition: all 0.15s ease;
+        }
+
+        .sidebar-mcp-box:hover {
+            border-color: rgba(0, 243, 255, 0.3);
+            background: rgba(0, 243, 255, 0.04);
+        }
+
+        .sidebar-mcp-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+        }
+
+        .sidebar-mcp-title {
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+            font-size: 0.76rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            font-family: 'Fira Code', monospace;
+        }
+
+        .mcp-status-dot {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            transition: color 0.2s ease;
+        }
+
+        .mcp-status-dot.connected {
+            color: var(--accent-emerald);
+            text-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+        }
+
+        .mcp-config-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 0.2rem;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s ease;
+        }
+
+        .mcp-config-btn:hover {
+            color: var(--accent-cyan);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .top-mcp-badge {
+            font-size: 0.74rem;
+            padding: 0.3rem 0.65rem;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-subtle);
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+            font-family: 'Fira Code', monospace;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .top-mcp-badge.connected {
+            background: rgba(16, 185, 129, 0.12);
+            color: var(--accent-emerald);
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+
+        .top-mcp-badge:hover {
+            border-color: var(--accent-cyan);
+            color: var(--accent-cyan);
+        }
+
+        /* MCP MODAL STYLES */
+        .modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(8px);
+            z-index: 150;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+        }
+
+        .modal-backdrop.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-card {
+            width: 100%;
+            max-width: 680px;
+            max-height: 85vh;
+            background: #141414;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
+            overflow: hidden;
+            transform: scale(0.95);
+            transition: transform 0.2s ease;
+        }
+
+        .modal-backdrop.show .modal-card {
+            transform: scale(1);
+        }
+
+        .modal-header {
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid var(--border-subtle);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #181818;
+        }
+
+        .modal-title {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .modal-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .mcp-section {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+        }
+
+        .mcp-section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .mcp-section-icon {
+            font-size: 1.1rem;
+        }
+
+        .mcp-conn-pill {
+            font-size: 0.68rem;
+            font-family: 'Fira Code', monospace;
+            padding: 0.2rem 0.5rem;
+            border-radius: 9999px;
+            background: rgba(255, 255, 255, 0.06);
+            color: var(--text-muted);
+        }
+
+        .mcp-conn-pill.connected {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--accent-emerald);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .mcp-input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+        }
+
+        .mcp-input-group label {
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .mcp-input {
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 0.45rem 0.65rem;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.82rem;
+            color: var(--text-primary);
+            outline: none;
+            width: 100%;
+        }
+
+        .mcp-input:focus {
+            border-color: var(--accent-cyan);
+        }
+
+        .mcp-code-hint {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            font-family: 'Fira Code', monospace;
+        }
+
+        .mcp-code-hint code {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--accent-cyan);
+            padding: 0.15rem 0.45rem;
+            border-radius: 4px;
+        }
+
+        .mcp-tools-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .mcp-tool-item {
+            background: rgba(0, 0, 0, 0.25);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-sm);
+            padding: 0.45rem 0.65rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+        }
+
+        .mcp-tool-item-name {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--accent-cyan);
+        }
+
+        .mcp-tool-item-desc {
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+        }
+
+        /* TOOL CALL INTERACTIVE CHAT CARDS */
+        .tool-call-card {
+            background: #181818;
+            border: 1px solid var(--border);
+            border-left: 3px solid var(--accent-cyan);
+            border-radius: var(--radius-md);
+            margin: 0.75rem 0;
+            padding: 0.75rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+        }
+
+        .tool-call-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .tool-call-meta {
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .tool-call-meta .tool-icon {
+            color: #fbbf24;
+        }
+
+        .tool-status-badge {
+            font-size: 0.68rem;
+            font-family: 'Fira Code', monospace;
+            padding: 0.15rem 0.45rem;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+
+        .tool-status-badge.pending {
+            background: rgba(251, 191, 36, 0.15);
+            color: #fbbf24;
+            border: 1px solid rgba(251, 191, 36, 0.3);
+        }
+
+        .tool-status-badge.running {
+            background: rgba(0, 243, 255, 0.15);
+            color: var(--accent-cyan);
+            border: 1px solid rgba(0, 243, 255, 0.3);
+            animation: pulse-badge 1s infinite alternate;
+        }
+
+        @keyframes pulse-badge {
+            0% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+
+        .tool-status-badge.success {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--accent-emerald);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .tool-status-badge.error {
+            background: rgba(239, 68, 68, 0.15);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .tool-call-args {
+            background: rgba(0, 0, 0, 0.35);
+            border-radius: 4px;
+            padding: 0.4rem 0.6rem;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.75rem;
+            color: #94a3b8;
+            overflow-x: auto;
+        }
+
+        .tool-call-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.25rem;
+        }
+
+        .tool-approve-btn {
+            background: var(--accent-cyan);
+            color: #000;
+            border: none;
+            border-radius: var(--radius-sm);
+            padding: 0.3rem 0.85rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.15s ease;
+        }
+
+        .tool-approve-btn:hover {
+            opacity: 0.9;
+        }
+
+        .tool-reject-btn {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-sm);
+            padding: 0.3rem 0.75rem;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .tool-reject-btn:hover {
+            background: rgba(239, 68, 68, 0.15);
+            color: #ef4444;
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+
+        .tool-call-result details {
+            margin-top: 0.35rem;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .tool-call-result summary {
+            cursor: pointer;
+            user-select: none;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .tool-call-result summary:hover {
+            color: var(--accent-cyan);
+        }
+
+        .tool-call-result pre {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 4px;
+            padding: 0.5rem;
+            margin-top: 0.35rem;
+            max-height: 180px;
+            overflow-y: auto;
+            font-family: 'Fira Code', monospace;
+            color: #cbd5e1;
+            font-size: 0.72rem;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
     </style>
 </head>
 <body>
@@ -1206,6 +1629,22 @@
 
         </div>
 
+        <!-- MCP STATUS & TOOLS BUTTON -->
+        <div class="sidebar-mcp-box">
+            <div class="sidebar-mcp-header" onclick="openMcpModal()">
+                <div class="sidebar-mcp-title">
+                    <span class="mcp-status-dot" id="sidebarMcpDot">○</span>
+                    <span id="sidebarMcpLabel">MCP Bridge: Offline</span>
+                </div>
+                <button class="mcp-config-btn" title="Configure MCP Tools">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                </button>
+            </div>
+            <div style="font-size: 0.68rem; color: var(--text-muted);">
+                Local PC Filesystem, Terminal & GitHub
+            </div>
+        </div>
+
         <div class="sidebar-footer">
             <div style="display: flex; justify-content: space-between; font-family: 'Fira Code', monospace;">
                 <span>Offline Storage:</span>
@@ -1233,6 +1672,11 @@
                 <div id="modelBadge" class="model-status-indicator">
                     <span id="badgeDot">●</span>
                     <span id="badgeText">No Substrate Loaded</span>
+                </div>
+
+                <div id="topMcpBadge" class="top-mcp-badge" onclick="openMcpModal()" title="Click to configure Model Context Protocol (MCP) tools">
+                    <span id="topMcpDot">○</span>
+                    <span id="topMcpText">MCP Offline</span>
                 </div>
             </div>
 
@@ -1349,6 +1793,101 @@
         </div>
     </aside>
 
+    <!-- MCP CONFIGURATION MODAL -->
+    <div class="modal-backdrop" id="mcpModalBackdrop" onclick="if(event.target===this) closeMcpModal()">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-cyan)" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path></svg>
+                    <span>Model Context Protocol (MCP) Hub</span>
+                </div>
+                <button class="icon-btn" onclick="closeMcpModal()" title="Close">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <!-- SECTION 1: LOCAL PC BRIDGE -->
+                <div class="mcp-section">
+                    <div class="mcp-section-header">
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <span class="mcp-section-icon">💻</span>
+                            <span style="font-weight: 600; font-size: 0.9rem;">Local PC Workspace Bridge</span>
+                        </div>
+                        <span class="mcp-conn-pill" id="mcpLocalPill">Disconnected</span>
+                    </div>
+                    <p style="font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 0.6rem;">
+                        Allows in-browser AI to read/write local project files, execute terminal commands, and inspect git diffs.
+                    </p>
+                    <div class="mcp-input-group">
+                        <label>Bridge WebSocket Endpoint</label>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <input type="text" id="mcpWsUrl" class="mcp-input" value="ws://127.0.0.1:3000">
+                            <button class="compile-btn" id="btnConnectMcp" onclick="toggleMcpConnection()" style="width: auto; padding: 0 1rem; font-size: 0.78rem;">
+                                Connect
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mcp-code-hint" style="margin-top: 0.4rem;">
+                        <span>Terminal Command:</span>
+                        <code>node mcp_bridge.js</code>
+                    </div>
+                </div>
+
+                <!-- SECTION 2: GITHUB INTEGRATION -->
+                <div class="mcp-section">
+                    <div class="mcp-section-header">
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <span class="mcp-section-icon">🐙</span>
+                            <span style="font-weight: 600; font-size: 0.9rem;">GitHub Integration</span>
+                        </div>
+                        <span class="mcp-conn-pill" id="mcpGithubPill">Ready</span>
+                    </div>
+                    <p style="font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 0.6rem;">
+                        Enables inspecting repository files, creating commits, opening issues, and submitting Pull Requests.
+                    </p>
+                    <div class="mcp-input-group">
+                        <label>GitHub Personal Access Token (Optional, stored locally)</label>
+                        <input type="password" id="mcpGithubToken" class="mcp-input" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" onchange="saveMcpSettings()">
+                    </div>
+                </div>
+
+                <!-- SECTION 3: PERMISSION SETTINGS -->
+                <div class="mcp-section">
+                    <div class="mcp-section-header">
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <span class="mcp-section-icon">🛡️</span>
+                            <span style="font-weight: 600; font-size: 0.9rem;">Agent Execution Permissions</span>
+                        </div>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.8rem; color: var(--text-secondary);">
+                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                            <input type="checkbox" id="mcpAutoApproveRead" checked onchange="saveMcpSettings()">
+                            <span>Auto-approve read tools (<code>read_file</code>, <code>list_directory</code>, <code>git_status</code>, <code>github_get_file</code>)</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                            <input type="checkbox" id="mcpAutoApproveWrite" onchange="saveMcpSettings()">
+                            <span>Auto-approve write & execute tools (<code>write_file</code>, <code>execute_command</code>, <code>github_create_pull_request</code>)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- SECTION 4: ACTIVE TOOL REGISTRY -->
+                <div class="mcp-section">
+                    <div class="mcp-section-header">
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <span class="mcp-section-icon">🛠️</span>
+                            <span style="font-weight: 600; font-size: 0.9rem;">Discovered Tools (<span id="mcpToolCount">0</span>)</span>
+                        </div>
+                    </div>
+                    <div class="mcp-tools-list" id="mcpToolsList">
+                        <div style="font-size: 0.76rem; color: var(--text-muted);">Connect to bridge to view active MCP tools.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- TRANSFORMERS.JS & UOR-R4 WASM GEOMETRIC INTEGRATION -->
     <script type="module">
         import { pipeline, env, TextStreamer } from 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.3.3';
@@ -1463,6 +2002,237 @@
             } catch(e) {
                 console.warn("Storage load error:", e);
             }
+        }
+
+        // --- MODEL CONTEXT PROTOCOL (MCP) CLIENT & TOOL REGISTRY ---
+        let mcpSocket = null;
+        let mcpConnected = false;
+        let mcpTools = [];
+        let mcpPendingRequests = new Map();
+        let mcpRequestId = 1;
+
+        let mcpSettings = {
+            wsUrl: 'ws://127.0.0.1:3000',
+            githubToken: '',
+            autoApproveRead: true,
+            autoApproveWrite: false
+        };
+
+        window.openMcpModal = function() {
+            const modal = document.getElementById('mcpModalBackdrop');
+            if (modal) modal.classList.add('show');
+            refreshMcpUi();
+        };
+
+        window.closeMcpModal = function() {
+            const modal = document.getElementById('mcpModalBackdrop');
+            if (modal) modal.classList.remove('show');
+        };
+
+        window.saveMcpSettings = function() {
+            const wsInput = document.getElementById('mcpWsUrl');
+            const tokenInput = document.getElementById('mcpGithubToken');
+            const readInput = document.getElementById('mcpAutoApproveRead');
+            const writeInput = document.getElementById('mcpAutoApproveWrite');
+
+            if (wsInput) mcpSettings.wsUrl = wsInput.value.trim() || 'ws://127.0.0.1:3000';
+            if (tokenInput) mcpSettings.githubToken = tokenInput.value.trim();
+            if (readInput) mcpSettings.autoApproveRead = readInput.checked;
+            if (writeInput) mcpSettings.autoApproveWrite = writeInput.checked;
+
+            try {
+                localStorage.setItem('uor_mcp_settings_v1', JSON.stringify(mcpSettings));
+            } catch(e){}
+            refreshMcpUi();
+        };
+
+        function loadMcpSettings() {
+            try {
+                const saved = localStorage.getItem('uor_mcp_settings_v1');
+                if (saved) {
+                    mcpSettings = { ...mcpSettings, ...JSON.parse(saved) };
+                }
+            } catch(e){}
+
+            const wsInput = document.getElementById('mcpWsUrl');
+            const tokenInput = document.getElementById('mcpGithubToken');
+            const readInput = document.getElementById('mcpAutoApproveRead');
+            const writeInput = document.getElementById('mcpAutoApproveWrite');
+
+            if (wsInput) wsInput.value = mcpSettings.wsUrl;
+            if (tokenInput) tokenInput.value = mcpSettings.githubToken;
+            if (readInput) readInput.checked = mcpSettings.autoApproveRead;
+            if (writeInput) writeInput.checked = mcpSettings.autoApproveWrite;
+
+            refreshMcpUi();
+        }
+
+        window.toggleMcpConnection = function() {
+            if (mcpConnected) {
+                disconnectMcp();
+            } else {
+                connectMcp();
+            }
+        };
+
+        function connectMcp(silent = false) {
+            const wsUrl = mcpSettings.wsUrl || 'ws://127.0.0.1:3000';
+            const btn = document.getElementById('btnConnectMcp');
+            if (btn) btn.innerText = 'Connecting...';
+
+            try {
+                if (mcpSocket) {
+                    mcpSocket.close();
+                    mcpSocket = null;
+                }
+
+                mcpSocket = new WebSocket(wsUrl);
+
+                mcpSocket.onopen = async () => {
+                    mcpConnected = true;
+                    refreshMcpUi();
+                    if (!silent) showToast('⚡ Connected to local MCP Bridge!');
+                    
+                    // Initialize handshake
+                    try {
+                        await sendMcpJsonRpc('initialize', { protocolVersion: '2024-11-05', capabilities: {} });
+                        const listRes = await sendMcpJsonRpc('tools/list', {});
+                        if (listRes && listRes.tools) {
+                            mcpTools = listRes.tools;
+                            renderMcpToolsList();
+                        }
+                    } catch(err) {
+                        console.warn("MCP Init error:", err);
+                    }
+                    refreshMcpUi();
+                };
+
+                mcpSocket.onmessage = (event) => {
+                    try {
+                        const data = JSON.parse(event.data);
+                        if (data.id && mcpPendingRequests.has(data.id)) {
+                            const { resolve, reject } = mcpPendingRequests.get(data.id);
+                            mcpPendingRequests.delete(data.id);
+                            if (data.error) {
+                                reject(new Error(data.error.message || 'MCP Error'));
+                            } else {
+                                resolve(data.result);
+                            }
+                        }
+                    } catch(err) {
+                        console.error("WS Parse error:", err);
+                    }
+                };
+
+                mcpSocket.onclose = () => {
+                    mcpConnected = false;
+                    mcpSocket = null;
+                    refreshMcpUi();
+                };
+
+                mcpSocket.onerror = (err) => {
+                    if (!silent) console.warn("MCP WS Connection error:", err);
+                    mcpConnected = false;
+                    refreshMcpUi();
+                };
+
+            } catch(e) {
+                if (!silent) console.error("Connect failed:", e);
+                mcpConnected = false;
+                refreshMcpUi();
+            }
+        }
+
+        function disconnectMcp() {
+            if (mcpSocket) {
+                mcpSocket.close();
+                mcpSocket = null;
+            }
+            mcpConnected = false;
+            refreshMcpUi();
+            showToast('Disconnected from MCP Bridge');
+        }
+
+        function sendMcpJsonRpc(method, params = {}) {
+            return new Promise((resolve, reject) => {
+                if (!mcpSocket || mcpSocket.readyState !== WebSocket.OPEN) {
+                    return reject(new Error("MCP WebSocket not connected."));
+                }
+                const id = mcpRequestId++;
+                const payload = {
+                    jsonrpc: '2.0',
+                    id,
+                    method,
+                    params: {
+                        ...params,
+                        githubToken: mcpSettings.githubToken || ''
+                    }
+                };
+                mcpPendingRequests.set(id, { resolve, reject });
+                mcpSocket.send(JSON.stringify(payload));
+
+                // 35s timeout
+                setTimeout(() => {
+                    if (mcpPendingRequests.has(id)) {
+                        mcpPendingRequests.delete(id);
+                        reject(new Error(`MCP Request timed out for ${method}`));
+                    }
+                }, 35000);
+            });
+        }
+
+        function refreshMcpUi() {
+            const sideDot = document.getElementById('sidebarMcpDot');
+            const sideLabel = document.getElementById('sidebarMcpLabel');
+            const topBadge = document.getElementById('topMcpBadge');
+            const topDot = document.getElementById('topMcpDot');
+            const topText = document.getElementById('topMcpText');
+            const localPill = document.getElementById('mcpLocalPill');
+            const btnConnect = document.getElementById('btnConnectMcp');
+            const countEl = document.getElementById('mcpToolCount');
+
+            if (mcpConnected) {
+                if (sideDot) { sideDot.innerText = '●'; sideDot.classList.add('connected'); }
+                if (sideLabel) sideLabel.innerText = `MCP: ${mcpTools.length} Tools`;
+                if (topBadge) topBadge.classList.add('connected');
+                if (topDot) topDot.innerText = '●';
+                if (topText) topText.innerText = `MCP (${mcpTools.length} Tools)`;
+                if (localPill) { localPill.innerText = 'Connected'; localPill.classList.add('connected'); }
+                if (btnConnect) { btnConnect.innerText = 'Disconnect'; btnConnect.style.background = 'rgba(239, 68, 68, 0.2)'; btnConnect.style.color = '#ef4444'; }
+            } else {
+                if (sideDot) { sideDot.innerText = '○'; sideDot.classList.remove('connected'); }
+                if (sideLabel) sideLabel.innerText = 'MCP: Offline';
+                if (topBadge) topBadge.classList.remove('connected');
+                if (topDot) topDot.innerText = '○';
+                if (topText) topText.innerText = 'MCP Offline';
+                if (localPill) { localPill.innerText = 'Disconnected'; localPill.classList.remove('connected'); }
+                if (btnConnect) { btnConnect.innerText = 'Connect'; btnConnect.style.background = ''; btnConnect.style.color = ''; }
+            }
+
+            if (countEl) countEl.innerText = mcpTools.length;
+        }
+
+        function renderMcpToolsList() {
+            const container = document.getElementById('mcpToolsList');
+            if (!container) return;
+
+            if (mcpTools.length === 0) {
+                container.innerHTML = '<div style="font-size: 0.76rem; color: var(--text-muted);">No tools discovered yet.</div>';
+                return;
+            }
+
+            container.innerHTML = mcpTools.map(tool => {
+                const params = tool.inputSchema && tool.inputSchema.properties 
+                    ? Object.keys(tool.inputSchema.properties).map(k => `${k}${tool.inputSchema.required?.includes(k)?'*':''}`).join(', ')
+                    : 'none';
+
+                return `
+                    <div class="mcp-tool-item">
+                        <div class="mcp-tool-item-name">⚡ ${escapeHtml(tool.name)} (${escapeHtml(params)})</div>
+                        <div class="mcp-tool-item-desc">${escapeHtml(tool.description)}</div>
+                    </div>
+                `;
+            }).join('');
         }
 
         function renderConversationsList() {
@@ -2156,8 +2926,8 @@
             isGenerating = true;
             sendBtn.disabled = true;
 
-            const aiRow = createAiMessageElement();
-            const contentDiv = aiRow.querySelector('.ai-text');
+            let aiRow = createAiMessageElement();
+            let contentDiv = aiRow.querySelector('.ai-text');
             contentDiv.classList.add('typing-cursor');
 
             const userMsg = { 
@@ -2184,90 +2954,241 @@
                 }
             }
 
-            let fullResponse = "";
-            let generatedTokenCount = 0;
-            const genStartTime = performance.now();
-            let firstTokenTime = null;
+            async function runAgenticInference(recursionCount = 0) {
+                let fullResponse = "";
+                let generatedTokenCount = 0;
+                const genStartTime = performance.now();
+                let firstTokenTime = null;
 
-            updateSpeedMeter(null, true);
+                updateSpeedMeter(null, true);
 
-            try {
-                const activeConfig = MODEL_INFO[activeModelId] || MODEL_INFO['qwen2.5-0.5b'];
-                const messages = [
-                    { role: 'system', content: activeConfig.sysPrompt },
-                    ...chatHistory.slice(-4).map(m => ({ role: m.role, content: m.content }))
-                ];
+                try {
+                    const activeConfig = MODEL_INFO[activeModelId] || MODEL_INFO['qwen2.5-0.5b'];
+                    let systemPrompt = activeConfig.sysPrompt;
 
-                const streamer = new TextStreamer(generator.tokenizer, {
-                    skip_prompt: true,
-                    callback_function: (chunk) => {
-                        fullResponse += chunk;
-                        generatedTokenCount++;
+                    if (mcpConnected && mcpTools.length > 0) {
+                        systemPrompt += `\n\n# MODEL CONTEXT PROTOCOL (MCP) TOOLS AVAILABLE:\nYou have real-time access to tools on the local PC and GitHub:\n` +
+                            mcpTools.map(t => `<tool_def>\n${JSON.stringify(t, null, 2)}\n</tool_def>`).join('\n') +
+                            `\n\nTo invoke a tool, output ONLY a <tool_call> block formatted as valid JSON:\n<tool_call>\n{"name": "tool_name", "arguments": {"param": "value"}}\n</tool_call>\n\nWhen a <tool_response> is provided, analyze the result to answer the user's prompt or continue multi-step execution.`;
+                    }
 
-                        const now = performance.now();
-                        if (!firstTokenTime) firstTokenTime = now;
-                        const elapsedSec = (now - genStartTime) / 1000;
-                        if (elapsedSec > 0.05) {
-                            const liveTps = (generatedTokenCount / elapsedSec).toFixed(1);
-                            updateSpeedMeter(liveTps, true);
+                    const messages = [
+                        { role: 'system', content: systemPrompt },
+                        ...chatHistory.slice(-8).map(m => ({ role: m.role, content: m.content }))
+                    ];
+
+                    const streamer = new TextStreamer(generator.tokenizer, {
+                        skip_prompt: true,
+                        callback_function: (chunk) => {
+                            fullResponse += chunk;
+                            generatedTokenCount++;
+
+                            const now = performance.now();
+                            if (!firstTokenTime) firstTokenTime = now;
+                            const elapsedSec = (now - genStartTime) / 1000;
+                            if (elapsedSec > 0.05) {
+                                const liveTps = (generatedTokenCount / elapsedSec).toFixed(1);
+                                updateSpeedMeter(liveTps, true);
+                            }
+
+                            renderRichMarkdown(contentDiv, fullResponse);
+                            scrollDown();
+
+                            if(dynamicSession && chunk.trim().length > 1) {
+                                try {
+                                    const tRes = JSON.parse(dynamicSession.process_input_dynamic(chunk, 1));
+                                    updateTelemetry(tRes.snapped, tRes.chi, tRes.delta, tRes.alpha, tRes.winner);
+                                } catch(e){}
+                            }
                         }
+                    });
 
-                        renderRichMarkdown(contentDiv, fullResponse);
+                    await generator(messages, {
+                        max_new_tokens: 512,
+                        do_sample: false,
+                        streamer: streamer
+                    });
+
+                } catch(err) {
+                    console.error("Generation error:", err);
+                    contentDiv.innerText = "Generation error: " + (err.message || String(err));
+                }
+
+                const totalDurationSec = (performance.now() - genStartTime) / 1000;
+                let avgTps = '0.0';
+                if (totalDurationSec > 0 && generatedTokenCount > 0) {
+                    avgTps = (generatedTokenCount / totalDurationSec).toFixed(1);
+                }
+                updateSpeedMeter(avgTps, false);
+                try {
+                    localStorage.setItem('uor_last_tps', avgTps);
+                } catch(e){}
+
+                const speedBadge = aiRow.querySelector('.ai-meta-speed');
+                if (speedBadge && parseFloat(avgTps) > 0) {
+                    speedBadge.style.display = 'inline';
+                    speedBadge.innerText = `• ⚡ ${avgTps} tok/s (${generatedTokenCount} tok in ${totalDurationSec.toFixed(1)}s)`;
+                }
+
+                // Check for Tool Call in output
+                const toolCallMatch = fullResponse.match(/<tool_call>\s*([\s\S]*?)\s*<\/tool_call>/i);
+                if (toolCallMatch && recursionCount < 4 && mcpConnected) {
+                    let toolCallObj = null;
+                    try {
+                        toolCallObj = JSON.parse(toolCallMatch[1]);
+                    } catch(e) {
+                        try {
+                            const cleaned = toolCallMatch[1].replace(/^[^{\[]*/, '').replace(/[^}\]]*$/, '');
+                            toolCallObj = JSON.parse(cleaned);
+                        } catch(e2){}
+                    }
+
+                    if (toolCallObj && toolCallObj.name) {
+                        const toolName = toolCallObj.name;
+                        const toolArgs = toolCallObj.arguments || {};
+                        const isRead = ['read_file', 'list_directory', 'git_status', 'git_diff', 'github_get_file', 'github_list_issues'].includes(toolName);
+                        const autoRun = isRead ? mcpSettings.autoApproveRead : mcpSettings.autoApproveWrite;
+
+                        const cardId = 'toolCard_' + Date.now();
+                        const toolCardHtml = `
+                            <div class="tool-call-card" id="${cardId}">
+                                <div class="tool-call-header">
+                                    <div class="tool-call-meta">
+                                        <span class="tool-icon">⚡</span>
+                                        <span class="tool-name">${escapeHtml(toolName)}</span>
+                                    </div>
+                                    <span class="tool-status-badge ${autoRun ? 'running' : 'pending'}" id="${cardId}_badge">
+                                        ${autoRun ? 'Executing...' : 'Approval Required'}
+                                    </span>
+                                </div>
+                                <div class="tool-call-args">
+                                    <code>${escapeHtml(JSON.stringify(toolArgs, null, 2))}</code>
+                                </div>
+                                ${!autoRun ? `
+                                    <div class="tool-call-actions" id="${cardId}_actions">
+                                        <button class="tool-approve-btn" id="${cardId}_btnApprove">⚡ Approve & Execute</button>
+                                        <button class="tool-reject-btn" id="${cardId}_btnReject">Reject</button>
+                                    </div>
+                                ` : ''}
+                                <div class="tool-call-result" id="${cardId}_result" style="display:none;">
+                                    <details open>
+                                        <summary>Tool Output</summary>
+                                        <pre><code id="${cardId}_out"></code></pre>
+                                    </details>
+                                </div>
+                            </div>
+                        `;
+
+                        // Remove <tool_call> raw tag from display and append card
+                        const cleanedResponse = fullResponse.replace(/<tool_call>[\s\S]*?<\/tool_call>/gi, '').trim();
+                        contentDiv.innerHTML = '';
+                        if (cleanedResponse) {
+                            renderRichMarkdown(contentDiv, cleanedResponse);
+                        }
+                        const cardWrapper = document.createElement('div');
+                        cardWrapper.innerHTML = toolCardHtml;
+                        contentDiv.appendChild(cardWrapper);
+                        contentDiv.classList.remove('typing-cursor');
                         scrollDown();
 
-                        if(dynamicSession && chunk.trim().length > 1) {
+                        async function executeAndProceed(approved = true) {
+                            const badge = document.getElementById(`${cardId}_badge`);
+                            const actions = document.getElementById(`${cardId}_actions`);
+                            const resBox = document.getElementById(`${cardId}_result`);
+                            const outCode = document.getElementById(`${cardId}_out`);
+
+                            if (actions) actions.style.display = 'none';
+
+                            if (!approved) {
+                                if (badge) { badge.className = 'tool-status-badge error'; badge.innerText = 'Rejected by User'; }
+                                const rejectMsg = `Tool execution for ${toolName} was rejected by the user.`;
+                                chatHistory.push({ role: 'assistant', content: fullResponse });
+                                chatHistory.push({ role: 'user', content: `<tool_response>\n{"name": "${toolName}", "error": "${rejectMsg}"}\n</tool_response>` });
+                                
+                                const nextRow = createAiMessageElement();
+                                aiRow = nextRow;
+                                contentDiv = nextRow.querySelector('.ai-text');
+                                contentDiv.classList.add('typing-cursor');
+                                await runAgenticInference(recursionCount + 1);
+                                return;
+                            }
+
+                            if (badge) { badge.className = 'tool-status-badge running'; badge.innerText = 'Executing...'; }
+
+                            let resultText = '';
+                            let isErr = false;
                             try {
-                                const tRes = JSON.parse(dynamicSession.process_input_dynamic(chunk, 1));
-                                updateTelemetry(tRes.snapped, tRes.chi, tRes.delta, tRes.alpha, tRes.winner);
-                            } catch(e){}
+                                const toolRes = await sendMcpJsonRpc('tools/call', { name: toolName, arguments: toolArgs });
+                                if (toolRes && toolRes.content && toolRes.content[0]) {
+                                    resultText = toolRes.content[0].text;
+                                } else {
+                                    resultText = JSON.stringify(toolRes);
+                                }
+                                if (toolRes && toolRes.isError) isErr = true;
+                            } catch(err) {
+                                resultText = `Error calling tool ${toolName}: ${err.message}`;
+                                isErr = true;
+                            }
+
+                            if (badge) {
+                                badge.className = `tool-status-badge ${isErr ? 'error' : 'success'}`;
+                                badge.innerText = isErr ? 'Failed' : 'Executed';
+                            }
+                            if (resBox) resBox.style.display = 'block';
+                            if (outCode) outCode.innerText = resultText;
+                            scrollDown();
+
+                            // Feed result back to model and continue reasoning!
+                            chatHistory.push({ role: 'assistant', content: fullResponse });
+                            chatHistory.push({
+                                role: 'user',
+                                content: `<tool_response>\n{"name": "${toolName}", "result": ${JSON.stringify(resultText)}}\n</tool_response>`
+                            });
+
+                            const continuationRow = createAiMessageElement();
+                            aiRow = continuationRow;
+                            contentDiv = continuationRow.querySelector('.ai-text');
+                            contentDiv.classList.add('typing-cursor');
+                            
+                            await runAgenticInference(recursionCount + 1);
+                        }
+
+                        if (autoRun) {
+                            await executeAndProceed(true);
+                            return;
+                        } else {
+                            const btnApprove = document.getElementById(`${cardId}_btnApprove`);
+                            const btnReject = document.getElementById(`${cardId}_btnReject`);
+                            if (btnApprove) btnApprove.onclick = () => executeAndProceed(true);
+                            if (btnReject) btnReject.onclick = () => executeAndProceed(false);
+                            
+                            isGenerating = false;
+                            sendBtn.disabled = false;
+                            return;
                         }
                     }
-                });
+                }
 
-                await generator(messages, {
-                    max_new_tokens: 512,
-                    do_sample: false,
-                    streamer: streamer
-                });
+                contentDiv.classList.remove('typing-cursor');
+                if(!fullResponse || fullResponse.trim().length === 0) {
+                    renderRichMarkdown(contentDiv, fullResponse || "Thinking completed.");
+                } else {
+                    renderRichMarkdown(contentDiv, fullResponse);
+                }
 
-            } catch(err) {
-                console.error("Generation error:", err);
-                contentDiv.innerText = "Generation error: " + (err.message || String(err));
+                const aiMsg = { role: 'assistant', content: fullResponse };
+                chatHistory.push(aiMsg);
+                if(curConv) {
+                    curConv.messages.push(aiMsg);
+                    savePersistentState();
+                }
+
+                isGenerating = false;
+                sendBtn.disabled = false;
+                inputEl.focus();
             }
 
-            const totalDurationSec = (performance.now() - genStartTime) / 1000;
-            let avgTps = '0.0';
-            if (totalDurationSec > 0 && generatedTokenCount > 0) {
-                avgTps = (generatedTokenCount / totalDurationSec).toFixed(1);
-            }
-            updateSpeedMeter(avgTps, false);
-            try {
-                localStorage.setItem('uor_last_tps', avgTps);
-            } catch(e){}
-
-            const speedBadge = aiRow.querySelector('.ai-meta-speed');
-            if (speedBadge && parseFloat(avgTps) > 0) {
-                speedBadge.style.display = 'inline';
-                speedBadge.innerText = `• ⚡ ${avgTps} tok/s (${generatedTokenCount} tok in ${totalDurationSec.toFixed(1)}s)`;
-            }
-
-            contentDiv.classList.remove('typing-cursor');
-            if(!fullResponse || fullResponse.trim().length === 0) {
-                renderRichMarkdown(contentDiv, fullResponse || "Thinking completed.");
-            } else {
-                renderRichMarkdown(contentDiv, fullResponse);
-            }
-
-            const aiMsg = { role: 'assistant', content: fullResponse };
-            chatHistory.push(aiMsg);
-            if(curConv) {
-                curConv.messages.push(aiMsg);
-                savePersistentState();
-            }
-
-            isGenerating = false;
-            sendBtn.disabled = false;
-            inputEl.focus();
+            await runAgenticInference(0);
         };
 
         function updateSpeedMeter(val, isLive = false) {
@@ -2573,6 +3494,7 @@
             loadPersistentState();
             renderConversationsList();
             refreshUiCards();
+            loadMcpSettings();
 
             const lastTps = localStorage.getItem('uor_last_tps');
             if (lastTps) {
@@ -2582,6 +3504,9 @@
             await initWasmEngine();
             startBrainVisualizer();
             startWaveformVisualizer();
+
+            // Silently try connecting to local MCP bridge on boot
+            connectMcp(true);
 
             if (currentConvId) {
                 loadConversation(currentConvId);
