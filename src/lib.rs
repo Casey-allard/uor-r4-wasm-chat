@@ -803,7 +803,6 @@ impl DynamicCodebook {
 
             for _ in 0..epochs {
                 for i in 0..(words.len() - 1) {
-                    let cur_word = words[i];
                     let next_word = words[i + 1];
 
                     let target_idx = match vocab_map.get(next_word) {
@@ -811,14 +810,21 @@ impl DynamicCodebook {
                         None => continue,
                     };
 
-                    let mut token_bytes = [0u8; 16];
-                    let b = cur_word.as_bytes();
-                    let len = b.len().min(16);
-                    token_bytes[..len].copy_from_slice(&b[..len]);
+                    // Sliding context window of previous tokens
+                    let mut ctx = VsaVector::zero();
+                    let start_k = if i >= 2 { i - 2 } else { 0 };
+                    for k in start_k..=i {
+                        let w = words[k];
+                        let mut token_bytes = [0u8; 16];
+                        let b = w.as_bytes();
+                        let len = b.len().min(16);
+                        token_bytes[..len].copy_from_slice(&b[..len]);
+                        let seed = LexicalToken { bytes: token_bytes, len }.compute_vsa_seed();
+                        let basis = VsaVector::deterministic_basis(seed);
+                        ctx = ctx.bundle(&basis);
+                    }
 
-                    let seed = LexicalToken { bytes: token_bytes, len }.compute_vsa_seed();
-                    let basis = VsaVector::deterministic_basis(seed);
-                    let raw_coords = basis.project_to_8d_with_matrix(&PRE_TRAINED_PROJECTION_MATRIX);
+                    let raw_coords = ctx.project_to_8d_with_matrix(&PRE_TRAINED_PROJECTION_MATRIX);
                     let snapped = E8LatticeSnapper::snap(raw_coords);
 
                     let (loss, _, ent) = self.train_step(snapped, target_idx, learning_rate_q16);
@@ -839,10 +845,18 @@ impl DynamicCodebook {
 pub struct DynamicGeometricAttention;
 
 impl DynamicGeometricAttention {
-    /// Evaluates multiplication-free softmax and Shannon Entropy across an arbitrary number of centroids.
+    /// Evaluates multiplication-free softmax and Shannon Entropy across centroids with repetition penalty.
     pub fn compute_attention_and_entropy(
         query: [i32; 8],
         centroids: &[[i32; 8]],
+    ) -> (Vec<f32>, usize, f32) {
+        Self::compute_attention_with_penalty(query, centroids, &[])
+    }
+
+    pub fn compute_attention_with_penalty(
+        query: [i32; 8],
+        centroids: &[[i32; 8]],
+        recent_indices: &[usize],
     ) -> (Vec<f32>, usize, f32) {
         let v_len = centroids.len();
         if v_len == 0 {
@@ -852,11 +866,16 @@ impl DynamicGeometricAttention {
         let mut max_logit = i32::MIN;
         let mut raw_logits = Vec::with_capacity(v_len);
 
-        for centroid in centroids {
+        for (idx, centroid) in centroids.iter().enumerate() {
             let mut dot = 0i32;
             for j in 0..8 {
                 dot = dot.saturating_add(query[j] * centroid[j]);
             }
+            // Repetition penalty: reduce logit if recently generated
+            if recent_indices.contains(&idx) {
+                dot = dot.saturating_sub(6);
+            }
+
             raw_logits.push(dot);
             if dot > max_logit {
                 max_logit = dot;
@@ -913,7 +932,7 @@ impl DynamicSession {
         let codebook = if mode == "bytes" {
             DynamicCodebook::new_byte_level()
         } else {
-            DynamicCodebook::from_corpus("hello secure agent system quantum stable integrity", vocab_size as usize)
+            DynamicCodebook::from_corpus("hello secure agent system quantum stable integrity cognitive reasoning dialogue assistant architecture state transformation execution", vocab_size as usize)
         };
 
         Self {
@@ -934,6 +953,13 @@ impl DynamicSession {
 
     pub fn is_byte_mode(&self) -> bool {
         self.codebook.is_byte_mode
+    }
+
+    /// Automatically compiles and trains a rich pre-packaged conversational & technical corpus
+    pub fn auto_ingest_knowledge_base(&mut self, vocab_size: u32) -> String {
+        let built_in_corpus = "Hello and welcome to the UOR-R4 cognitive geometric artificial intelligence system. This architecture operates entirely on five hundred twelve dimensional bipolar vector symbolic superposition with zero dynamic heap allocations and deterministic Gosset E8 lattice quantization. In this model, language understanding is achieved through continuous geometric transformations mapped across Clifford torus projections on the S3 three sphere using multiplication-free fixed-point CORDIC trigonometry. The system acts as a conversational cognitive assistant capable of contextual reasoning, secure state routing, semantic trajectory navigation, and recursive autoregressive inference. When presented with complex queries, the geometric attention mechanism calculates similarity across high-dimensional semantic codebooks to synthesize coherent, deterministic, and interpretable responses in real time. We explore quantum computing, distributed network security, autonomous agents, and algebraic geometry to provide robust and intelligent dialogue across all domains.";
+
+        self.ingest_corpus(built_in_corpus, 40, 6553, "words", vocab_size)
     }
 
     /// Ingests a raw text corpus, builds the vocabulary (if in words mode), and trains centroids.
@@ -970,7 +996,7 @@ impl DynamicSession {
 
     /// Autoregressively generates next tokens/bytes from input prompt with live attention entropy.
     pub fn process_input_dynamic(&mut self, input: &str, num_tokens: usize) -> String {
-        let count_to_gen = num_tokens.clamp(1, 16);
+        let count_to_gen = num_tokens.clamp(4, 30);
 
         if self.codebook.is_byte_mode {
             // Byte-level context bundling
@@ -983,6 +1009,7 @@ impl DynamicSession {
             }
 
             let mut generated_bytes = Vec::with_capacity(count_to_gen);
+            let mut recent_indices = Vec::new();
             let mut last_entropy = 0.0f32;
             let mut last_snapped = [0i32; 8];
             let mut last_chi = 0;
@@ -1001,8 +1028,12 @@ impl DynamicSession {
                 last_alpha = alpha;
 
                 let (_weights, winner_idx, ent) =
-                    DynamicGeometricAttention::compute_attention_and_entropy(snapped, &self.codebook.centroids);
+                    DynamicGeometricAttention::compute_attention_with_penalty(snapped, &self.codebook.centroids, &recent_indices);
                 last_entropy = ent;
+                recent_indices.push(winner_idx);
+                if recent_indices.len() > 4 {
+                    recent_indices.remove(0);
+                }
 
                 let pred_byte = (winner_idx as u8).min(255);
                 generated_bytes.push(pred_byte);
@@ -1046,6 +1077,7 @@ impl DynamicSession {
             }
 
             let mut generated_words = Vec::with_capacity(count_to_gen);
+            let mut recent_indices = Vec::new();
             let mut last_entropy = 0.0f32;
             let mut last_snapped = [0i32; 8];
             let mut last_chi = 0;
@@ -1065,13 +1097,17 @@ impl DynamicSession {
                 last_alpha = alpha;
 
                 let (_weights, winner_idx, ent) =
-                    DynamicGeometricAttention::compute_attention_and_entropy(snapped, &self.codebook.centroids);
+                    DynamicGeometricAttention::compute_attention_with_penalty(snapped, &self.codebook.centroids, &recent_indices);
                 last_entropy = ent;
+                recent_indices.push(winner_idx);
+                if recent_indices.len() > 3 {
+                    recent_indices.remove(0);
+                }
 
                 let pred_word = if winner_idx < self.codebook.vocab.len() {
                     self.codebook.vocab[winner_idx].clone()
                 } else {
-                    "hello".to_string()
+                    "assistant".to_string()
                 };
 
                 last_winner = pred_word.clone();

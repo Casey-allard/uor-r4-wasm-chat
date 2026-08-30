@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UOR-R4 Cognitive Dashboard | Live Corpus API & Geometric AI</title>
+    <title>UOR-R4 Geometric AI | Cognitive Dialogue Interface</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-base: #060911;
+            --bg-base: #070a12;
             --bg-card: rgba(15, 23, 42, 0.75);
             --bg-card-hover: rgba(30, 41, 59, 0.85);
             --bg-input: #0b1120;
@@ -19,9 +19,9 @@
             --cyan-glow: rgba(0, 243, 255, 0.25);
             --emerald: #10b981;
             --emerald-glow: rgba(16, 185, 129, 0.25);
-            --amber: #f59e0b;
-            --rose: #f43f5e;
             --purple: #a855f7;
+            --purple-glow: rgba(168, 85, 247, 0.25);
+            --rose: #f43f5e;
             --text-primary: #f8fafc;
             --text-secondary: #94a3b8;
             --text-muted: #64748b;
@@ -44,8 +44,8 @@
             display: flex;
             flex-direction: column;
             background-image: 
-                radial-gradient(circle at 15% 15%, rgba(0, 243, 255, 0.04) 0%, transparent 40%),
-                radial-gradient(circle at 85% 85%, rgba(168, 85, 247, 0.04) 0%, transparent 40%),
+                radial-gradient(circle at 15% 15%, rgba(0, 243, 255, 0.05) 0%, transparent 45%),
+                radial-gradient(circle at 85% 85%, rgba(168, 85, 247, 0.05) 0%, transparent 45%),
                 linear-gradient(rgba(255, 255, 255, 0.01) 1px, transparent 1px),
                 linear-gradient(90deg, rgba(255, 255, 255, 0.01) 1px, transparent 1px);
             background-size: 100% 100%, 100% 100%, 32px 32px, 32px 32px;
@@ -57,7 +57,7 @@
             border-bottom: 1px solid var(--border);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
-            background: rgba(6, 9, 17, 0.85);
+            background: rgba(7, 10, 18, 0.85);
             position: sticky;
             top: 0;
             z-index: 50;
@@ -77,7 +77,7 @@
             width: 38px;
             height: 38px;
             border-radius: var(--radius-md);
-            background: linear-gradient(135deg, #00f3ff, #6366f1);
+            background: linear-gradient(135deg, #00f3ff, #a855f7);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -142,10 +142,10 @@
         /* MAIN CONTAINER */
         .dashboard-grid {
             display: grid;
-            grid-template-columns: 1.15fr 0.85fr;
+            grid-template-columns: 1.2fr 0.8fr;
             gap: 1.25rem;
             padding: 1.25rem;
-            max-width: 1600px;
+            max-width: 1500px;
             margin: 0 auto;
             width: 100%;
             flex: 1;
@@ -199,78 +199,73 @@
             color: var(--cyan);
         }
 
-        /* MODE TABS */
-        .mode-selector {
-            display: flex;
-            gap: 0.4rem;
-            background: rgba(0, 0, 0, 0.4);
-            padding: 0.25rem;
-            border-radius: var(--radius-md);
-            border: 1px solid var(--border);
-        }
-
-        .mode-tab {
-            padding: 0.35rem 0.75rem;
-            border-radius: var(--radius-sm);
-            font-size: 0.75rem;
-            font-family: 'Fira Code', monospace;
-            color: var(--text-muted);
-            cursor: pointer;
-            border: none;
-            background: transparent;
-            transition: all 0.2s ease;
-        }
-
-        .mode-tab.active {
-            background: var(--cyan);
-            color: #000;
-            font-weight: 700;
-            box-shadow: 0 0 10px var(--cyan-glow);
-        }
-
-        /* LIVE CORPUS API DOWNLOADER CARD */
-        .api-downloader-box {
-            background: linear-gradient(135deg, rgba(0, 243, 255, 0.06), rgba(168, 85, 247, 0.08));
-            border: 1px solid rgba(0, 243, 255, 0.25);
-            border-radius: var(--radius-md);
-            padding: 0.85rem;
+        /* AUTOMATED INGESTION HERO BAR */
+        .auto-ingest-hero {
+            background: linear-gradient(135deg, rgba(0, 243, 255, 0.1), rgba(168, 85, 247, 0.12));
+            border: 1px solid rgba(0, 243, 255, 0.3);
+            border-radius: var(--radius-lg);
+            padding: 1.15rem;
             display: flex;
             flex-direction: column;
-            gap: 0.65rem;
+            gap: 0.85rem;
+            box-shadow: 0 0 24px rgba(0, 243, 255, 0.08);
         }
 
-        .api-btn-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 0.4rem;
-        }
-
-        .api-btn {
-            background: rgba(15, 23, 42, 0.8);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: var(--text-primary);
-            padding: 0.45rem 0.65rem;
-            border-radius: var(--radius-sm);
-            font-size: 0.75rem;
-            font-family: 'Fira Code', monospace;
-            cursor: pointer;
+        .auto-ingest-controls {
             display: flex;
+            gap: 0.65rem;
+            flex-wrap: wrap;
             align-items: center;
-            justify-content: center;
-            gap: 0.35rem;
-            transition: all 0.2s ease;
-            text-align: center;
         }
 
-        .api-btn:hover {
-            background: rgba(0, 243, 255, 0.18);
+        .btn-magic {
+            background: linear-gradient(135deg, #00f3ff, #a855f7);
+            border: none;
+            color: #000;
+            font-weight: 700;
+            padding: 0.75rem 1.35rem;
+            border-radius: var(--radius-md);
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 0 18px var(--cyan-glow);
+            transition: all 0.2s ease;
+        }
+
+        .btn-magic:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 28px rgba(0, 243, 255, 0.55);
+        }
+
+        .btn-secondary-action {
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: var(--text-primary);
+            padding: 0.75rem 1.15rem;
+            border-radius: var(--radius-md);
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            transition: all 0.2s ease;
+        }
+
+        .btn-secondary-action:hover {
+            background: rgba(255, 255, 255, 0.12);
             border-color: var(--cyan);
             color: var(--cyan);
-            transform: translateY(-1px);
         }
 
-        .wiki-search-bar {
+        .status-pill {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.78rem;
+            color: var(--emerald);
             display: flex;
+            align-items: center;
             gap: 0.4rem;
         }
 
@@ -278,7 +273,7 @@
         .chat-box {
             display: flex;
             flex-direction: column;
-            height: 480px;
+            height: 520px;
         }
 
         .chat-stream {
@@ -286,7 +281,7 @@
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 0.85rem;
+            gap: 0.95rem;
             padding-right: 0.5rem;
             scroll-behavior: smooth;
         }
@@ -305,11 +300,11 @@
         }
 
         .msg-bubble {
-            max-width: 85%;
-            padding: 0.85rem 1.15rem;
+            max-width: 88%;
+            padding: 0.95rem 1.25rem;
             border-radius: var(--radius-md);
-            font-size: 0.88rem;
-            line-height: 1.5;
+            font-size: 0.92rem;
+            line-height: 1.6;
             position: relative;
             animation: fadeIn 0.25s ease-out;
         }
@@ -321,26 +316,33 @@
 
         .msg-user {
             align-self: flex-end;
-            background: linear-gradient(135deg, rgba(0, 243, 255, 0.18), rgba(99, 102, 241, 0.2));
-            border: 1px solid rgba(0, 243, 255, 0.35);
+            background: linear-gradient(135deg, rgba(0, 243, 255, 0.2), rgba(168, 85, 247, 0.22));
+            border: 1px solid rgba(0, 243, 255, 0.4);
             color: #ffffff;
             border-bottom-right-radius: 2px;
         }
 
         .msg-ai {
             align-self: flex-start;
-            background: rgba(15, 23, 42, 0.85);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.09);
             border-bottom-left-radius: 2px;
             color: var(--text-primary);
         }
 
-        .msg-ai .completion-text {
+        .msg-ai .completion-header {
             font-family: 'Fira Code', monospace;
-            font-size: 0.95rem;
+            font-size: 0.75rem;
             color: var(--cyan);
             font-weight: 600;
-            margin-bottom: 0.35rem;
+            margin-bottom: 0.4rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .msg-ai .completion-body {
+            font-size: 0.95rem;
+            color: #f1f5f9;
         }
 
         .msg-meta {
@@ -349,7 +351,7 @@
             font-family: 'Fira Code', monospace;
             display: flex;
             gap: 0.75rem;
-            margin-top: 0.35rem;
+            margin-top: 0.45rem;
             border-top: 1px solid rgba(255, 255, 255, 0.05);
             padding-top: 0.35rem;
         }
@@ -360,7 +362,7 @@
             align-items: center;
             gap: 0.4rem;
             overflow-x: auto;
-            padding: 0.4rem 0;
+            padding: 0.3rem 0;
         }
 
         .chips-container::-webkit-scrollbar {
@@ -373,7 +375,7 @@
             color: var(--text-secondary);
             font-size: 0.75rem;
             font-family: 'Fira Code', monospace;
-            padding: 0.3rem 0.65rem;
+            padding: 0.35rem 0.7rem;
             border-radius: var(--radius-sm);
             cursor: pointer;
             white-space: nowrap;
@@ -399,9 +401,9 @@
             background: var(--bg-input);
             border: 1px solid var(--border);
             border-radius: var(--radius-md);
-            padding: 0.75rem 1rem;
+            padding: 0.85rem 1.15rem;
             color: var(--text-primary);
-            font-size: 0.9rem;
+            font-size: 0.92rem;
             font-family: 'Inter', sans-serif;
             outline: none;
             transition: border-color 0.2s ease, box-shadow 0.2s ease;
@@ -412,96 +414,34 @@
             box-shadow: 0 0 12px var(--cyan-glow);
         }
 
-        .btn {
-            background: rgba(255, 255, 255, 0.06);
-            border: 1px solid var(--border);
-            color: var(--text-primary);
-            padding: 0.75rem 1.25rem;
-            border-radius: var(--radius-md);
-            font-size: 0.85rem;
-            font-weight: 600;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.45rem;
-            transition: all 0.2s ease;
-            white-space: nowrap;
-        }
-
-        .btn:hover {
-            background: rgba(255, 255, 255, 0.12);
-            border-color: rgba(255, 255, 255, 0.25);
-        }
-
-        .btn-primary {
+        .btn-send {
             background: linear-gradient(135deg, #00f3ff, #0284c7);
             border: none;
             color: #000;
             font-weight: 700;
-            box-shadow: 0 0 16px var(--cyan-glow);
-        }
-
-        .btn-primary:hover {
-            box-shadow: 0 0 24px rgba(0, 243, 255, 0.45);
-            transform: translateY(-1px);
-        }
-
-        .btn-danger {
-            background: rgba(244, 63, 94, 0.15);
-            border-color: rgba(244, 63, 94, 0.35);
-            color: #fda4af;
-        }
-
-        .btn-danger:hover {
-            background: rgba(244, 63, 94, 0.25);
-            border-color: var(--rose);
-            color: #fff;
-        }
-
-        .btn-success {
-            background: linear-gradient(135deg, #10b981, #059669);
-            border: none;
-            color: #fff;
-            font-weight: 600;
-            box-shadow: 0 0 16px var(--emerald-glow);
-        }
-
-        .btn-success:hover {
-            box-shadow: 0 0 24px rgba(16, 185, 129, 0.45);
-            transform: translateY(-1px);
-        }
-
-        /* DROPZONE & INGESTION */
-        .dropzone {
-            border: 2px dashed rgba(56, 189, 248, 0.3);
+            padding: 0.85rem 1.35rem;
             border-radius: var(--radius-md);
-            padding: 0.85rem;
-            text-align: center;
-            background: rgba(0, 0, 0, 0.25);
+            font-size: 0.9rem;
             cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
             transition: all 0.2s ease;
         }
 
-        .dropzone.dragover {
-            border-color: var(--cyan);
-            background: rgba(0, 243, 255, 0.08);
-        }
-
-        .dropzone-text {
-            font-size: 0.78rem;
-            color: var(--text-secondary);
-            font-family: 'Fira Code', monospace;
+        .btn-send:hover {
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.45);
+            transform: translateY(-1px);
         }
 
         /* CANVAS & VISUALIZATION */
         .canvas-container {
             position: relative;
             width: 100%;
-            height: 250px;
-            background: radial-gradient(circle at 50% 50%, #0d1527 0%, #070b14 100%);
+            height: 280px;
+            background: radial-gradient(circle at 50% 50%, #0e172e 0%, #070a12 100%);
             border-radius: var(--radius-md);
-            border: 1px solid rgba(56, 189, 248, 0.1);
+            border: 1px solid rgba(56, 189, 248, 0.15);
             overflow: hidden;
         }
 
@@ -519,8 +459,8 @@
             font-size: 0.72rem;
             color: var(--cyan);
             pointer-events: none;
-            background: rgba(0, 0, 0, 0.5);
-            padding: 0.2rem 0.5rem;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 0.25rem 0.55rem;
             border-radius: 4px;
             border: 1px solid rgba(0, 243, 255, 0.2);
         }
@@ -553,49 +493,6 @@
             font-family: 'Fira Code', monospace;
             color: var(--cyan);
             margin-top: 0.2rem;
-        }
-
-        /* GENERAL ATTENTION EVALUATION BENCHMARK CARD */
-        .eval-box {
-            background: rgba(11, 17, 32, 0.85);
-            border: 1px solid rgba(168, 85, 247, 0.3);
-            border-radius: var(--radius-md);
-            padding: 0.85rem;
-            display: flex;
-            flex-direction: column;
-            gap: 0.65rem;
-        }
-
-        .eval-inputs {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 0.5rem;
-        }
-
-        .eval-report-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 0.4rem;
-            margin-top: 0.4rem;
-        }
-
-        .eval-stat {
-            background: rgba(0, 0, 0, 0.35);
-            padding: 0.4rem;
-            border-radius: var(--radius-sm);
-            text-align: center;
-            font-family: 'Fira Code', monospace;
-        }
-
-        .eval-stat-lbl {
-            font-size: 0.65rem;
-            color: var(--text-muted);
-        }
-
-        .eval-stat-val {
-            font-size: 0.85rem;
-            font-weight: 700;
-            color: var(--purple);
         }
 
         /* E8 COORDINATES DISPLAY */
@@ -633,7 +530,7 @@
 
         .e8-bar-fill {
             width: 80%;
-            background: linear-gradient(180deg, var(--cyan), #3b82f6);
+            background: linear-gradient(180deg, var(--cyan), #a855f7);
             border-radius: 2px;
             position: absolute;
             transition: height 0.3s ease, top 0.3s ease;
@@ -652,111 +549,6 @@
             font-weight: 600;
         }
 
-        /* ATTENTION SPECTRUM */
-        .attention-spectrum {
-            display: flex;
-            flex-direction: column;
-            gap: 0.35rem;
-            max-height: 160px;
-            overflow-y: auto;
-        }
-
-        .attn-row {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-family: 'Fira Code', monospace;
-            font-size: 0.75rem;
-        }
-
-        .attn-token {
-            width: 85px;
-            color: var(--text-secondary);
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .attn-bar-track {
-            flex: 1;
-            height: 10px;
-            background: rgba(255, 255, 255, 0.04);
-            border-radius: 9999px;
-            overflow: hidden;
-        }
-
-        .attn-bar-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #3b82f6, var(--cyan));
-            border-radius: 9999px;
-            transition: width 0.3s ease;
-        }
-
-        .attn-pct {
-            width: 45px;
-            text-align: right;
-            color: var(--text-muted);
-            font-size: 0.7rem;
-        }
-
-        /* TRAINING STUDIO */
-        .training-container {
-            display: flex;
-            flex-direction: column;
-            gap: 0.85rem;
-        }
-
-        .corpus-textarea {
-            width: 100%;
-            height: 75px;
-            background: var(--bg-input);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-md);
-            padding: 0.75rem;
-            color: var(--text-primary);
-            font-family: 'Fira Code', monospace;
-            font-size: 0.82rem;
-            resize: vertical;
-            outline: none;
-        }
-
-        .corpus-textarea:focus {
-            border-color: var(--emerald);
-            box-shadow: 0 0 12px var(--emerald-glow);
-        }
-
-        .training-controls {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 0.75rem;
-            flex-wrap: wrap;
-        }
-
-        .progress-bar-container {
-            width: 100%;
-            height: 6px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 9999px;
-            overflow: hidden;
-        }
-
-        .progress-bar-fill {
-            width: 0%;
-            height: 100%;
-            background: linear-gradient(90deg, var(--cyan), var(--emerald));
-            border-radius: 9999px;
-            transition: width 0.2s ease;
-        }
-
-        .weights-manager {
-            display: flex;
-            gap: 0.5rem;
-            flex-wrap: wrap;
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
-            padding-top: 0.75rem;
-        }
-
         /* FOOTER */
         footer {
             border-top: 1px solid var(--border);
@@ -767,16 +559,12 @@
             justify-content: space-between;
             align-items: center;
             margin-top: auto;
-            background: rgba(6, 9, 17, 0.6);
+            background: rgba(7, 10, 18, 0.6);
         }
 
         footer a {
             color: var(--cyan);
             text-decoration: none;
-        }
-
-        footer a:hover {
-            text-decoration: underline;
         }
     </style>
 </head>
@@ -793,8 +581,8 @@
                 </svg>
             </div>
             <div>
-                <div class="brand-title">UOR-R4 COGNITIVE INTERFACE</div>
-                <div class="brand-subtitle">Multiplier-Free 8D E8 / S³ Hopf Geometric Engine</div>
+                <div class="brand-title">UOR-R4 COGNITIVE AI</div>
+                <div class="brand-subtitle">8D E8 Gosset Geometric Attention Engine • 100% WebAssembly</div>
             </div>
         </div>
 
@@ -803,11 +591,8 @@
                 <div class="badge-dot" id="statusDot"></div>
                 <span id="statusText">Initializing WASM...</span>
             </div>
-            <div class="badge">
-                <span>Core: 512D VSA / Q16.16 CORDIC</span>
-            </div>
             <div class="badge" style="border-color: rgba(16, 185, 129, 0.3);">
-                <span style="color: var(--emerald);">Zero Heap Allocations</span>
+                <span style="color: var(--emerald);">Zero Allocations</span>
             </div>
         </div>
     </header>
@@ -815,36 +600,51 @@
     <!-- MAIN DASHBOARD -->
     <main class="dashboard-grid">
         
-        <!-- LEFT COLUMN: CHAT INTERFACE & LIVE API INGESTION STUDIO -->
-        <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+        <!-- LEFT COLUMN: AUTOMATED INGESTION HERO & INTERACTIVE DIALOGUE -->
+        <div style="display: flex; flex-direction: column; gap: 1.15rem;">
             
+            <!-- AUTOMATED 1-CLICK KNOWLEDGE INGESTION HERO -->
+            <div class="auto-ingest-hero">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div style="font-size: 0.92rem; font-weight: 700; color: #ffffff; display: flex; align-items: center; gap: 0.45rem;">
+                        <span>🧠 Automated Knowledge Ingestion & Compilation</span>
+                    </div>
+                    <div class="status-pill" id="ingestStatusPill">
+                        <span>● Baseline Ready</span>
+                    </div>
+                </div>
+
+                <div class="auto-ingest-controls">
+                    <button class="btn-magic" id="btnAutoIngest" onclick="triggerAutoIngest()">
+                        <span>🚀 Ingest Knowledge Base & Auto-Compile</span>
+                    </button>
+                    <button class="btn-secondary-action" onclick="fetchLiveWikipediaStream()">
+                        <span>🌐 Ingest Live Wikipedia API Stream</span>
+                    </button>
+                    <button class="btn-secondary-action" onclick="resetContext()">
+                        <span>🔄 Clear Context</span>
+                    </button>
+                </div>
+            </div>
+
             <!-- INTERACTIVE CHAT PANEL -->
             <section class="glass-panel chat-box">
                 <div class="panel-header">
                     <div class="panel-title">
                         <svg fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clip-rule="evenodd"></path></svg>
-                        <span>Geometric Autoregressive Dialogue</span>
+                        <span>Cognitive Coherent Dialogue</span>
                     </div>
-                    <div style="display: flex; gap: 0.4rem; align-items: center;">
-                        <div class="mode-selector">
-                            <button class="mode-tab active" id="tabDefault" onclick="switchMode('default')">Default (12)</button>
-                            <button class="mode-tab" id="tabWords" onclick="switchMode('words')">Dynamic Words</button>
-                            <button class="mode-tab" id="tabBytes" onclick="switchMode('bytes')">256-Bytes</button>
-                        </div>
-                        <button class="btn btn-danger" style="padding: 0.35rem 0.75rem; font-size: 0.75rem;" onclick="resetContext()">
-                            Reset
-                        </button>
-                    </div>
+                    <span style="font-size: 0.72rem; color: var(--text-muted); font-family: 'Fira Code', monospace;" id="activeModelLabel">Model: Auto-Ingested E8 Codebook</span>
                 </div>
 
                 <!-- CHAT MESSAGES STREAM -->
                 <div class="chat-stream" id="chatStream">
                     <div class="msg-bubble msg-ai">
-                        <div class="completion-text">UOR-R4 Geometric Core Online.</div>
-                        <div>Click any <b>Corpus API Downloader</b> button below to fetch live text and compile the model on the spot!</div>
+                        <div class="completion-header">UOR-R4 Cognitive System Online</div>
+                        <div class="completion-body">Hello! I am your deterministic geometric AI assistant. Click <b>"Ingest Knowledge Base"</b> above to compile millions of mathematical parameters in WebAssembly, or type a query below to begin!</div>
                         <div class="msg-meta">
-                            <span>Status: Ready</span>
-                            <span>Memory: Zero dynamic heap allocs</span>
+                            <span>Engine: 512D Bipolar Superposition</span>
+                            <span>Memory: 0 allocs</span>
                         </div>
                     </div>
                 </div>
@@ -853,108 +653,25 @@
                 <div class="chips-container" id="promptChips">
                     <span style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase;">Prompts:</span>
                     <button class="chip" onclick="quickSend('hello')">hello</button>
-                    <button class="chip" onclick="quickSend('quantum')">quantum</button>
-                    <button class="chip" onclick="quickSend('routing')">routing</button>
-                    <button class="chip" onclick="quickSend('sattvic')">sattvic</button>
-                    <button class="chip" onclick="quickSend('integrity')">integrity</button>
-                    <button class="chip" onclick="quickSend('secure')">secure</button>
-                    <button class="chip" onclick="quickSend('agent')">agent</button>
-                    <button class="chip" onclick="quickSend('system')">system</button>
+                    <button class="chip" onclick="quickSend('explain your geometric architecture')">architecture</button>
+                    <button class="chip" onclick="quickSend('how does quantum attention work')">quantum attention</button>
+                    <button class="chip" onclick="quickSend('what is vector symbolic reasoning')">vector reasoning</button>
+                    <button class="chip" onclick="quickSend('secure autonomous agent')">secure agent</button>
                 </div>
 
                 <!-- INPUT BAR -->
                 <div class="input-bar">
-                    <input type="text" id="chatInput" class="text-input" placeholder="Enter query..." onkeydown="if(event.key==='Enter') sendChat()">
-                    <button class="btn btn-primary" onclick="sendChat()">
+                    <input type="text" id="chatInput" class="text-input" placeholder="Type a conversational query or concept..." onkeydown="if(event.key==='Enter') sendChat()">
+                    <button class="btn-send" onclick="sendChat()">
                         <span>Send</span>
                         <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path></svg>
                     </button>
                 </div>
             </section>
-
-            <!-- LIVE CORPUS API DOWNLOADER & INSTANT INGESTION STUDIO -->
-            <section class="glass-panel training-container">
-                <div class="panel-header">
-                    <div class="panel-title">
-                        <svg fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
-                        <span>Live Corpus API Downloader & Instant WASM Ingestor</span>
-                    </div>
-                    <span style="font-size: 0.72rem; color: var(--cyan); font-family: 'Fira Code', monospace;">1-Click Auto-Train</span>
-                </div>
-
-                <!-- 1-CLICK API DOWNLOADER BUTTONS -->
-                <div class="api-downloader-box">
-                    <div style="font-size: 0.75rem; color: var(--text-secondary); font-weight: 600;">
-                        ⚡ Fetch Remote API Corpus & Train On The Spot:
-                    </div>
-                    <div class="api-btn-grid">
-                        <button class="api-btn" onclick="fetchAndIngestCorpus('wikipedia_random')">
-                            <span>🌐 Live Wikipedia API</span>
-                        </button>
-                        <button class="api-btn" onclick="fetchAndIngestCorpus('alice')">
-                            <span>📚 Alice (Gutenberg)</span>
-                        </button>
-                        <button class="api-btn" onclick="fetchAndIngestCorpus('tinystories')">
-                            <span>🤖 TinyStories AI</span>
-                        </button>
-                        <button class="api-btn" onclick="fetchAndIngestCorpus('quantum')">
-                            <span>⚛️ Quantum Treatise</span>
-                        </button>
-                        <button class="api-btn" onclick="fetchAndIngestCorpus('cyber')">
-                            <span>💻 Cyber Architecture</span>
-                        </button>
-                    </div>
-
-                    <!-- WIKIPEDIA TOPIC SEARCH BAR -->
-                    <div class="wiki-search-bar">
-                        <input type="text" id="wikiSearchInput" class="text-input" style="padding: 0.45rem 0.75rem; font-size: 0.78rem;" placeholder="Search any Wikipedia topic (e.g. 'Artificial Intelligence', 'Philosophy', 'Physics')..." onkeydown="if(event.key==='Enter') searchWikiAndIngest()">
-                        <button class="btn btn-primary" style="padding: 0.45rem 0.85rem; font-size: 0.75rem;" onclick="searchWikiAndIngest()">
-                            <span>Fetch & Train</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- DRAG AND DROP FILE DROPZONE -->
-                <div class="dropzone" id="fileDropzone" onclick="document.getElementById('fileUploadInput').click()">
-                    <div class="dropzone-text">📁 Or drop local text file here (.txt, .md, .json) to ingest</div>
-                    <input type="file" id="fileUploadInput" accept=".txt,.md,.json,.csv" style="display: none;" onchange="handleFileDrop(event)">
-                </div>
-
-                <textarea id="corpusText" class="corpus-textarea" placeholder="Corpus text will appear here..."></textarea>
-
-                <div class="progress-bar-container">
-                    <div id="trainingProgressBar" class="progress-bar-fill"></div>
-                </div>
-
-                <div class="training-controls">
-                    <div style="font-size: 0.8rem; color: var(--text-muted); font-family: 'Fira Code', monospace;" id="trainStatusLabel">
-                        Epochs: 30 | Mode: <span id="lblActiveMode">Default 12</span> | Status: Ready
-                    </div>
-                    <div style="display: flex; gap: 0.5rem;">
-                        <button class="btn btn-success" id="trainBtn" onclick="runTraining()">
-                            <span>Ingest & Train (WASM)</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- WEIGHTS IMPORT / EXPORT -->
-                <div class="weights-manager">
-                    <button class="btn" style="padding: 0.4rem 0.85rem; font-size: 0.78rem;" onclick="exportWeights()">
-                        <span>📥 Export Model (.json)</span>
-                    </button>
-                    <label class="btn" style="padding: 0.4rem 0.85rem; font-size: 0.78rem; cursor: pointer;">
-                        <span>📤 Import Model (.json)</span>
-                        <input type="file" id="importFileInput" accept=".json" style="display: none;" onchange="importWeights(event)">
-                    </label>
-                    <button class="btn btn-danger" style="padding: 0.4rem 0.85rem; font-size: 0.78rem;" onclick="resetWeightsToDefault()">
-                        <span>🔄 Reset Baseline</span>
-                    </button>
-                </div>
-            </section>
         </div>
 
-        <!-- RIGHT COLUMN: HOPF CANVAS, ATTENTION TELEMETRY & SENSITIVITY BENCHMARK -->
-        <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+        <!-- RIGHT COLUMN: HOPF VISUALIZER & GEOMETRIC TELEMETRY -->
+        <div style="display: flex; flex-direction: column; gap: 1.15rem;">
             
             <!-- HOPF FIBRATION ORBITAL CANVAS -->
             <section class="glass-panel">
@@ -963,7 +680,7 @@
                         <svg fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path></svg>
                         <span>S³ Hopf Fibration Orbit & CORDIC Phases</span>
                     </div>
-                    <span style="font-size: 0.7rem; color: var(--cyan); font-family: 'Fira Code', monospace;">Clifford Torus Projection</span>
+                    <span style="font-size: 0.7rem; color: var(--cyan); font-family: 'Fira Code', monospace;">Clifford Torus</span>
                 </div>
 
                 <div class="canvas-container">
@@ -982,47 +699,8 @@
                         <div class="metric-val" id="valAlpha">0.0000 rad</div>
                     </div>
                     <div class="metric-card">
-                        <div class="metric-label">Attention Entropy</div>
-                        <div class="metric-val" id="valEntropy" style="color: var(--purple);">0.0000 bits</div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- GENERAL ATTENTION SENSITIVITY EVALUATOR -->
-            <section class="glass-panel">
-                <div class="panel-header">
-                    <div class="panel-title">
-                        <svg fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"></path></svg>
-                        <span>General Attention Sensitivity Evaluator</span>
-                    </div>
-                    <span style="font-size: 0.7rem; color: var(--purple); font-family: 'Fira Code', monospace;">Context Perturbation Test</span>
-                </div>
-
-                <div class="eval-box">
-                    <div class="eval-inputs">
-                        <input type="text" id="evalPrefixA" class="text-input" style="padding: 0.45rem; font-size: 0.78rem;" value="quantum stable system integrity">
-                        <input type="text" id="evalPrefixB" class="text-input" style="padding: 0.45rem; font-size: 0.78rem;" value="isolated routing execution sattvic">
-                    </div>
-                    <button class="btn btn-primary" style="padding: 0.45rem; font-size: 0.78rem;" onclick="runAttentionSensitivityEvaluation()">
-                        <span>⚡ Compare Attention Shift & Radian Rotation</span>
-                    </button>
-                    <div class="eval-report-grid">
-                        <div class="eval-stat">
-                            <div class="eval-stat-lbl">8D E8 Dist</div>
-                            <div class="eval-stat-val" id="evalDist">--</div>
-                        </div>
-                        <div class="eval-stat">
-                            <div class="eval-stat-lbl">Δ Chi (rad)</div>
-                            <div class="eval-stat-val" id="evalDeltaChi">--</div>
-                        </div>
-                        <div class="eval-stat">
-                            <div class="eval-stat-lbl">Δ Alpha (rad)</div>
-                            <div class="eval-stat-val" id="evalDeltaAlpha">--</div>
-                        </div>
-                        <div class="eval-stat">
-                            <div class="eval-stat-lbl">KL Divergence</div>
-                            <div class="eval-stat-val" id="evalKL">--</div>
-                        </div>
+                        <div class="metric-label">Attention Focus</div>
+                        <div class="metric-val" id="valEntropy" style="color: var(--purple);">Sharp (Low H)</div>
                     </div>
                 </div>
             </section>
@@ -1032,7 +710,7 @@
                 <div class="panel-header">
                     <div class="panel-title">
                         <svg fill="currentColor" viewBox="0 0 20 20"><path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z"></path></svg>
-                        <span>Discrete E8 Lattice Coordinates (8D Q16)</span>
+                        <span>Discrete E8 Lattice Coordinates (8D Gosset Roots)</span>
                     </div>
                     <span style="font-size: 0.72rem; color: var(--emerald); font-family: 'Fira Code', monospace;" id="winnerTokenLabel">Winner: none</span>
                 </div>
@@ -1044,44 +722,20 @@
                 </div>
             </section>
 
-            <!-- GEOMETRIC ATTENTION SPECTRUM -->
-            <section class="glass-panel">
-                <div class="panel-header">
-                    <div class="panel-title">
-                        <svg fill="currentColor" viewBox="0 0 20 20"><path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"></path></svg>
-                        <span>Attention Probability Distribution</span>
-                    </div>
-                    <span style="font-size: 0.7rem; color: var(--text-muted);" id="vocabSizeBadge">12 Tokens</span>
-                </div>
-
-                <div class="attention-spectrum" id="attentionSpectrum">
-                    <!-- Dynamic Attention bars -->
-                </div>
-            </section>
-
         </div>
     </main>
 
     <!-- FOOTER -->
     <footer>
-        <div>UOR-R4 WebAssembly Architecture • Multiplier-Free Geometric AI • Live API Corpus Downloader</div>
+        <div>UOR-R4 WebAssembly Architecture • Multiplier-Free Geometric Cognitive AI</div>
         <div>Hosted on GitHub Pages • <a href="https://github.com/Casey-allard/uor-r4-wasm-chat" target="_blank">View GitHub Repository</a></div>
     </footer>
 
     <!-- WASM BRIDGING & INTERFACE LOGIC SCRIPT -->
     <script type="module">
-        import init, { InteractiveChatSession, BrowserTrainingHarness, DynamicSession } from './pkg/uor_r4_wasm_bridge.js';
+        import init, { DynamicSession } from './pkg/uor_r4_wasm_bridge.js';
 
-        const DEFAULT_VOCAB = [
-            "hello", "routing", "sattvic", "isolated", "integrity", "execution",
-            "stable", "fano", "agent", "system", "secure", "quantum"
-        ];
-
-        let currentMode = "default"; // "default", "words", "bytes"
-        let chatSession = null;
-        let trainer = null;
         let dynamicSession = null;
-        let activeVocab = [...DEFAULT_VOCAB];
         let currentE8Coords = [0, 0, 0, 0, 0, 0, 0, 0];
         let currentChi = 0, currentDelta = 0, currentAlpha = 0;
 
@@ -1102,51 +756,7 @@
                 `;
                 e8Container.appendChild(col);
             }
-
-            renderAttentionSpectrum(activeVocab);
-            setupDropzone();
         }
-
-        function renderAttentionSpectrum(vocabList) {
-            const attnContainer = document.getElementById('attentionSpectrum');
-            attnContainer.innerHTML = '';
-            const displayLimit = Math.min(16, vocabList.len || vocabList.length);
-            const list = Array.isArray(vocabList) ? vocabList.slice(0, displayLimit) : DEFAULT_VOCAB;
-
-            for(let i = 0; i < list.length; i++) {
-                const row = document.createElement('div');
-                row.className = 'attn-row';
-                row.innerHTML = `
-                    <span class="attn-token">${list[i]}</span>
-                    <div class="attn-bar-track">
-                        <div class="attn-bar-fill" id="attnFill_${i}" style="width: ${(100 / list.length).toFixed(1)}%;"></div>
-                    </div>
-                    <span class="attn-pct" id="attnPct_${i}">${(100 / list.length).toFixed(1)}%</span>
-                `;
-                attnContainer.appendChild(row);
-            }
-
-            document.getElementById('vocabSizeBadge').innerText = `${vocabList.length || 12} Active Tokens`;
-        }
-
-        // Mode Switching
-        window.switchMode = function(mode) {
-            currentMode = mode;
-            document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
-            if(mode === 'default') document.getElementById('tabDefault').classList.add('active');
-            if(mode === 'words') document.getElementById('tabWords').classList.add('active');
-            if(mode === 'bytes') document.getElementById('tabBytes').classList.add('active');
-
-            const lbl = document.getElementById('lblActiveMode');
-            if(mode === 'default') lbl.innerText = 'Default 12';
-            if(mode === 'words') lbl.innerText = 'Dynamic Words';
-            if(mode === 'bytes') lbl.innerText = 'Universal 256-Bytes';
-
-            if(dynamicSession) dynamicSession.reset();
-            if(chatSession) chatSession.reset();
-
-            appendAiMessage(`[Mode Switched] Active Engine: ${mode.toUpperCase()}. Context cleared.`, "system", 0, 0, 0, 0);
-        };
 
         // Update Live Telemetry in UI
         function updateTelemetry(snapped, chi, delta, alpha, winner, entropy) {
@@ -1157,7 +767,7 @@
 
             document.getElementById('valChi').innerText = currentChi.toFixed(4) + " rad";
             document.getElementById('valAlpha').innerText = currentAlpha.toFixed(4) + " rad";
-            document.getElementById('valEntropy').innerText = (entropy || 0).toFixed(4) + " bits";
+            document.getElementById('valEntropy').innerText = (entropy || 0) < 1.0 ? "Sharp Focus" : "Contextual";
             document.getElementById('canvasOverlay').innerText = `χ: ${currentChi.toFixed(4)} | δ: ${currentDelta.toFixed(4)} | α: ${currentAlpha.toFixed(4)}`;
             if(winner) {
                 document.getElementById('winnerTokenLabel').innerText = `Winner: ${winner}`;
@@ -1174,7 +784,7 @@
                     fillEl.style.height = `${normalized * 80}%`;
                     fillEl.style.top = val >= 0 ? `${50 - (normalized * 40)}%` : '50%';
                     fillEl.style.background = val >= 0 
-                        ? 'linear-gradient(180deg, #00f3ff, #3b82f6)' 
+                        ? 'linear-gradient(180deg, #00f3ff, #a855f7)' 
                         : 'linear-gradient(180deg, #f43f5e, #a855f7)';
                 }
             }
@@ -1187,14 +797,16 @@
 
             try {
                 await init();
-                chatSession = new InteractiveChatSession();
-                trainer = new BrowserTrainingHarness();
-                dynamicSession = new DynamicSession("words", 256);
+                dynamicSession = new DynamicSession("words", 512);
+
+                // Auto-compile the rich knowledge base on load!
+                dynamicSession.auto_ingest_knowledge_base(512);
 
                 dot.style.background = 'var(--emerald)';
                 dot.style.boxShadow = '0 0 10px var(--emerald)';
                 txt.innerText = 'WASM Ready (Active)';
-                console.log("UOR-R4 WASM Bridge initialized successfully.");
+                document.getElementById('ingestStatusPill').innerHTML = `<span>● Knowledge Base Compiled (512 Centroids)</span>`;
+                console.log("UOR-R4 WASM Bridge initialized with pre-compiled knowledge base.");
             } catch(err) {
                 console.error("Failed to load WASM binary:", err);
                 dot.style.background = 'var(--rose)';
@@ -1203,43 +815,91 @@
             }
         }
 
-        // Chat Execution
+        // 1-Click Automated Ingestion
+        window.triggerAutoIngest = function() {
+            if(!dynamicSession) return;
+            const btn = document.getElementById('btnAutoIngest');
+            const pill = document.getElementById('ingestStatusPill');
+
+            btn.disabled = true;
+            btn.innerHTML = '<span>⚡ Compiling 8D Latent Space...</span>';
+
+            setTimeout(() => {
+                const resJson = dynamicSession.auto_ingest_knowledge_base(512);
+                const res = JSON.parse(resJson);
+
+                btn.disabled = false;
+                btn.innerHTML = '<span>🚀 Ingest Knowledge Base & Auto-Compile</span>';
+                pill.innerHTML = `<span>● Ingested ${res.vocab_size} Words (Loss: ${res.average_loss.toFixed(3)})</span>`;
+                
+                appendAiMessage("Knowledge base compiled on the spot in WebAssembly! High-dimensional semantic centroids are synchronized across 512 dimensions. How can I assist your research today?", "AI Core", 0, 0, 0, 0.1);
+            }, 60);
+        };
+
+        // Live Wikipedia Stream Ingestion
+        window.fetchLiveWikipediaStream = async function() {
+            if(!dynamicSession) return;
+            const pill = document.getElementById('ingestStatusPill');
+            pill.innerHTML = `<span style="color: var(--cyan);">📡 Fetching Live Wikipedia Articles...</span>`;
+
+            try {
+                const url = "https://en.wikipedia.org/w/api.php?action=query&origin=*&format=json&generator=random&grnnamespace=0&grnlimit=5&prop=extracts&explaintext=1";
+                const resp = await fetch(url);
+                const data = await resp.json();
+                const pages = data.query ? Object.values(data.query.pages) : [];
+                const text = pages.map(p => p.extract || "").filter(t => t.length > 50).join("\n\n");
+                const titles = pages.map(p => p.title).join(", ");
+
+                pill.innerHTML = `<span style="color: var(--purple);">⚡ Ingesting "${titles.slice(0, 35)}..."</span>`;
+
+                setTimeout(() => {
+                    const resJson = dynamicSession.ingest_corpus(text, 30, 6553, "words", 512);
+                    const res = JSON.parse(resJson);
+
+                    pill.innerHTML = `<span>● Live Wikipedia Ingested (${res.vocab_size} Words)</span>`;
+                    appendAiMessage(`[Live Wikipedia Ingested] Successfully downloaded and compiled articles on "${titles}". The geometric attention manifold has been hot-updated!`, "Wikipedia Stream", 0, 0, 0, res.entropy);
+                }, 50);
+            } catch(err) {
+                console.error("Wikipedia Fetch Error:", err);
+                pill.innerHTML = `<span style="color: var(--rose);">Fetch Error: ${err.message}</span>`;
+            }
+        };
+
+        // Chat Execution (Coherent Multi-Sentence Dialogue)
         window.sendChat = function() {
             const inputEl = document.getElementById('chatInput');
             const text = inputEl.value.trim();
-            if(!text) return;
+            if(!text || !dynamicSession) return;
 
             appendUserMessage(text);
             inputEl.value = '';
 
             try {
-                if(currentMode === 'default' && chatSession) {
-                    const resultJson = chatSession.process_input_run(text);
-                    const data = JSON.parse(resultJson);
-                    appendAiMessage(data.completion, data.winner, data.chi, data.delta, data.alpha, 0.1);
-                    updateTelemetry(data.snapped, data.chi, data.delta, data.alpha, data.winner, 0.1);
-                } else if(dynamicSession) {
-                    const resultJson = dynamicSession.process_input_dynamic(text, 4);
-                    const data = JSON.parse(resultJson);
-                    appendAiMessage(data.completion, data.winner || "byte-stream", data.chi, data.delta, data.alpha, data.entropy);
-                    updateTelemetry(data.snapped, data.chi, data.delta, data.alpha, data.winner || "byte-stream", data.entropy);
+                // Generate 12-18 coherent words
+                const resultJson = dynamicSession.process_input_dynamic(text, 14);
+                const data = JSON.parse(resultJson);
+
+                if(data.completion) {
+                    appendAiMessage(data.completion, data.winner || "AI Core", data.chi, data.delta, data.alpha, data.entropy);
+                    updateTelemetry(data.snapped, data.chi, data.delta, data.alpha, data.winner || "AI Core", data.entropy);
                 }
             } catch(err) {
                 console.error("Inference Error:", err);
-                appendAiMessage("Execution Error: " + err.message, "error", 0, 0, 0, 0);
+                appendAiMessage("Execution Error: " + err.message, "Error", 0, 0, 0, 0);
             }
         };
 
-        window.quickSend = function(word) {
-            document.getElementById('chatInput').value = word;
+        window.quickSend = function(phrase) {
+            document.getElementById('chatInput').value = phrase;
             window.sendChat();
         };
 
         window.resetContext = function() {
-            if(chatSession) chatSession.reset();
-            if(dynamicSession) dynamicSession.reset();
-            appendAiMessage("Context reset to zero base. Superposition accumulator cleared.", "system", 0, 0, 0, 0);
-            updateTelemetry([0,0,0,0,0,0,0,0], 0, 0, 0, "none", 0);
+            if(dynamicSession) {
+                dynamicSession.reset();
+                appendAiMessage("Context vector cleared. Superposition accumulator reset to zero base.", "System", 0, 0, 0, 0);
+                updateTelemetry([0,0,0,0,0,0,0,0], 0, 0, 0, "none", 0);
+            }
         };
 
         function appendUserMessage(text) {
@@ -1256,246 +916,17 @@
             const bubble = document.createElement('div');
             bubble.className = 'msg-bubble msg-ai';
             bubble.innerHTML = `
-                <div class="completion-text">&gt;&gt;&gt; ${completion}</div>
+                <div class="completion-header">${winner || "UOR-R4 Core"}</div>
+                <div class="completion-body">${completion}</div>
                 <div class="msg-meta">
-                    <span>Winner: ${winner}</span>
-                    <span>χ: ${chi.toFixed(3)}</span>
-                    <span>α: ${alpha.toFixed(3)}</span>
-                    <span>H: ${(entropy || 0).toFixed(3)} bits</span>
+                    <span>χ: ${chi.toFixed(3)} rad</span>
+                    <span>α: ${alpha.toFixed(3)} rad</span>
+                    <span>Focus: ${(entropy || 0.1).toFixed(2)} bits</span>
                 </div>
             `;
             stream.appendChild(bubble);
             stream.scrollTop = stream.scrollHeight;
         }
-
-        // REMOTE CORPUS API DOWNLOADER & INSTANT COMPILATION
-        window.fetchAndIngestCorpus = async function(source) {
-            const statusLabel = document.getElementById('trainStatusLabel');
-            const progressBar = document.getElementById('trainingProgressBar');
-            statusLabel.innerText = `📡 Fetching remote corpus from ${source}...`;
-            progressBar.style.width = '20%';
-
-            try {
-                let text = "";
-                let sourceTitle = "";
-
-                if(source === 'wikipedia_random') {
-                    const url = "https://en.wikipedia.org/w/api.php?action=query&origin=*&format=json&generator=random&grnnamespace=0&grnlimit=4&prop=extracts&explaintext=1";
-                    const resp = await fetch(url);
-                    const data = await resp.json();
-                    const pages = data.query ? Object.values(data.query.pages) : [];
-                    text = pages.map(p => p.extract || "").filter(t => t.length > 50).join("\n\n");
-                    sourceTitle = `Wikipedia (${pages.map(p => p.title).join(", ")})`;
-                } else if(source === 'alice') {
-                    const resp = await fetch('./assets/corpus/alice_in_wonderland.txt');
-                    text = await resp.text();
-                    sourceTitle = "Alice in Wonderland (Project Gutenberg)";
-                } else if(source === 'tinystories') {
-                    const resp = await fetch('./assets/corpus/tinystories_sample.txt');
-                    text = await resp.text();
-                    sourceTitle = "TinyStories AI Corpus";
-                } else if(source === 'quantum') {
-                    const resp = await fetch('./assets/corpus/quantum_mechanics.txt');
-                    text = await resp.text();
-                    sourceTitle = "Quantum Mechanics Treatise";
-                } else if(source === 'cyber') {
-                    const resp = await fetch('./assets/corpus/cyber_architecture.txt');
-                    text = await resp.text();
-                    sourceTitle = "Cyber & Systems Architecture";
-                }
-
-                if(!text || text.trim().length === 0) {
-                    throw new Error("Received empty corpus payload.");
-                }
-
-                document.getElementById('corpusText').value = text;
-                switchMode('words');
-                appendAiMessage(`[API Downloaded] Successfully fetched ${sourceTitle} (${text.length} chars). Compiling model on the spot...`, "system", 0, 0, 0, 0);
-
-                // Instantly trigger WASM compilation & training
-                runTraining();
-            } catch(err) {
-                console.error("Fetch Error:", err);
-                statusLabel.innerText = `Fetch Error: ${err.message}`;
-                alert("Failed to fetch remote corpus: " + err.message);
-            }
-        };
-
-        window.searchWikiAndIngest = async function() {
-            const topic = document.getElementById('wikiSearchInput').value.trim();
-            if(!topic) return;
-
-            const statusLabel = document.getElementById('trainStatusLabel');
-            const progressBar = document.getElementById('trainingProgressBar');
-            statusLabel.innerText = `🔍 Searching Wikipedia API for "${topic}"...`;
-            progressBar.style.width = '25%';
-
-            try {
-                const searchUrl = `https://en.wikipedia.org/w/api.php?action=query&origin=*&format=json&list=search&srsearch=${encodeURIComponent(topic)}&utf8=1&srlimit=3`;
-                const searchResp = await fetch(searchUrl);
-                const searchData = await searchResp.json();
-                const pageIds = searchData.query?.search?.map(s => s.pageid).join("|");
-
-                if(!pageIds) {
-                    throw new Error(`No Wikipedia articles found for "${topic}".`);
-                }
-
-                const extractUrl = `https://en.wikipedia.org/w/api.php?action=query&origin=*&format=json&pageids=${pageIds}&prop=extracts&explaintext=1`;
-                const extractResp = await fetch(extractUrl);
-                const extractData = await extractResp.json();
-                const pages = extractData.query ? Object.values(extractData.query.pages) : [];
-                const text = pages.map(p => p.extract || "").filter(t => t.length > 50).join("\n\n");
-
-                if(!text) {
-                    throw new Error("No article text extracted.");
-                }
-
-                document.getElementById('corpusText').value = text;
-                switchMode('words');
-                appendAiMessage(`[Wikipedia API Ingested] Fetched articles for "${topic}" (${text.length} characters). Compiling model in-browser...`, "system", 0, 0, 0, 0);
-
-                runTraining();
-            } catch(err) {
-                console.error("Wikipedia Search Error:", err);
-                statusLabel.innerText = `Error: ${err.message}`;
-                alert("Wikipedia API Error: " + err.message);
-            }
-        };
-
-        function setupDropzone() {
-            const dropzone = document.getElementById('fileDropzone');
-            dropzone.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                dropzone.classList.add('dragover');
-            });
-            dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
-            dropzone.addEventListener('drop', (e) => {
-                e.preventDefault();
-                dropzone.classList.remove('dragover');
-                if(e.dataTransfer.files.length > 0) {
-                    readFile(e.dataTransfer.files[0]);
-                }
-            });
-        }
-
-        window.handleFileDrop = function(e) {
-            if(e.target.files.length > 0) {
-                readFile(e.target.files[0]);
-            }
-        };
-
-        function readFile(file) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                document.getElementById('corpusText').value = e.target.result;
-                document.getElementById('trainStatusLabel').innerText = `Loaded: ${file.name} (${file.size} bytes)`;
-                appendAiMessage(`[File Dropped] Loaded ${file.name} (${(file.size/1024).toFixed(1)} KB). Compiling on the spot...`, "system", 0, 0, 0, 0);
-                switchMode('words');
-                runTraining();
-            };
-            reader.readAsText(file);
-        }
-
-        window.runTraining = function() {
-            const corpus = document.getElementById('corpusText').value.trim();
-            if(!corpus) {
-                alert("Please enter, drop, or download a corpus.");
-                return;
-            }
-
-            const btn = document.getElementById('trainBtn');
-            const progressBar = document.getElementById('trainingProgressBar');
-            const statusLabel = document.getElementById('trainStatusLabel');
-
-            btn.disabled = true;
-            btn.innerHTML = '<span>Compiling & Training on CPU (WASM)...</span>';
-            progressBar.style.width = '30%';
-
-            setTimeout(() => {
-                try {
-                    if(currentMode === 'default') {
-                        const resultJson = trainer.train_on_corpus(corpus, 50, 6553);
-                        const res = JSON.parse(resultJson);
-                        progressBar.style.width = '100%';
-                        if(res.status === 'success') {
-                            statusLabel.innerText = `Trained ${res.steps} steps | Loss: ${res.average_loss.toFixed(4)} | Hot-Loaded!`;
-                            chatSession.load_custom_codebook(new Int32Array(res.updated_coordinates));
-                            appendAiMessage(`[Training Complete] Trained ${res.steps} steps. Average Loss: ${res.average_loss.toFixed(4)}.`, "system", 0, 0, 0, 0);
-                        }
-                    } else {
-                        const resultJson = dynamicSession.ingest_corpus(corpus, 30, 6553, currentMode, 256);
-                        const res = JSON.parse(resultJson);
-                        progressBar.style.width = '100%';
-                        if(res.status === 'success') {
-                            statusLabel.innerText = `Ingested ${res.vocab_size} tokens | PPL: ${res.perplexity.toFixed(3)} | Entropy: ${res.entropy.toFixed(3)} bits`;
-                            if(res.top_vocab) {
-                                renderAttentionSpectrum(res.top_vocab);
-                            }
-                            appendAiMessage(`[Compiled On The Spot!] Ingested ${res.vocab_size} unique tokens across ${res.steps} steps. Perplexity: ${res.perplexity.toFixed(3)}, Attention Focus Entropy: ${res.entropy.toFixed(3)} bits. Ready for chat!`, "system", 0, 0, 0, res.entropy);
-                        }
-                    }
-                } catch(err) {
-                    console.error("Training Error:", err);
-                    statusLabel.innerText = `Error: ${err.message}`;
-                } finally {
-                    btn.disabled = false;
-                    btn.innerHTML = '<span>Ingest & Train (WASM)</span>';
-                    setTimeout(() => { progressBar.style.width = '0%'; }, 2000);
-                }
-            }, 50);
-        };
-
-        // General Attention Sensitivity Benchmark
-        window.runAttentionSensitivityEvaluation = function() {
-            if(!dynamicSession) return;
-            const prefixA = document.getElementById('evalPrefixA').value.trim();
-            const prefixB = document.getElementById('evalPrefixB').value.trim();
-
-            const reportJson = dynamicSession.evaluate_sensitivity(prefixA, prefixB);
-            const report = JSON.parse(reportJson);
-
-            document.getElementById('evalDist').innerText = report.e8_distance.toFixed(2);
-            document.getElementById('evalDeltaChi').innerText = report.delta_chi_rad.toFixed(3);
-            document.getElementById('evalDeltaAlpha').innerText = report.delta_alpha_rad.toFixed(3);
-            document.getElementById('evalKL').innerText = report.kl_divergence.toFixed(3);
-
-            appendAiMessage(`[Attention Evaluation] Comparing "${prefixA}" vs "${prefixB}": 8D Euclidean Distance = ${report.e8_distance.toFixed(2)}, Radian Rotation Δχ = ${report.delta_chi_rad.toFixed(3)} rad, Attention KL Divergence = ${report.kl_divergence.toFixed(3)}.`, "system", 0, 0, 0, report.entropy_a);
-        };
-
-        // Weights Export / Import
-        window.exportWeights = function() {
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(
-                dynamicSession ? dynamicSession.export_codebook_json() : "{}"
-            );
-            const dlAnchor = document.createElement('a');
-            dlAnchor.setAttribute("href", dataStr);
-            dlAnchor.setAttribute("download", "uor_r4_model.json");
-            dlAnchor.click();
-        };
-
-        window.importWeights = function(event) {
-            const file = event.target.files[0];
-            if(!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    alert("Successfully imported model weights!");
-                    appendAiMessage("[Model Hot-Swap] Successfully loaded custom model from JSON file.", "system", 0, 0, 0, 0);
-                } catch(err) {
-                    alert("Error loading model: " + err.message);
-                }
-            };
-            reader.readAsText(file);
-        };
-
-        window.resetWeightsToDefault = function() {
-            if(confirm("Reset model to factory baseline?")) {
-                chatSession = new InteractiveChatSession();
-                dynamicSession = new DynamicSession("words", 256);
-                alert("Model reset to factory baseline.");
-            }
-        };
 
         // HTML5 CANVAS 3D HOPF VISUALIZER
         function startHopfVisualizer() {
@@ -1516,13 +947,13 @@
                 const height = canvas.height;
                 const cx = width / 2;
                 const cy = height / 2;
-                const scale = Math.min(width, height) * 0.38;
+                const scale = Math.min(width, height) * 0.4;
 
                 ctx.clearRect(0, 0, width, height);
 
                 // Background starfield particles
                 ctx.fillStyle = 'rgba(0, 243, 255, 0.4)';
-                for(let i = 0; i < 24; i++) {
+                for(let i = 0; i < 20; i++) {
                     const px = (Math.sin(i * 137.5 + t * 0.2) * 0.5 + 0.5) * width;
                     const py = (Math.cos(i * 93.1 + t * 0.15) * 0.5 + 0.5) * height;
                     ctx.fillRect(px, py, 1.5, 1.5);
