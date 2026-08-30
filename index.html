@@ -1197,7 +1197,7 @@
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                 </button>
 
-                <input type="text" id="chatInput" class="chat-input" placeholder="Ask a question or upload a document..." onkeydown="if(event.key==='Enter') sendChat()">
+                <input type="text" id="chatInput" class="chat-input" placeholder="Ask a question or upload a document..." onkeydown="handleChatInputKey(event)">
                 
                 <button id="sendBtn" class="send-btn-circle" onclick="sendChat()" title="Send Message">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
@@ -1293,6 +1293,31 @@
         let currentConvId = null;
         let chatHistory = [];
         let attachedFiles = [];
+        let userPromptHistory = [];
+        let historyIndex = -1;
+
+        window.handleChatInputKey = function(event) {
+            const inputEl = document.getElementById('chatInput');
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                sendChat();
+            } else if (event.key === 'ArrowUp') {
+                if (userPromptHistory.length > 0) {
+                    if (historyIndex < userPromptHistory.length - 1) {
+                        historyIndex++;
+                        inputEl.value = userPromptHistory[userPromptHistory.length - 1 - historyIndex];
+                    }
+                }
+            } else if (event.key === 'ArrowDown') {
+                if (historyIndex > 0) {
+                    historyIndex--;
+                    inputEl.value = userPromptHistory[userPromptHistory.length - 1 - historyIndex];
+                } else if (historyIndex === 0) {
+                    historyIndex = -1;
+                    inputEl.value = '';
+                }
+            }
+        };
 
         let currentE8Coords = [0, 0, 0, 0, 0, 0, 0, 0];
         let currentChi = 0, currentDelta = 0, currentAlpha = 0;
@@ -1937,6 +1962,11 @@
             const userPrompt = inputEl.value.trim();
             
             if(!userPrompt && attachedFiles.length === 0) return;
+
+            if (userPrompt) {
+                userPromptHistory.push(userPrompt);
+                historyIndex = -1;
+            }
 
             if(!generator) {
                 showToast("⚠️ Please click 'Download & Compile' on a model in the left sidebar first!");
