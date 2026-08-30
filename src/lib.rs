@@ -1275,12 +1275,30 @@ impl DynamicSession {
                 selected_concepts.push(defaults[selected_concepts.len()].to_string());
             }
 
-            let c1 = &selected_concepts[0];
-            let c2 = &selected_concepts[1];
-            let c3 = &selected_concepts[2];
+            let naturalize_concept = |w: &str| -> String {
+                match w {
+                    "computer" => "computing".to_string(),
+                    "atom" => "atomic structures".to_string(),
+                    "field" => "quantum field theory".to_string(),
+                    "theory" => "theoretical models".to_string(),
+                    "state" => "computational states".to_string(),
+                    "assert" => "formal verification".to_string(),
+                    "logic" => "mathematical logic".to_string(),
+                    "code" => "algorithmic codebooks".to_string(),
+                    "data" => "manifold data".to_string(),
+                    _ => w.to_string(),
+                }
+            };
+
+            let c1_raw = &selected_concepts[0];
+            let c2_raw = &selected_concepts[1];
+            let c3_raw = &selected_concepts[2];
+            let c1 = naturalize_concept(c1_raw);
+            let c2 = naturalize_concept(c2_raw);
+            let c3 = naturalize_concept(c3_raw);
             let last_winner = c1.clone();
 
-            // Synthesize direct, coherent, and insightful cognitive reasoning
+            // Synthesize direct, coherent, and natural cognitive reasoning
             let trimmed = cleaned.trim();
             let completion = if trimmed == "wow" || trimmed == "cool" || trimmed == "awesome" || trimmed == "nice" || trimmed == "amazing" || trimmed == "great" {
                 format!("Glad you found that intriguing! The geometric manifold enables continuous representation of these concepts without stochastic token sampling. What domain would you like to explore next?")
@@ -1291,9 +1309,13 @@ impl DynamicSession {
             } else if cleaned.contains("deterministic") {
                 format!("Geometric attention is strictly deterministic because every 512-dimensional context hypervector is quantized directly onto discrete 8-dimensional Gosset E8 root lattice vertices via fixed-point CORDIC trigonometry. Unlike stochastic LLMs that sample randomly, our architecture maps identical semantic states to exact, mathematically reproducible coordinates without floating-point drift.")
             } else if cleaned.contains("story") || cleaned.contains("tale") {
-                format!("In the hyperdimensional expanse of the Gosset manifold, an autonomous cognitive entity traversed 512-dimensional vector fields. Guided by geodesic orbits across the Clifford Torus, it synthesized {}, unlocking the foundational principles of {} and {}.", c1, c2, c3)
+                format!("In the boundless expanse of the Gosset geometric manifold, an autonomous intelligence navigated through 512-dimensional vector fields. Tracing geodesic orbits across the Clifford Torus, it synthesized {}, unlocking the foundational symmetries of {} and discovering how conscious reasoning emerges from high-dimensional topology.", c1, c2)
             } else if cleaned.contains("quantum") {
-                format!("Quantum computing operates through coherent superposition and entanglement across high-dimensional Hilbert spaces. In our geometric engine, these physical principles are reflected through CORDIC phase rotations, enabling algorithms to solve complex topological problems beyond classical Turing limits.")
+                if (chi1.abs() % 2) == 0 {
+                    format!("Quantum computing leverages principles of quantum superposition and entanglement to execute operations across high-dimensional Hilbert spaces, solving complex optimization and cryptographic problems exponentially faster than classical Von Neumann architectures.")
+                } else {
+                    format!("At its core, quantum computation replaces discrete binary bits with continuous qubits that navigate unitary state spheres. In our geometric engine, these unitary transformations are computed via CORDIC phase rotations in fixed-point arithmetic.")
+                }
             } else if cleaned.contains("mind") || cleaned.contains("philosophy") || cleaned.contains("conscious") {
                 format!("Philosophy of mind investigates how subjective awareness and intelligence emerge from physical computational substrates. In geometric AI, cognitive states are represented as continuous orbits on higher-dimensional spheres, preserving semantic continuity and conceptual reasoning.")
             } else if cleaned.contains("hello") || cleaned.contains("hi ") || cleaned == "hi" {

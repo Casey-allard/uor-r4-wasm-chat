@@ -23,6 +23,7 @@
             --purple: #a855f7;
             --purple-glow: rgba(168, 85, 247, 0.3);
             --rose: #f43f5e;
+            --gold: #fbbf24;
             --text-primary: #f8fafc;
             --text-secondary: #94a3b8;
             --text-muted: #64748b;
@@ -483,7 +484,7 @@
             left: 10px;
             right: 10px;
             font-family: 'Fira Code', monospace;
-            font-size: 0.7rem;
+            font-size: 0.68rem;
             color: var(--cyan);
             background: rgba(0, 0, 0, 0.75);
             padding: 0.45rem 0.75rem;
@@ -579,7 +580,7 @@
                     </div>
                     <div class="spec-row">
                         <span>Pre-Trained Corpus:</span>
-                        <span class="spec-val" id="sideTokens">2,000,000 Tok</span>
+                        <span class="spec-val" id="sideTokens">130B Manifold</span>
                     </div>
                     <div class="spec-row">
                         <span>Active Vocabulary:</span>
@@ -657,8 +658,8 @@
                 <div class="brain-box">
                     <canvas id="brainCanvas"></canvas>
                     <div class="brain-overlay">
-                        <span id="overlayPhase">Thought Wave: Idle</span>
-                        <span id="overlayPulse">Attractor: Ready</span>
+                        <span id="overlayEngrams">Engrams: 0 Formed</span>
+                        <span id="overlaySynapses">Synapses: 112 Active</span>
                     </div>
                 </div>
             </div>
@@ -686,8 +687,10 @@
         let rippleShockwave = 0;
         let autoPilotTimer = null;
         let totalTokensIngested = 2000000;
+        let persistentEngrams = new Set();
+        let persistentConnections = [];
 
-        // Update Live Telemetry & Trigger Synaptic Thought Waves
+        // Update Live Telemetry & Trigger Synaptic Thought Waves with Persistent Growth
         function updateTelemetry(snapped, chi, delta, alpha, winner, concepts) {
             currentE8Coords = snapped || [0,0,0,0,0,0,0,0];
             currentChi = chi || 0;
@@ -695,19 +698,37 @@
             currentAlpha = alpha || 0;
             rippleShockwave = 1.0;
 
-            document.getElementById('overlayPhase').innerText = `Phase: χ₁=${currentChi.toFixed(2)}, α₂=${currentAlpha.toFixed(2)}`;
-            document.getElementById('overlayPulse').innerText = `Attractor: ${winner || "active"}`;
+            // Form persistent synaptic engrams
+            const newNodes = [];
+            for(let k = 0; k < 4; k++) {
+                const nodeIdx = Math.abs((Math.round(currentChi * 10) + k * 11) % 48);
+                persistentEngrams.add(nodeIdx);
+                newNodes.push(nodeIdx);
+            }
+
+            for(let i = 0; i < newNodes.length - 1; i++) {
+                persistentConnections.push({
+                    from: newNodes[i],
+                    to: newNodes[i + 1],
+                    color: i % 2 === 0 ? '#00f3ff' : '#a855f7'
+                });
+            }
+
+            document.getElementById('overlayEngrams').innerText = `Engrams: ${persistentEngrams.size} Formed`;
+            document.getElementById('overlaySynapses').innerText = `Synapses: ${112 + persistentConnections.length} Active`;
             document.getElementById('neuralStateLabel').innerText = `Brain: Firing (${winner || "active"})`;
 
             // Ignite dramatic slow-moving electrical synaptic thought pulses
-            for(let p = 0; p < 12; p++) {
+            for(let p = 0; p < 10; p++) {
+                const start = newNodes[p % newNodes.length];
+                const target = Math.floor(Math.random() * 48);
                 activePulses.push({
-                    startNode: Math.floor(Math.random() * 48),
-                    targetNode: Math.floor(Math.random() * 48),
+                    startNode: start,
+                    targetNode: target,
                     progress: 0,
-                    speed: 0.008 + Math.random() * 0.012,
-                    color: p % 2 === 0 ? '#00f3ff' : '#a855f7',
-                    size: 4.5 + Math.random() * 2
+                    speed: 0.005 + Math.random() * 0.008,
+                    color: p % 2 === 0 ? '#00f3ff' : '#fbbf24',
+                    size: 5 + Math.random() * 2.5
                 });
             }
         }
@@ -731,7 +752,7 @@
                 const res = JSON.parse(resJson);
 
                 document.getElementById('sideParams').innerText = '7.00 Billion';
-                document.getElementById('sideTokens').innerText = '2,000,000 Tok';
+                document.getElementById('sideTokens').innerText = '130B Manifold';
                 document.getElementById('sideVocab').innerText = `${res.vocab_size} Centroids`;
 
                 console.log("UOR-R4 Agent Studio initialized successfully with 7.0B parameter manifold.");
@@ -775,7 +796,7 @@
                         const res = JSON.parse(resJson);
                         totalTokensIngested += words;
 
-                        document.getElementById('sideTokens').innerText = `${totalTokensIngested.toLocaleString()} Tok`;
+                        document.getElementById('sideTokens').innerText = `130B + ${totalTokensIngested.toLocaleString()}`;
                         document.getElementById('sideVocab').innerText = `${res.vocab_size} Centroids`;
                     }
                 } catch(e) {
@@ -819,6 +840,8 @@
             if(dynamicSession) {
                 dynamicSession.reset();
                 activePulses = [];
+                persistentEngrams.clear();
+                persistentConnections = [];
                 updateTelemetry([0,0,0,0,0,0,0,0], 0, 0, 0, "none", []);
             }
         };
@@ -897,7 +920,7 @@
                 nodes.push({ x, y, z, baseColor: i % 3 === 0 ? '#00f3ff' : (i % 3 === 1 ? '#a855f7' : '#38bdf8') });
             }
 
-            // Build synaptic connectivity graph between proximal nodes
+            // Build base synaptic connectivity graph between proximal nodes
             const edges = [];
             for(let i = 0; i < numNodes; i++) {
                 for(let j = i + 1; j < numNodes; j++) {
@@ -912,8 +935,8 @@
             }
 
             function render() {
-                t += 0.012;
-                rippleShockwave = Math.max(0, rippleShockwave - 0.012);
+                t += 0.005; // Calm, meditative rotation speed
+                rippleShockwave = Math.max(0, rippleShockwave - 0.008);
 
                 const width = canvas.width;
                 const height = canvas.height;
@@ -923,27 +946,29 @@
 
                 ctx.clearRect(0, 0, width, height);
 
-                // Slow rotation modulated by CORDIC Hopf phase (χ₁, α₂)
-                const rotY = t * 0.25 + (currentAlpha * 0.4);
-                const rotX = 0.35 + Math.sin(t * 0.2) * 0.08 + (currentChi * 0.15);
+                // Calm rotation modulated by CORDIC Hopf phase (χ₁, α₂)
+                const rotY = t * 0.3 + (currentAlpha * 0.25);
+                const rotX = 0.35 + Math.sin(t * 0.25) * 0.06 + (currentChi * 0.1);
 
                 const cosY = Math.cos(rotY), sinY = Math.sin(rotY);
                 const cosX = Math.cos(rotX), sinX = Math.sin(rotX);
 
                 // Project 3D nodes to 2D screen coordinates
-                const projectedNodes = nodes.map((n) => {
+                const projectedNodes = nodes.map((n, idx) => {
                     const x1 = n.x * cosY + n.z * sinY;
                     const z1 = -n.x * sinY + n.z * cosY;
                     const y1 = n.y * cosX - z1 * sinX;
                     const z2 = n.y * sinX + z1 * cosX;
 
                     const persp = 1.8 / (2.2 - z2 * 0.6);
+                    const isEngram = persistentEngrams.has(idx);
                     return {
                         sx: cx + x1 * scale * persp,
                         sy: cy + y1 * scale * persp,
                         z: z2,
                         persp,
-                        color: n.baseColor
+                        color: isEngram ? '#fbbf24' : n.baseColor,
+                        isEngram
                     };
                 });
 
@@ -976,6 +1001,23 @@
                     ctx.stroke();
                 }
 
+                // Draw Persistent Formed Synaptic Pathways (Gold / Magenta Arcs)
+                for(let c = 0; c < persistentConnections.length; c++) {
+                    const pc = persistentConnections[c];
+                    const p1 = projectedNodes[pc.from];
+                    const p2 = projectedNodes[pc.to];
+
+                    ctx.beginPath();
+                    ctx.moveTo(p1.sx, p1.sy);
+                    ctx.lineTo(p2.sx, p2.sy);
+                    ctx.strokeStyle = pc.color;
+                    ctx.lineWidth = 2.0 * Math.max(p1.persp, p2.persp);
+                    ctx.shadowColor = pc.color;
+                    ctx.shadowBlur = 8;
+                    ctx.stroke();
+                    ctx.shadowBlur = 0;
+                }
+
                 // Render Dramatic, Slower-Moving Electrical Synaptic Thought Pulses
                 for(let p = activePulses.length - 1; p >= 0; p--) {
                     const pulse = activePulses[p];
@@ -993,7 +1035,7 @@
                     const curY = p1.sy + (p2.sy - p1.sy) * pulse.progress;
 
                     // Draw trailing comet light
-                    const tailProgress = Math.max(0, pulse.progress - 0.15);
+                    const tailProgress = Math.max(0, pulse.progress - 0.2);
                     const tailX = p1.sx + (p2.sx - p1.sx) * tailProgress;
                     const tailY = p1.sy + (p2.sy - p1.sy) * tailProgress;
 
@@ -1001,9 +1043,9 @@
                     ctx.moveTo(tailX, tailY);
                     ctx.lineTo(curX, curY);
                     ctx.strokeStyle = pulse.color;
-                    ctx.lineWidth = 2.5 * p1.persp;
+                    ctx.lineWidth = 2.8 * p1.persp;
                     ctx.shadowColor = pulse.color;
-                    ctx.shadowBlur = 10;
+                    ctx.shadowBlur = 12;
                     ctx.stroke();
 
                     // Main spark head
@@ -1011,7 +1053,7 @@
                     ctx.arc(curX, curY, pulse.size * p1.persp, 0, Math.PI * 2);
                     ctx.fillStyle = '#ffffff';
                     ctx.shadowColor = pulse.color;
-                    ctx.shadowBlur = 16;
+                    ctx.shadowBlur = 18;
                     ctx.fill();
                     ctx.shadowBlur = 0;
                 }
@@ -1021,7 +1063,7 @@
 
                 for(let idx of sortedIndices) {
                     const pn = projectedNodes[idx];
-                    const nodeRadius = 4.0 * pn.persp;
+                    const nodeRadius = (pn.isEngram ? 5.5 : 4.0) * pn.persp;
                     const nodeAlpha = Math.max(0.25, (pn.z + 1.2) / 2.4);
 
                     ctx.beginPath();
@@ -1029,8 +1071,17 @@
                     ctx.fillStyle = pn.color;
                     ctx.globalAlpha = nodeAlpha;
                     ctx.shadowColor = pn.color;
-                    ctx.shadowBlur = 10 * pn.persp;
+                    ctx.shadowBlur = (pn.isEngram ? 14 : 8) * pn.persp;
                     ctx.fill();
+
+                    if(pn.isEngram) {
+                        ctx.beginPath();
+                        ctx.arc(pn.sx, pn.sy, nodeRadius + 3, 0, Math.PI * 2);
+                        ctx.strokeStyle = '#fbbf24';
+                        ctx.lineWidth = 1.2;
+                        ctx.stroke();
+                    }
+
                     ctx.shadowBlur = 0;
                     ctx.globalAlpha = 1.0;
                 }
@@ -1071,7 +1122,7 @@
             resize();
 
             function renderWave() {
-                phase += 0.04;
+                phase += 0.03;
                 const width = canvas.width;
                 const height = canvas.height;
                 const cy = height / 2;
@@ -1082,8 +1133,8 @@
                 ctx.moveTo(0, cy);
                 for(let x = 0; x < width; x += 4) {
                     const normX = x / width;
-                    const amp = 12 + activePulses.length * 3 + rippleShockwave * 14;
-                    const y = cy + Math.sin(normX * 12 + phase) * Math.cos(normX * 6 - phase * 0.5) * amp;
+                    const amp = 10 + activePulses.length * 2.5 + rippleShockwave * 12;
+                    const y = cy + Math.sin(normX * 10 + phase) * Math.cos(normX * 5 - phase * 0.5) * amp;
                     ctx.lineTo(x, y);
                 }
                 ctx.strokeStyle = activePulses.length > 0 ? '#00f3ff' : 'rgba(56, 189, 248, 0.4)';
