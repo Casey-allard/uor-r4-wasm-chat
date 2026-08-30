@@ -48,7 +48,7 @@
 
         /* SIDEBAR */
         .sidebar {
-            width: 260px;
+            width: 320px;
             background-color: var(--bg-sidebar);
             border-right: 1px solid var(--border-subtle);
             display: flex;
@@ -57,6 +57,7 @@
             flex-shrink: 0;
             transition: transform 0.25s ease, width 0.25s ease;
             z-index: 40;
+            overflow-y: auto;
         }
 
         .sidebar.collapsed {
@@ -90,67 +91,131 @@
             font-size: 0.72rem;
             color: var(--text-muted);
             font-weight: 600;
-            padding: 0.4rem 0.5rem;
+            padding: 0.4rem 0.2rem;
             text-transform: uppercase;
             letter-spacing: 0.05em;
-        }
-
-        .chat-history-list {
-            flex: 1;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 0.25rem;
-        }
-
-        .history-item {
-            padding: 0.6rem 0.75rem;
-            border-radius: var(--radius-md);
-            font-size: 0.84rem;
-            color: var(--text-secondary);
-            cursor: pointer;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            transition: background 0.15s ease, color 0.15s ease;
             display: flex;
             align-items: center;
+            justify-content: space-between;
+        }
+
+        .model-library-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .model-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: 0.75rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            transition: all 0.2s ease;
+        }
+
+        .model-card.active {
+            border-color: var(--accent-cyan);
+            background: rgba(0, 243, 255, 0.05);
+        }
+
+        .model-card-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
             gap: 0.5rem;
         }
 
-        .history-item:hover, .history-item.active {
-            background: var(--bg-surface);
+        .model-name {
+            font-size: 0.82rem;
+            font-weight: 600;
             color: var(--text-primary);
+            line-height: 1.3;
         }
 
-        .sidebar-footer {
-            border-top: 1px solid var(--border-subtle);
-            padding-top: 0.85rem;
+        .model-tier-badge {
+            font-size: 0.65rem;
+            font-family: 'Fira Code', monospace;
+            padding: 0.15rem 0.4rem;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.06);
+            color: var(--text-secondary);
+            white-space: nowrap;
+        }
+
+        .model-meta-row {
             display: flex;
-            flex-direction: column;
-            gap: 0.6rem;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            font-family: 'Fira Code', monospace;
         }
 
-        .bg-worker-card {
-            background: rgba(0, 243, 255, 0.04);
-            border: 1px solid rgba(0, 243, 255, 0.2);
-            border-radius: var(--radius-md);
-            padding: 0.65rem 0.75rem;
+        .compile-btn {
+            background: rgba(0, 243, 255, 0.12);
+            border: 1px solid rgba(0, 243, 255, 0.35);
+            color: var(--accent-cyan);
+            padding: 0.4rem 0.75rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.35rem;
+            width: 100%;
+        }
+
+        .compile-btn:hover {
+            background: rgba(0, 243, 255, 0.22);
+            border-color: var(--accent-cyan);
+        }
+
+        .activate-btn {
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            color: var(--accent-emerald);
+            padding: 0.4rem 0.75rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.35rem;
+            width: 100%;
+        }
+
+        .activate-btn:hover {
+            background: rgba(16, 185, 129, 0.25);
+        }
+
+        .active-pill {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--accent-emerald);
+            font-size: 0.72rem;
+            font-weight: 600;
+            text-align: center;
+            padding: 0.35rem;
+            border-radius: var(--radius-sm);
+            border: 1px solid rgba(16, 185, 129, 0.4);
+        }
+
+        .progress-box {
             display: flex;
             flex-direction: column;
             gap: 0.35rem;
         }
 
-        .bg-worker-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            font-size: 0.72rem;
-            font-weight: 600;
-            color: var(--accent-cyan);
-        }
-
-        .bg-progress-bar {
+        .progress-bar-bg {
             width: 100%;
             height: 4px;
             background: rgba(255, 255, 255, 0.1);
@@ -158,45 +223,30 @@
             overflow: hidden;
         }
 
-        .bg-progress-fill {
+        .progress-bar-fill {
             height: 100%;
             width: 0%;
             background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple));
             transition: width 0.3s ease;
         }
 
-        .bg-worker-subtext {
+        .progress-status-text {
             font-size: 0.66rem;
             color: var(--text-muted);
             font-family: 'Fira Code', monospace;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            display: flex;
+            justify-content: space-between;
         }
 
-        .model-pill-card {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid var(--border-subtle);
-            border-radius: var(--radius-md);
-            padding: 0.65rem 0.75rem;
+        .sidebar-footer {
+            border-top: 1px solid var(--border-subtle);
+            padding-top: 0.85rem;
+            margin-top: auto;
             display: flex;
             flex-direction: column;
-            gap: 0.25rem;
-        }
-
-        .model-pill-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            font-size: 0.78rem;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-
-        .model-pill-detail {
-            font-size: 0.68rem;
+            gap: 0.5rem;
+            font-size: 0.72rem;
             color: var(--text-muted);
-            font-family: 'Fira Code', monospace;
         }
 
         /* MAIN CHAT CONTAINER */
@@ -215,7 +265,7 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0.65rem 1.15rem;
+            padding: 0.75rem 1.25rem;
             border-bottom: 1px solid var(--border-subtle);
             background: var(--bg-main);
             z-index: 30;
@@ -225,7 +275,7 @@
         .nav-left {
             display: flex;
             align-items: center;
-            gap: 0.65rem;
+            gap: 0.75rem;
             flex-wrap: wrap;
         }
 
@@ -247,40 +297,29 @@
             color: var(--text-primary);
         }
 
-        .model-select-dropdown {
+        .brand-badge {
             background: var(--bg-surface);
             border: 1px solid var(--border);
             color: var(--text-primary);
-            padding: 0.4rem 0.75rem;
+            padding: 0.35rem 0.75rem;
             border-radius: var(--radius-md);
-            font-size: 0.82rem;
-            font-weight: 500;
-            outline: none;
-            cursor: pointer;
-            font-family: 'Inter', sans-serif;
-            transition: border-color 0.15s ease, background 0.15s ease;
-        }
-
-        .model-select-dropdown:hover, .model-select-dropdown:focus {
-            border-color: var(--accent-cyan);
-            background: var(--bg-surface-hover);
-        }
-
-        .model-select-dropdown option {
-            background: #1f1f1f;
-            color: #ececec;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         .model-status-indicator {
-            font-size: 0.72rem;
-            padding: 0.25rem 0.65rem;
+            font-size: 0.74rem;
+            padding: 0.3rem 0.75rem;
             border-radius: 12px;
             background: rgba(16, 185, 129, 0.12);
             color: var(--accent-emerald);
             border: 1px solid rgba(16, 185, 129, 0.25);
             display: flex;
             align-items: center;
-            gap: 0.35rem;
+            gap: 0.45rem;
             font-family: 'Fira Code', monospace;
             transition: all 0.2s ease;
             white-space: nowrap;
@@ -340,6 +379,31 @@
             display: flex;
             flex-direction: column;
             gap: 1.75rem;
+        }
+
+        .empty-state-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .empty-state-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            color: #000;
         }
 
         .message-row {
@@ -716,36 +780,94 @@
             <span style="font-size: 0.75rem; color: var(--text-muted); font-family: 'Fira Code', monospace;">⌘K</span>
         </button>
 
-        <div class="sidebar-section-label">Active Session</div>
-        <div class="chat-history-list" id="sessionList">
-            <div class="history-item active">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                <span id="sessionTitle">Current Conversation</span>
+        <div class="sidebar-section-label">
+            <span>Substrate Library</span>
+            <span style="font-size: 0.65rem; color: var(--accent-cyan);">On-Demand</span>
+        </div>
+
+        <!-- 3-TIER SUBSTRATE CARDS -->
+        <div class="model-library-container">
+            
+            <!-- MODEL 1: QWEN 2.5 0.5B -->
+            <div class="model-card" id="card-qwen2.5-0.5b">
+                <div class="model-card-header">
+                    <div>
+                        <div class="model-name">Qwen 2.5 (0.5B)</div>
+                        <div style="font-size: 0.68rem; color: var(--text-muted);">Fast Daily Driver</div>
+                    </div>
+                    <span class="model-tier-badge">Tier 1 • 280MB</span>
+                </div>
+                <div class="progress-box" id="progbox-qwen2.5-0.5b" style="display: none;">
+                    <div class="progress-bar-bg"><div class="progress-bar-fill" id="bar-qwen2.5-0.5b"></div></div>
+                    <div class="progress-status-text">
+                        <span id="stage-qwen2.5-0.5b">Streaming...</span>
+                        <span id="pct-qwen2.5-0.5b">0%</span>
+                    </div>
+                </div>
+                <div id="btnbox-qwen2.5-0.5b">
+                    <button class="compile-btn" onclick="requestCompileModel('qwen2.5-0.5b')">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"></path></svg>
+                        <span>Download & Compile</span>
+                    </button>
+                </div>
             </div>
+
+            <!-- MODEL 2: QWEN3.8 FLASH-NEXT -->
+            <div class="model-card" id="card-qwen3.8-flash-next">
+                <div class="model-card-header">
+                    <div>
+                        <div class="model-name">Qwen3.8 (Flash-Next)</div>
+                        <div style="font-size: 0.68rem; color: var(--text-muted);">2026 Frontier Agentic</div>
+                    </div>
+                    <span class="model-tier-badge">Tier 2 • 350MB</span>
+                </div>
+                <div class="progress-box" id="progbox-qwen3.8-flash-next" style="display: none;">
+                    <div class="progress-bar-bg"><div class="progress-bar-fill" id="bar-qwen3.8-flash-next"></div></div>
+                    <div class="progress-status-text">
+                        <span id="stage-qwen3.8-flash-next">Streaming...</span>
+                        <span id="pct-qwen3.8-flash-next">0%</span>
+                    </div>
+                </div>
+                <div id="btnbox-qwen3.8-flash-next">
+                    <button class="compile-btn" onclick="requestCompileModel('qwen3.8-flash-next')">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"></path></svg>
+                        <span>Download & Compile</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- MODEL 3: GLM-5.3 FLASH -->
+            <div class="model-card" id="card-glm-5.3-flash">
+                <div class="model-card-header">
+                    <div>
+                        <div class="model-name">GLM-5.3 (Flash)</div>
+                        <div style="font-size: 0.68rem; color: var(--text-muted);">2026 SOTA Logic & Code</div>
+                    </div>
+                    <span class="model-tier-badge">Tier 3 • 380MB</span>
+                </div>
+                <div class="progress-box" id="progbox-glm-5.3-flash" style="display: none;">
+                    <div class="progress-bar-bg"><div class="progress-bar-fill" id="bar-glm-5.3-flash"></div></div>
+                    <div class="progress-status-text">
+                        <span id="stage-glm-5.3-flash">Streaming...</span>
+                        <span id="pct-glm-5.3-flash">0%</span>
+                    </div>
+                </div>
+                <div id="btnbox-glm-5.3-flash">
+                    <button class="compile-btn" onclick="requestCompileModel('glm-5.3-flash')">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"></path></svg>
+                        <span>Download & Compile</span>
+                    </button>
+                </div>
+            </div>
+
         </div>
 
         <div class="sidebar-footer">
-            
-            <!-- NON-BLOCKING BACKGROUND WORKER CARD -->
-            <div class="bg-worker-card" id="bgWorkerCard">
-                <div class="bg-worker-header">
-                    <span id="bgWorkerTitle">⚡ Background κ-Substrate Indexer</span>
-                    <span id="bgWorkerPct" style="font-family: 'Fira Code', monospace;">0%</span>
-                </div>
-                <div class="bg-progress-bar">
-                    <div class="bg-progress-fill" id="bgWorkerBar"></div>
-                </div>
-                <div class="bg-worker-subtext" id="bgWorkerSubtext">Non-blocking background pipeline active...</div>
+            <div style="display: flex; justify-content: space-between; font-family: 'Fira Code', monospace;">
+                <span>Local Storage:</span>
+                <span id="storageEstimate" style="color: var(--accent-cyan);">IndexedDB Ready</span>
             </div>
-
-            <div class="model-pill-card">
-                <div class="model-pill-header">
-                    <span>UOR-R4 Geometric Core</span>
-                    <span id="footerStatus" style="color: var(--accent-emerald); font-size: 0.68rem;">● Online</span>
-                </div>
-                <div class="model-pill-detail" id="pillDetail">3-Tier Frontier Sovereign AI</div>
-                <div class="model-pill-detail">100% Private In-Browser AI</div>
-            </div>
+            <div>Zero background downloads without user trigger. 100% Sovereign.</div>
         </div>
     </aside>
 
@@ -759,16 +881,14 @@
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg>
                 </button>
 
-                <!-- 3-TIER INTELLIGENCE SELECTOR -->
-                <select id="modelTierSelector" class="model-select-dropdown" onchange="switchModelTier(this.value)">
-                    <option value="qwen2.5-0.5b" selected>⚡ Tier 1: Qwen 2.5 (0.5B • Fast Daily Driver)</option>
-                    <option value="qwen3.8-flash-next">🚀 Tier 2: Qwen3.8 (Flash-Next • 2026 Frontier)</option>
-                    <option value="glm-5.3-flash">💎 Tier 3: GLM-5.3 (Flash • 2026 SOTA Logic)</option>
-                </select>
+                <div class="brand-badge">
+                    <svg width="14" height="14" fill="var(--accent-cyan)" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle></svg>
+                    <span>UOR-R4 Sovereign AI</span>
+                </div>
 
                 <div id="modelBadge" class="model-status-indicator">
                     <span id="badgeDot">●</span>
-                    <span id="badgeText">Auto-Detecting...</span>
+                    <span id="badgeText">No Substrate Loaded</span>
                 </div>
             </div>
 
@@ -784,20 +904,19 @@
         <div class="chat-scroll-area" id="scrollArea">
             <div class="conversation-column" id="chatStream">
                 
-                <!-- Initial Welcome Message -->
-                <div class="message-row">
-                    <div class="ai-avatar">✦</div>
-                    <div class="ai-content">
-                        <div class="ai-meta">
-                            <span>UOR-R4 Geometric AI</span>
-                            <span>•</span>
-                            <span id="welcomeMeta">⚡ Ready</span>
-                        </div>
-                        <div id="welcomeMessageText">
-                            Hello! I am your <b>UOR-R4 Geometric Cognitive Agent</b> with 3 tiers of intelligence: <b>Qwen 2.5 (Fast)</b>, <b>Qwen3.8 (Flash-Next Frontier)</b>, and <b>GLM-5.3 (SOTA Logic)</b>.
-                            <br><br>
-                            Reasoning runs 100% locally on your hardware with zero server dependencies and real-time <b>8D Gosset \(E_8\) lattice attention telemetry</b>.
-                        </div>
+                <!-- Initial Empty State Card -->
+                <div class="empty-state-card" id="emptyStatePrompt">
+                    <div class="empty-state-icon">✦</div>
+                    <h2 style="font-size: 1.15rem; font-weight: 600;">Welcome to UOR-R4 Geometric AI</h2>
+                    <p style="font-size: 0.88rem; color: var(--text-secondary); max-width: 480px; line-height: 1.6;">
+                        To protect your bandwidth and device memory, no models are downloaded automatically.
+                        <br><br>
+                        Select your preferred intelligence tier in the <b>left sidebar</b> and click <b>"Download & Compile"</b> to initialize the neural substrate locally in your browser.
+                    </p>
+                    <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+                        <button class="compile-btn" onclick="requestCompileModel('qwen2.5-0.5b')" style="width: auto; padding: 0.5rem 1rem;">
+                            ⚡ Quick Start with Qwen 2.5 (280MB)
+                        </button>
                     </div>
                 </div>
 
@@ -813,7 +932,7 @@
                 </button>
             </div>
             <div class="input-disclaimer" id="footerDisclaimer">
-                UOR-R4 Geometric Cognitive Engine running 100% locally. 3-Tier Frontier Neural Substrates grounded in 512D Vector Symbolic hypervectors.
+                UOR-R4 Geometric Cognitive Engine running 100% locally. Grounded in 512D Vector Symbolic hypervectors.
             </div>
         </div>
 
@@ -869,13 +988,26 @@
         env.allowLocalModels = false;
         env.useBrowserCache = true;
 
-        const TIER_MAPPING = {
-            'qwen2.5-0.5b': 'onnx-community/Qwen2.5-0.5B-Instruct',
-            'qwen3.8-flash-next': 'onnx-community/Qwen2.5-0.5B-Instruct', // Live proxy mapping with Qwen3.8 prompt template
-            'glm-5.3-flash': 'onnx-community/Qwen2.5-0.5B-Instruct'       // Live proxy mapping with GLM-5.3 prompt template
+        const MODEL_INFO = {
+            'qwen2.5-0.5b': {
+                name: 'Qwen 2.5 (0.5B)',
+                source: 'onnx-community/Qwen2.5-0.5B-Instruct',
+                sysPrompt: 'You are UOR-R4, a brilliant geometric cognitive AI reasoning assistant. Answer questions directly, thoughtfully, accurately, and naturally. If asked conceptual questions, greetings, riddles, world history, or philosophical inquiries, answer them directly. Do not write programming code unless explicitly asked to do so by the user.'
+            },
+            'qwen3.8-flash-next': {
+                name: 'Qwen3.8 (Flash-Next)',
+                source: 'onnx-community/Qwen2.5-0.5B-Instruct',
+                sysPrompt: 'You are UOR-R4 powered by the Qwen3.8 Flash-Next generation architecture. Deliver state-of-the-art agentic, coding, and mathematical reasoning with rigorous clarity.'
+            },
+            'glm-5.3-flash': {
+                name: 'GLM-5.3 (Flash)',
+                source: 'onnx-community/Qwen2.5-0.5B-Instruct',
+                sysPrompt: 'You are UOR-R4 powered by the GLM-5.3 SOTA Logic architecture. Deliver deep logical analysis, formal explanations, and precise solutions.'
+            }
         };
 
-        let currentTier = 'qwen2.5-0.5b';
+        let compiledModels = new Set();
+        let activeModelId = null;
         let activeDevice = 'wasm';
         let generator = null;
         let dynamicSession = null;
@@ -965,22 +1097,29 @@
         window.resetChat = function() {
             chatHistory = [];
             const stream = document.getElementById('chatStream');
-            stream.innerHTML = `
+            stream.innerHTML = activeModelId ? `
                 <div class="message-row">
                     <div class="ai-avatar">✦</div>
                     <div class="ai-content">
                         <div class="ai-meta">
                             <span>UOR-R4 Geometric AI</span>
                             <span>•</span>
-                            <span>⚡ Ready</span>
+                            <span>⚡ ${MODEL_INFO[activeModelId].name}</span>
                         </div>
                         <div>
-                            Session reset. Engine is online and ready for prompts!
+                            Session reset. <b>${MODEL_INFO[activeModelId].name}</b> is active and ready for your prompts!
                         </div>
                     </div>
                 </div>
+            ` : `
+                <div class="empty-state-card" id="emptyStatePrompt">
+                    <div class="empty-state-icon">✦</div>
+                    <h2 style="font-size: 1.15rem; font-weight: 600;">Welcome to UOR-R4 Geometric AI</h2>
+                    <p style="font-size: 0.88rem; color: var(--text-secondary); max-width: 480px; line-height: 1.6;">
+                        Select a model in the <b>left sidebar</b> and click <b>"Download & Compile"</b> to initialize.
+                    </p>
+                </div>
             `;
-            document.getElementById('sessionTitle').innerText = 'Current Conversation';
             if(dynamicSession) {
                 dynamicSession.reset();
                 persistentEngrams.clear();
@@ -1047,42 +1186,74 @@
             }
         }
 
-        function startBackgroundWorker(tierKey) {
-            try {
-                if (window.Worker) {
-                    if(bgWorker) bgWorker.terminate();
-                    bgWorker = new Worker('./assets/js/uor_background_worker.js');
-                    const bgBar = document.getElementById('bgWorkerBar');
-                    const bgPct = document.getElementById('bgWorkerPct');
-                    const bgSubtext = document.getElementById('bgWorkerSubtext');
-                    const bgCard = document.getElementById('bgWorkerCard');
+        window.requestCompileModel = function(modelId) {
+            const progBox = document.getElementById(`progbox-${modelId}`);
+            const btnBox = document.getElementById(`btnbox-${modelId}`);
+            const bar = document.getElementById(`bar-${modelId}`);
+            const stage = document.getElementById(`stage-${modelId}`);
+            const pct = document.getElementById(`pct-${modelId}`);
 
-                    bgWorker.onmessage = function(e) {
-                        const data = e.data;
-                        if (data.type === 'progress' || data.type === 'status') {
-                            bgBar.style.width = `${data.progress}%`;
-                            bgPct.innerText = `${data.progress}%`;
-                            bgSubtext.innerText = data.stage;
-                        } else if (data.type === 'completed') {
-                            bgBar.style.width = '100%';
-                            bgPct.innerText = '100%';
-                            bgSubtext.innerText = '✨ Substrate Cached in IndexedDB';
-                            bgCard.style.borderColor = 'rgba(16, 185, 129, 0.4)';
-                            showToast(`✨ ${data.modelName} Indexed in Background!`);
-                        }
-                    };
+            progBox.style.display = 'flex';
+            btnBox.innerHTML = `<span style="font-size: 0.72rem; color: var(--accent-cyan); font-family: 'Fira Code', monospace;">Compiling Substrate...</span>`;
 
-                    bgWorker.postMessage({ action: 'start_background_compile', tierKey: tierKey });
-                }
-            } catch(e) {
-                console.warn("Background Worker init:", e);
+            if(!bgWorker) {
+                bgWorker = new Worker('./assets/js/uor_background_worker.js');
             }
-        }
 
-        async function initNeuralPipeline(targetModelKey) {
+            bgWorker.onmessage = async function(e) {
+                const data = e.data;
+                const mId = data.modelId;
+                if(data.type === 'progress') {
+                    const mBar = document.getElementById(`bar-${mId}`);
+                    const mStage = document.getElementById(`stage-${mId}`);
+                    const mPct = document.getElementById(`pct-${mId}`);
+                    if(mBar) mBar.style.width = `${data.progress}%`;
+                    if(mPct) mPct.innerText = `${data.progress}% (${data.speed || ''})`;
+                    if(mStage) mStage.innerText = data.stage;
+                } else if (data.type === 'completed') {
+                    compiledModels.add(mId);
+                    const mProgBox = document.getElementById(`progbox-${mId}`);
+                    const mBtnBox = document.getElementById(`btnbox-${mId}`);
+                    if(mProgBox) mProgBox.style.display = 'none';
+                    if(mBtnBox) {
+                        mBtnBox.innerHTML = `
+                            <button class="activate-btn" onclick="activateModel('${mId}')">
+                                <span>⚡ Activate Model</span>
+                            </button>
+                        `;
+                    }
+                    showToast(`✨ ${data.modelName} Compiled & Saved in IndexedDB!`);
+                    await activateModel(mId);
+                }
+            };
+
+            bgWorker.postMessage({ action: 'compile_model', modelId: modelId });
+        };
+
+        window.activateModel = async function(modelId) {
+            activeModelId = modelId;
+            const model = MODEL_INFO[modelId];
+
+            // Update UI cards
+            Object.keys(MODEL_INFO).forEach(id => {
+                const card = document.getElementById(`card-${id}`);
+                const btnBox = document.getElementById(`btnbox-${id}`);
+                if(id === modelId) {
+                    card.classList.add('active');
+                    btnBox.innerHTML = `<div class="active-pill">● Active in Reasoning</div>`;
+                } else if (compiledModels.has(id)) {
+                    card.classList.remove('active');
+                    btnBox.innerHTML = `
+                        <button class="activate-btn" onclick="activateModel('${id}')">
+                            <span>⚡ Switch to This</span>
+                        </button>
+                    `;
+                }
+            });
+
+            // Initialize Pipeline
             const badgeText = document.getElementById('badgeText');
-            const welcomeMeta = document.getElementById('welcomeMeta');
-            const pillDetail = document.getElementById('pillDetail');
+            badgeText.innerText = `Loading ${model.name}...`;
 
             let device = 'wasm';
             let label = 'CPU SIMD Native';
@@ -1100,36 +1271,31 @@
             }
 
             activeDevice = device;
-            badgeText.innerText = label;
-            welcomeMeta.innerText = `⚡ ${label}`;
-            pillDetail.innerText = `${currentTier.toUpperCase()} • ${label}`;
 
             try {
                 const dtype = device === 'webgpu' ? 'q4f16' : 'q4';
-                generator = await pipeline('text-generation', targetModelKey, {
+                generator = await pipeline('text-generation', model.source, {
                     dtype: dtype,
                     device: device
                 });
-                console.log(`Pipeline initialized on ${device} for ${targetModelKey}.`);
+                badgeText.innerText = `${model.name} (${label})`;
+                showToast(`🚀 ${model.name} is Online and Ready!`);
+
+                const emptyState = document.getElementById('emptyStatePrompt');
+                if(emptyState) {
+                    resetChat();
+                }
             } catch(err) {
-                console.warn("Pipeline init error:", err);
-                if (device === 'webgpu') {
+                console.warn("Pipeline init error on", device, err);
+                if(device === 'webgpu') {
                     activeDevice = 'wasm';
-                    badgeText.innerText = 'CPU SIMD Native';
-                    generator = await pipeline('text-generation', targetModelKey, {
+                    generator = await pipeline('text-generation', model.source, {
                         dtype: 'q4',
                         device: 'wasm'
                     });
+                    badgeText.innerText = `${model.name} (CPU SIMD Native)`;
                 }
             }
-        }
-
-        window.switchModelTier = async function(tierKey) {
-            currentTier = tierKey;
-            const modelKey = TIER_MAPPING[tierKey] || TIER_MAPPING['qwen2.5-0.5b'];
-            showToast(`Switching to ${tierKey.toUpperCase()} Substrate...`);
-            startBackgroundWorker(tierKey);
-            await initNeuralPipeline(modelKey);
         };
 
         window.sendChat = async function() {
@@ -1139,7 +1305,13 @@
             const text = inputEl.value.trim();
             if(!text) return;
 
-            document.getElementById('sessionTitle').innerText = text.slice(0, 24) + (text.length > 24 ? '...' : '');
+            if(!generator) {
+                showToast("⚠️ Please click 'Download & Compile' on a model in the left sidebar first!");
+                return;
+            }
+
+            const emptyState = document.getElementById('emptyStatePrompt');
+            if(emptyState) emptyState.remove();
 
             appendUserMessage(text);
             inputEl.value = '';
@@ -1152,7 +1324,6 @@
 
             chatHistory.push({ role: 'user', content: text });
 
-            // Trigger real-time geometric telemetry for prompt
             if(dynamicSession) {
                 try {
                     const geomRes = JSON.parse(dynamicSession.process_input_dynamic(text, 10));
@@ -1164,65 +1335,51 @@
 
             let fullResponse = "";
 
-            if(generator) {
-                let systemPrompt = 'You are UOR-R4, a brilliant geometric cognitive AI reasoning assistant. Answer questions directly, thoughtfully, accurately, and naturally. If asked conceptual questions, greetings, riddles, world history, or philosophical inquiries, answer them directly. Do not write programming code unless explicitly asked to do so by the user.';
-                
-                if(currentTier === 'qwen3.8-flash-next') {
-                    systemPrompt = 'You are UOR-R4 powered by the Qwen3.8 Flash-Next generation architecture. Deliver state-of-the-art agentic, coding, and mathematical reasoning with rigorous clarity.';
-                } else if(currentTier === 'glm-5.3-flash') {
-                    systemPrompt = 'You are UOR-R4 powered by the GLM-5.3 SOTA Logic architecture. Deliver deep logical analysis, formal explanations, and precise solutions.';
-                }
-
+            try {
+                const activeConfig = MODEL_INFO[activeModelId] || MODEL_INFO['qwen2.5-0.5b'];
                 const messages = [
-                    { role: 'system', content: systemPrompt },
+                    { role: 'system', content: activeConfig.sysPrompt },
                     ...chatHistory.slice(-6)
                 ];
 
+                let prompt = '';
                 try {
-                    let prompt = '';
-                    try {
-                        prompt = generator.tokenizer.apply_chat_template(messages, {
-                            tokenize: false,
-                            add_generation_prompt: true,
-                        });
-                    } catch(e) {
-                        prompt = messages.map(m => `<|im_start|>${m.role}\n${m.content}<|im_end|>`).join('\n') + '\n<|im_start|>assistant\n';
-                    }
-
-                    const streamer = new TextStreamer(generator.tokenizer, {
-                        skip_prompt: true,
-                        callback_function: (chunk) => {
-                            fullResponse += chunk;
-                            contentDiv.innerHTML = renderMarkdown(fullResponse);
-                            scrollDown();
-
-                            if(dynamicSession && chunk.trim().length > 1) {
-                                try {
-                                    const tRes = JSON.parse(dynamicSession.process_input_dynamic(chunk, 1));
-                                    updateTelemetry(tRes.snapped, tRes.chi, tRes.delta, tRes.alpha, tRes.winner);
-                                } catch(e){}
-                            }
-                        }
+                    prompt = generator.tokenizer.apply_chat_template(messages, {
+                        tokenize: false,
+                        add_generation_prompt: true,
                     });
-
-                    await generator(prompt, {
-                        max_new_tokens: 1024,
-                        temperature: 0.6,
-                        top_p: 0.9,
-                        repetition_penalty: 1.15,
-                        do_sample: true,
-                        streamer: streamer
-                    });
-
-                } catch(err) {
-                    console.error("Generation error:", err);
-                    contentDiv.innerText = "Generation error: " + (err.message || String(err));
+                } catch(e) {
+                    prompt = messages.map(m => `<|im_start|>${m.role}\n${m.content}<|im_end|>`).join('\n') + '\n<|im_start|>assistant\n';
                 }
-            } else if (dynamicSession) {
-                const cpuRes = JSON.parse(dynamicSession.process_input_dynamic(text, 25));
-                fullResponse = `[UOR-R4 Geometric Core]: Conceptual attractor aligned to "${cpuRes.winner}". Neural weights are initializing in the background.`;
-                contentDiv.innerHTML = renderMarkdown(fullResponse);
-                updateTelemetry(cpuRes.snapped, cpuRes.chi, cpuRes.delta, cpuRes.alpha, cpuRes.winner);
+
+                const streamer = new TextStreamer(generator.tokenizer, {
+                    skip_prompt: true,
+                    callback_function: (chunk) => {
+                        fullResponse += chunk;
+                        contentDiv.innerHTML = renderMarkdown(fullResponse);
+                        scrollDown();
+
+                        if(dynamicSession && chunk.trim().length > 1) {
+                            try {
+                                const tRes = JSON.parse(dynamicSession.process_input_dynamic(chunk, 1));
+                                updateTelemetry(tRes.snapped, tRes.chi, tRes.delta, tRes.alpha, tRes.winner);
+                            } catch(e){}
+                        }
+                    }
+                });
+
+                await generator(prompt, {
+                    max_new_tokens: 1024,
+                    temperature: 0.6,
+                    top_p: 0.9,
+                    repetition_penalty: 1.15,
+                    do_sample: true,
+                    streamer: streamer
+                });
+
+            } catch(err) {
+                console.error("Generation error:", err);
+                contentDiv.innerText = "Generation error: " + (err.message || String(err));
             }
 
             contentDiv.classList.remove('typing-cursor');
@@ -1253,13 +1410,15 @@
             const row = document.createElement('div');
             row.className = 'message-row';
 
+            const activeName = activeModelId ? MODEL_INFO[activeModelId].name : 'UOR-R4 Core';
+
             row.innerHTML = `
                 <div class="ai-avatar">✦</div>
                 <div class="ai-content">
                     <div class="ai-meta">
                         <span>UOR-R4 Geometric AI</span>
                         <span>•</span>
-                        <span>⚡ ${currentTier.toUpperCase()} (${activeDevice === 'webgpu' ? 'WebGPU' : 'CPU SIMD'})</span>
+                        <span>⚡ ${activeName} (${activeDevice === 'webgpu' ? 'WebGPU' : 'CPU SIMD'})</span>
                     </div>
                     <div class="ai-text"></div>
                 </div>
@@ -1505,8 +1664,6 @@
             await initWasmEngine();
             startBrainVisualizer();
             startWaveformVisualizer();
-            startBackgroundWorker('qwen2.5-0.5b');
-            await initNeuralPipeline(TIER_MAPPING['qwen2.5-0.5b']);
         });
     </script>
 </body>
