@@ -1,6 +1,6 @@
 [package]
 name = "uor_r4_wasm_bridge"
-version = "1.0.0"
+version = "2.0.0"
 edition = "2021"
 description = "UOR-R4 Geometric Cognitive AI: In-Browser WebGPU Neural Substrate with 8D Gosset E8 Lattice & Hopf Phase Telemetry"
 repository = "https://github.com/Casey-allard/uor-r4-wasm-chat"

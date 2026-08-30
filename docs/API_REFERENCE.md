@@ -1,4 +1,4 @@
-# 📚 UOR-R4 API Reference (v1.0.0)
+# 📚 UOR-R4 API Reference (v2.0.0)
 
 This document provides the complete API specifications, usage guides, and data structures for the **UOR-R4 Rust WebAssembly Engine** and **JavaScript WebGPU Bridge**.
 
@@ -73,7 +73,14 @@ import { pipeline, env, TextStreamer } from '@huggingface/transformers';
 env.allowLocalModels = false;
 env.useBrowserCache = true; // Caches weights permanently in IndexedDB
 
-const generator = await pipeline('text-generation', 'onnx-community/Qwen2.5-0.5B-Instruct', {
+const MODEL_INFO = {
+    'qwen2.5-0.5b': 'onnx-community/Qwen2.5-0.5B-Instruct',
+    'gemma4-flash': 'onnx-community/gemma-2-2b-it',
+    'qwen3.8-flash': 'onnx-community/Qwen2.5-Coder-0.5B-Instruct',
+    'glm5.3-flash': 'onnx-community/Qwen2.5-1.5B-Instruct'
+};
+
+const generator = await pipeline('text-generation', MODEL_INFO['glm5.3-flash'], {
     dtype: 'q4',
     device: navigator.gpu ? 'webgpu' : 'wasm',
     progress_callback: (progress) => {
@@ -82,7 +89,7 @@ const generator = await pipeline('text-generation', 'onnx-community/Qwen2.5-0.5B
 });
 ```
 
-### Streaming Chat Generation with ChatML Templates
+### Streaming Chat Generation with Telemetry Speed Tracking
 
 ```javascript
 const messages = [
@@ -90,26 +97,25 @@ const messages = [
     { role: 'user', content: 'Explain Gosset E8 lattice geometry.' }
 ];
 
-const prompt = generator.tokenizer.apply_chat_template(messages, {
-    tokenize: false,
-    add_generation_prompt: true,
-});
+let generatedTokenCount = 0;
+const genStartTime = performance.now();
 
 const streamer = new TextStreamer(generator.tokenizer, {
     skip_prompt: true,
     callback_function: (chunk) => {
-        process.stdout.write(chunk);
+        generatedTokenCount++;
+        const elapsedSec = (performance.now() - genStartTime) / 1000;
+        const liveTps = (generatedTokenCount / elapsedSec).toFixed(1);
+        console.log(`Live Speed: ${liveTps} tok/s`);
+
         // Synchronously rotate E8 coordinates in WASM
         const telemetry = JSON.parse(session.process_input_dynamic(chunk, 1));
     }
 });
 
-await generator(prompt, {
-    max_new_tokens: 1024,
-    temperature: 0.6,
-    top_p: 0.9,
-    repetition_penalty: 1.15,
-    do_sample: true,
+await generator(messages, {
+    max_new_tokens: 512,
+    do_sample: false,
     streamer: streamer
 });
 ```
@@ -119,12 +125,12 @@ await generator(prompt, {
 ## 🤝 Credits & Dependencies
 
 * **[UOR Foundation](https://github.com/uor-foundation)**: Architectural standard for Universal Object Representation, 512D Vector Symbolic hyperdimensional memory, and sovereign geometric AI.
-* **HELM Geometric Attention Group**: High-dimensional geometric attention mechanisms and non-Euclidean manifold routing.
+* **HELM Geometric Attention Group**: High-dimensional geometric attention mechanics and non-Euclidean manifold routing.
 * **The Authors of Goldworm (`goldworm`)**: Byte-level modular codebooks and streaming token compression.
 * **`w33`**: Discrete topology and high-performance symbolic computation research.
 * **Nemesis Theory Mathematics**: Algebraic field structures and discrete $E_8$ Gosset root lattice dynamics.
 * **Hologram**: Holographic memory projection and real-time neural manifold visualization.
-* **[Qwen 2.5](https://github.com/QwenLM/Qwen2.5)** by Alibaba Cloud (Apache 2.0).
+* **[Alibaba Cloud / Qwen Team](https://github.com/QwenLM/Qwen2.5)** & **[Google Gemma Team](https://ai.google.dev/gemma)** (Apache 2.0).
 * **[Transformers.js](https://github.com/huggingface/transformers.js)** by Hugging Face (Apache 2.0).
 * **[ONNX Runtime Web](https://github.com/microsoft/onnxruntime)** by Microsoft (MIT).
 * **[wasm-bindgen](https://github.com/rustwasm/wasm-bindgen)** by the Rust / WebAssembly Community (MIT / Apache 2.0).

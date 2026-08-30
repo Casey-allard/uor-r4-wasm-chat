@@ -2,12 +2,12 @@
 
 ![UOR-R4 Hero Banner](assets/images/hero_banner.jpg)
 
-# 🌐 UOR-R4 Geometric Cognitive AI
+# 🌐 UOR-R4 Geometric Cognitive AI (v2.0.0)
 
-### *100% Client-Side In-Browser Neural AI with Real-Time 8D Gosset ($E_8$) Lattice & CORDIC Hopf Phase Dynamics*
+### *100% Sovereign Client-Side In-Browser AI • Multi-Model Neural Substrates • Real-Time 8D Gosset ($E_8$) Lattice & CORDIC Hopf Telemetry*
 
 [![Live Demo](https://img.shields.io/badge/🌐_Live_Demo-GitHub_Pages-00f3ff?style=for-the-badge&logo=googlechrome&logoColor=white)](https://casey-allard.github.io/uor-r4-wasm-chat/)
-[![Release v1.0.0](https://img.shields.io/github/v/release/Casey-allard/uor-r4-wasm-chat?style=for-the-badge&color=purple&label=Release)](https://github.com/Casey-allard/uor-r4-wasm-chat/releases/tag/v1.0.0)
+[![Release v2.0.0](https://img.shields.io/github/v/release/Casey-allard/uor-r4-wasm-chat?style=for-the-badge&color=purple&label=Release)](https://github.com/Casey-allard/uor-r4-wasm-chat/releases/tag/v2.0.0)
 [![CI/CD](https://img.shields.io/github/actions/workflow/status/Casey-allard/uor-r4-wasm-chat/deploy.yml?branch=main&style=for-the-badge&label=WASM%20Build%20%26%20Deploy)](https://github.com/Casey-allard/uor-r4-wasm-chat/actions)
 [![Rust](https://img.shields.io/badge/Rust-2021_Edition-orange?style=for-the-badge&logo=rust)](https://www.rust-lang.org/)
 [![WebGPU](https://img.shields.io/badge/WebGPU-Hardware_Accelerated-green?style=for-the-badge&logo=webgpu)](https://www.w3.org/TR/webgpu/)
@@ -22,28 +22,69 @@
 
 ## ⚡ Overview
 
-**UOR-R4 Geometric Cognitive AI** is an open-source, client-side artificial intelligence architecture that combines **open pretrained neural weight substrates (Qwen 2.5)** with **high-dimensional geometric telemetry (512D Vector Symbolic Architecture, discrete 8D Gosset $E_8$ root lattice quantization, and 64-bit CORDIC Hopf phase rotations)**.
+**UOR-R4 Geometric Cognitive AI** is an open-source, sovereign, client-side artificial intelligence system executing **100% locally in your browser** via **WebGPU** and **WebAssembly (WASM)**. 
 
-Executing **100% locally in the browser** via **WebGPU** and **WebAssembly (WASM)**, UOR-R4 delivers private, zero-latency inference with **zero server dependencies, zero GPU cloud costs, zero API keys, and zero telemetry tracking**.
+UOR-R4 bridges **open instruction-tuned neural model substrates** with **high-dimensional geometric cognitive architectures**:
+* **512-Dimensional Vector Symbolic Architecture (VSA)**
+* **64-bit CORDIC Fixed-Point Hopf Fibration $(\chi, \delta, \alpha)$**
+* **Discrete 8D Gosset $E_8$ Root Lattice Quantization (240 Roots)**
+* **Live 3D Synaptic Brain Hologram & Waveform Oscilloscope**
 
-> [!IMPORTANT]
-> ### 🧬 Architectural Distinction: UOR-R4 vs. Pretrained Weight Substrates
-> **UOR-R4 is a Geometric Cognitive Engine, not merely an LLM wrapper.**
-> 
-> * **The Lexical Substrate**: Open transformer weight tensors (such as `Qwen2.5-0.5B-Instruct`) provide the foundational vocabulary embeddings, multi-head attention weights, and broad linguistic representations.
-> * **The Geometric Engine**: As token sequences stream from the model, their high-dimensional hidden states are continuously projected into **UOR-R4's 512D Vector Symbolic Architecture (VSA)**, rotated via **CORDIC Hopf Euler angles $(\chi, \delta, \alpha)$**, and snapped into **discrete 8D Gosset $E_8$ root lattice coordinates**.
-> * **The Result**: A deterministic, explainable geometric state representation visualized in real time on an interactive 3D Synaptic Hologram while operating completely air-gapped on consumer hardware.
+Every token generated is computed entirely on your local GPU/CPU hardware with **zero server dependencies, zero GPU cloud rental fees, zero API keys, and zero telemetry tracking**.
+
+---
+
+## 🌟 Key Features in Release v2.0.0
+
+### 🧠 1. Multi-Model Neural Substrate Tiers
+Choose and hot-swap between multiple lightweight, high-performance ONNX neural weight substrates directly inside the browser:
+* **⚡ Qwen 2.5 (0.5B)** (`280MB`): Blazing fast general-purpose conversational & instruction-tuned reasoning.
+* **🔮 Gemma-4 (Flash)** (`320MB`): Compact, highly structured reasoning substrate.
+* **⚡ Qwen 3.8 (Flash)** (`350MB`): Advanced code generation and technical problem solving.
+* **🧬 GLM-5.3 (Flash)** (`380MB`): Deep multi-step analytical and mathematical inference.
+
+### ⚡ 2. Real-Time Tokens Per Second (TPS) Telemetry
+* Integrated hardware speed monitor directly in the 3D Brain Sidecar.
+* Displays live streaming generation speed (`XX.X tok/s`) during inference.
+* Persists and logs the average generation speed and token count for every response.
+
+### 📄 3. Client-Side Multi-Document Analysis
+* Attach and analyze documents completely client-side before sending your prompt.
+* **Native PDF Parsing**: Direct extraction of text from uploaded PDFs using in-memory PDF.js workers.
+* **Code & Structured Data**: Supports `.rs`, `.py`, `.js`, `.ts`, `.html`, `.css`, `.json`, `.csv`, `.yaml`, `.yml`, `.toml`, `.md`, and `.txt`.
+* Displays individual document attachment chips with instant removal badges.
+
+### 📐 4. KaTeX Mathematical Typography
+* Native LaTeX rendering for complex formulas and mathematical notation.
+* Displays clean standalone equations with `$$...$$` blocks and inline terms with `$...$`.
+
+### 🔮 5. Live 3D Synaptic Hologram & Waveform Oscilloscope
+* Real-time 3D synaptic node projections rotating dynamically as each token is generated.
+* Dynamic synaptic pulses, persistent engram formations, and continuous phase waveform visualization.
+
+### 💾 6. IndexedDB Offline Persistence & Obsidian UI
+* Download models once to browser-isolated IndexedDB; run forever offline without consuming network bandwidth.
+* Session history manager, new chat shortcuts (`Cmd + K`), and one-click copyable code windows with syntax styling.
+
+---
+
+## 🏛️ System Architecture
 
 ```mermaid
 flowchart LR
     subgraph Browser ["Client-Side Browser Environment (100% Local & Sovereign)"]
-        UserPrompt["User Prompt"] --> WebGPU["WebGPU Neural Transformer Core<br/>(Qwen 2.5 Weight Substrate)"]
-        WebGPU --> TokenStream["Streaming Token Generation (Up to 1024 Tokens)"]
-        TokenStream --> Output["Obsidian Chat UI<br/>(Copyable Code Windows & Markdown)"]
+        Docs["Attached Documents<br/>(PDF, Code, Markdown, JSON)"] --> PromptBuilder["Prompt & Context Builder"]
+        UserPrompt["User Prompt"] --> PromptBuilder
         
-        TokenStream --> WASM["UOR-R4 Geometric Engine (Rust WASM)"]
-        WASM --> VSA["512D Vector Symbolic Bundle"]
-        VSA --> CORDIC["64-bit CORDIC Hopf Rotator (χ, δ, α)"]
+        PromptBuilder --> WebGPU["WebGPU Neural Transformer Core<br/>(Qwen / Gemma / GLM Substrates)"]
+        WebGPU --> TokenStream["Streaming Token Generation (Up to 512 Tokens)"]
+        
+        TokenStream --> ChatOutput["Obsidian Chat Interface<br/>(KaTeX LaTeX & Copyable Code Blocks)"]
+        TokenStream --> TPSMeter["Live TPS Speedometer<br/>(Streaming tok/s Telemetry)"]
+        
+        TokenStream --> WASM["UOR-R4 Geometric Core (Rust WASM)"]
+        WASM --> VSA["512D Vector Symbolic Hypervector"]
+        WASM --> CORDIC["64-bit CORDIC Hopf Rotator (χ, δ, α)"]
         CORDIC --> E8["8D Gosset E8 Lattice Snapper (240 Roots)"]
         E8 --> Brain["3D Synaptic Brain Hologram & Waveform"]
     end
@@ -51,26 +92,13 @@ flowchart LR
 
 ---
 
-## 📸 Technical System Architecture
-
-![UOR-R4 Architecture](assets/images/architecture_diagram.jpg)
-
----
-
 ## 📖 How to Use
 
-### 🌐 Option 1: Instant Browser Demo (No Installation Required)
-1. **Open the Live Web App**: Visit [https://casey-allard.github.io/uor-r4-wasm-chat/](https://casey-allard.github.io/uor-r4-wasm-chat/) in any modern browser with WebGPU enabled (Chrome 113+, Microsoft Edge 113+, Safari 18+, or Firefox Nightly).
-2. **Select Your Execution Mode**:
-   * **⚡ WebGPU Neural Mode (Qwen 2.5)**: Downloads and executes the quantized neural model on your local GPU via Metal / DirectX WebGPU shaders with full 1024 token context and streaming markdown.
-   * **🏎️ UOR Mod-256 (0ms CPU SIMD)**: Instant, zero-network, zero-shader execution running on your CPU cores via 128-bit WASM SIMD in < 0.2ms.
-3. **Chat & Prompting**:
-   * Type any question into the bottom input capsule (e.g. coding problems, mathematical questions, philosophical inquiries, riddles, history, or science).
-   * Press **Enter** or click the **Send** button.
-4. **Observe Real-Time Geometric Telemetry**:
-   * Watch the **3D Synaptic Brain Manifold** in the right drawer rotate dynamically as each token is generated.
-   * Inspect the live **8D Gosset Lattice Coordinates**, **Hopf Phase Angles $(\chi, \alpha)$**, and continuous **Synaptic Waveforms**.
-   * Copy generated programming code blocks with a single click using the **Copy code** button.
+### 🌐 Option 1: Instant In-Browser App (Zero Installation)
+1. Open the live app: **[https://casey-allard.github.io/uor-r4-wasm-chat/](https://casey-allard.github.io/uor-r4-wasm-chat/)**
+2. In the left sidebar under **Neural Substrates**, click **Compile** on your preferred model (e.g. `Qwen 2.5` or `GLM-5.3`).
+3. Once downloaded, the model is cached in `IndexedDB` and ready for instant local execution.
+4. Type your prompt, optionally attach files via the **📎** button, and press **Enter**!
 
 ---
 
@@ -79,8 +107,7 @@ flowchart LR
 #### Prerequisites
 * [Rust & Cargo](https://www.rust-lang.org/tools/install) (1.75+ recommended)
 * [wasm-pack](https://rustwasm.github.io/wasm-pack/installer/)
-* [Python 3](https://www.python.org/) (for local static server)
-* WebGPU-compatible browser
+* [Python 3](https://www.python.org/)
 
 #### 1. Clone the Repository
 ```bash
@@ -93,12 +120,12 @@ cd uor-r4-wasm-chat
 wasm-pack build --target web --release --out-dir pkg
 ```
 
-#### 3. Run the Unit & Formal Verification Tests
+#### 3. Run the Test Suite
 ```bash
 cargo test --workspace
 ```
 
-#### 4. Launch the Local Web Server
+#### 4. Launch Local Web Server
 ```bash
 python3 -m http.server 8080
 ```
@@ -106,111 +133,59 @@ Open **`http://localhost:8080`** in your browser.
 
 ---
 
-## 🌟 Key Features in Release v1.0.0
+## 📊 Hardware Compatibility & Performance Matrix
 
-### 🧠 1. Deep In-Browser Neural Intelligence
-* **Qwen 2.5 Neural Substrate**: High-precision instruction-tuned reasoning model executing locally on client GPU hardware at 30–80+ tokens/second.
-* **1024 Token Generation Window**: Full long-form explanations, multi-file code scripts, and detailed essays without truncation.
-* **IndexedDB Local Caching**: Download once, run forever offline without consuming network bandwidth.
-
-### 🔮 2. Live 3D Synaptic Brain Hologram
-* **Real-Time Token Projections**: Every generated token triggers real-time 3D node activations, synaptic pulse shockwaves, and persistent engram formations.
-* **Waveform Oscilloscope**: Visualizes continuous synaptic phase vibrations calculated from live neural hidden states.
-
-### 📐 3. Geometric $E_8$ Gosset & CORDIC Hopf Engine
-* **512-Dimensional Vector Symbolic Architecture (VSA)**: High-dimensional concept superposition and circular convolution binding.
-* **64-bit CORDIC Fixed-Point Hopf Fibration**: Computes continuous Euler angle phase trajectories $(\chi, \delta, \alpha)$ on the 3-sphere $S^3$.
-* **Discrete 8D Gosset $E_8$ Lattice Quantization**: Snaps continuous semantic vectors into the 240 minimal root vectors of the exceptional Lie algebra $E_8$.
-
-### 💻 4. Obsidian Dark Minimalist Interface
-* **Copyable Code Windows**: Dedicated language badges (`python`, `c`, `javascript`, `rust`, `html`, etc.) with one-click clipboard copying and checkmark animations.
-* **Full Markdown Streaming**: Renders bullet lists, tables, bold/italics, and formatted paragraphs seamlessly during live streaming.
-* **Responsive Layout**: Collapsible sidebar session history and toggleable 3D telemetry sidecar drawer.
+| Device / Hardware Layer | Model Substrate | Average Speed | Memory Footprint |
+| :--- | :--- | :--- | :--- |
+| **Apple M-Series (M1/M2/M3/M4 Metal WebGPU)** | Qwen2.5 / Gemma-4 / GLM-5.3 | **45–90+ tok/s** | ~280–380 MB VRAM |
+| **NVIDIA RTX Series (DirectX 12 / Vulkan WebGPU)** | Qwen2.5 / Gemma-4 / GLM-5.3 | **60–120+ tok/s** | ~280–380 MB VRAM |
+| **Intel Iris Xe / AMD Radeon Integrated** | Qwen2.5 / Gemma-4 / GLM-5.3 | **25–45 tok/s** | ~280–380 MB VRAM |
+| **Apple iPad / iPhone (iOS 18+ WebGPU)** | Qwen2.5 / Gemma-4 / GLM-5.3 | **20–40 tok/s** | ~280–380 MB Unified |
+| **CPU SIMD WASM Fallback** | Qwen2.5 / Gemma-4 / GLM-5.3 | **8–18 tok/s** | ~250–350 MB RAM |
 
 ---
 
 ## 🔬 Mathematical Foundations
 
 ### 1. Rotary Hopf Phase Rotations (RoPE & CORDIC)
-Modern transformer architectures utilize Rotary Position Embeddings (RoPE), rotating paired coordinates across orthogonal 2D planes:
-
-$$R_{\Theta, m}^d = \text{diag}\left(R_{\theta_1, m}, R_{\theta_2, m}, \dots, R_{\theta_{d/2}, m}\right)$$
-
-In UOR-R4, these orthogonal phase rotations are computed using hardware-efficient **CORDIC shift-and-add trigonometric algorithms**:
+Orthogonal phase transformations on the 3-sphere $S^3$ are calculated using fixed-point **CORDIC shift-and-add arithmetic**:
 
 $$x_{i+1} = x_i - d_i \cdot y_i \cdot 2^{-i}, \quad y_{i+1} = y_i + d_i \cdot x_i \cdot 2^{-i}, \quad z_{i+1} = z_i - d_i \cdot \arctan(2^{-i})$$
 
-### 2. Discrete 8D Gosset $E_8$ Root Lattice Projection
-Continuous high-dimensional semantic activations $v \in \mathbb{R}^{512}$ are projected onto the 8-dimensional Gosset lattice:
+### 2. Discrete 8D Gosset $E_8$ Root Lattice Quantization
+Continuous high-dimensional semantic activations are mapped into the 240 minimal root vectors of the exceptional Lie algebra $E_8$:
 
 $$E_8 = \left\{ x \in \mathbb{Z}^8 \cup \left(\mathbb{Z} + \tfrac{1}{2}\right)^8 : \sum_{i=1}^8 x_i \equiv 0 \pmod 2 \right\}$$
-
-This projects latent neural states into the densest known sphere packing in 8 dimensions, providing deterministic geometric telemetry.
-
----
-
-## 📊 Hardware Compatibility & Performance Matrix
-
-| Device / GPU | Model Substrate | Average Speed | Memory Footprint |
-| :--- | :--- | :--- | :--- |
-| **Apple M1 / M2 / M3 / M4 (Metal WebGPU)** | Qwen2.5 (q4) | **45–85 tok/s** | ~280 MB VRAM |
-| **NVIDIA RTX 3060 / 4070 / 4090 (DirectX 12 / Vulkan)** | Qwen2.5 (q4) | **60–120+ tok/s** | ~280 MB VRAM |
-| **Intel Iris Xe / AMD Radeon Integrated** | Qwen2.5 (q4) | **25–45 tok/s** | ~280 MB VRAM |
-| **Apple iPad / iPhone (iOS 18+ WebGPU)** | Qwen2.5 (q4) | **20–40 tok/s** | ~280 MB Unified |
-| **WASM CPU Fallback (No WebGPU)** | Qwen2.5 (q4) | **8–15 tok/s** | ~250 MB RAM |
 
 ---
 
 ## 🛡️ Formal Verification & Safety
 
-The mathematical core of UOR-R4 includes formal verification harnesses tested with **Kani Rust Formal Verifier**:
-* `tests/cordic_conformance_kani.rs`: Verifies CORDIC convergence and trigonometric invariant bounds.
-* `tests/unicode_lexical_parser_kani.rs`: Verifies bounds-checked UTF-8 token parsing without memory corruption.
-* `tests/uor_wasm_bridge_kani.rs`: Formally proves panic-free execution across all WASM boundary calls.
+The Rust core includes formal verification test harnesses verified using **Kani Rust Formal Verifier**:
+* `tests/cordic_conformance_kani.rs`: Mathematical proof of CORDIC convergence and trigonometric invariant bounds.
+* `tests/unicode_lexical_parser_kani.rs`: Proves bounds-checked UTF-8 token parsing without memory corruption.
+* `tests/uor_wasm_bridge_kani.rs`: Formally proves panic-free execution across WASM boundary calls.
 
 ---
 
 ## 🤝 Credits & Acknowledgements
 
-UOR-R4 builds upon and proudly acknowledges foundational contributions from open-source creators, research foundations, and mathematical pioneers:
-
-### 🏛️ Foundational Research Organizations & Core Frameworks
-* **[UOR Foundation](https://github.com/uor-foundation)**: The pioneering organization and architectural standard behind **Universal Object Representation (UOR)**, 512D Vector Symbolic hyperdimensional memory, and sovereign client-side cognitive AI.
-* **HELM Geometric Attention Group**: Groundbreaking theoretical and empirical research in high-dimensional geometric attention mechanics, non-Euclidean manifold routing, and topological transformer state spaces.
-* **The Authors & Innovators of Goldworm (`goldworm`)**: Breakthrough algorithmic foundations in high-throughput byte-level modular codebooks, streaming token compression, and low-latency SIMD parsing.
-* **`w33`**: Foundational research in discrete topology, efficient binary state spaces, and high-performance symbolic computation.
-* **Nemesis Theory Mathematics**: Advanced mathematical frameworks for algebraic field structures, discrete $E_8$ Gosset root lattice dynamics, non-linear phase equilibria, and discrete manifold bounds.
-* **Hologram**: Holographic state encoding, high-dimensional memory projection, and real-time holographic neural manifold visualization.
-
-### 🤖 Open Source Models & Runtimes
-* **[Alibaba Cloud / Qwen Team](https://github.com/QwenLM/Qwen2.5)**: Creators of the outstanding **Qwen 2.5** open-weight instruction-tuned transformer foundation models.
-* **[Hugging Face](https://github.com/huggingface/transformers.js)**: Developers of **Transformers.js (v3)**, providing browser-based WebGPU neural execution, model tokenizers, and Hugging Face Hub ONNX distribution.
-* **[Microsoft ONNX Runtime](https://github.com/microsoft/onnxruntime)**: High-performance ONNX Runtime Web and WebGPU JSEP execution provider.
-
-### 🦀 Rust & WebAssembly Ecosystem
-* **[The Rust Project](https://www.rust-lang.org/)**: The Rust programming language for performant, memory-safe systems engineering.
-* **[Rustwasm / wasm-bindgen](https://github.com/rustwasm/wasm-bindgen)** & **[wasm-pack](https://github.com/rustwasm/wasm-pack)**: Ergonomic tooling for compiling and bridging Rust code to WebAssembly.
-* **[WebAssembly / Binaryen (wasm-opt)](https://github.com/WebAssembly/binaryen)**: WebAssembly compiler infrastructure and size/speed optimizer.
-* **[Amazon Web Services / Kani](https://github.com/model-checking/kani)**: The Kani Rust Formal Verifier for automated mathematical proof of CORDIC invariants.
-
-### 🎨 Frontend & Typography
-* **[Marked.js](https://github.com/markedjs/marked)**: Fast, lightweight markdown parser for client-side Obsidian/ChatGPT rendering.
-* **[Google Fonts](https://fonts.google.com/)**: *Inter* (Rasmus Andersson) and *Fira Code* (Nikita Prokopov) typography.
-
-### 📐 Foundational Mathematical Literature
-* **Pentti Kanerva (2009)**, **Ross Gayler (2003)**, **Tony Plate (2003)**: *Hyperdimensional Computing and Vector Symbolic Architectures (VSA)*.
-* **Thorold Gosset (1900)**, **J. H. Conway & N. J. A. Sloane (1988)**: *Sphere Packings, Lattices and Groups* — Gosset 8-polytope $4_{21}$ and $E_8$ root lattice quantization.
-* **Jack E. Volder (1959)**, **J. S. Walther (1971)**: *The CORDIC Trigonometric Computing Technique*.
-* **Heinz Hopf (1931)**: *Über die Abbildungen der dreidimensionalen Sphäre auf die Kugelfläche* ($S^3 \hookrightarrow S^2$ Hopf Fibration).
+* **[UOR Foundation](https://github.com/uor-foundation)**: Architectural standard for Universal Object Representation, 512D Vector Symbolic hyperdimensional memory, and sovereign cognitive AI.
+* **HELM Geometric Attention Group**: High-dimensional geometric attention mechanics and non-Euclidean manifold routing.
+* **The Authors of Goldworm (`goldworm`)**: High-throughput byte-level modular codebooks and streaming token compression.
+* **`w33`**: Discrete topology and high-performance symbolic computation research.
+* **Nemesis Theory Mathematics**: Algebraic field structures, discrete $E_8$ Gosset root lattice dynamics, and phase equilibria.
+* **Hologram**: Holographic memory projection and real-time neural manifold visualization.
+* **[Alibaba Cloud / Qwen Team](https://github.com/QwenLM/Qwen2.5)** & **[Google Gemma Team](https://ai.google.dev/gemma)**: Foundational open-weight transformer architectures.
+* **[Hugging Face Transformers.js](https://github.com/huggingface/transformers.js)**: In-browser WebGPU runtime and ONNX model execution.
+* **[The Rust Project](https://www.rust-lang.org/)** & **[wasm-bindgen](https://github.com/rustwasm/wasm-bindgen)**: Performant, memory-safe WebAssembly systems engineering.
 
 ---
 
 ## 📄 License
 
-This project is open-source under the **[MIT License](LICENSE)**.
-
----
+This project is licensed under the **[MIT License](LICENSE)**.
 
 <div align="center">
-<b>UOR-R4 Geometric Cognitive AI</b> • Designed for sovereign, private, client-side intelligence.
+<b>UOR-R4 Geometric Cognitive AI</b> • 100% Private, Sovereign In-Browser Intelligence.
 </div>
