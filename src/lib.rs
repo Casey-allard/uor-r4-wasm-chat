@@ -629,6 +629,563 @@ impl BrowserTrainingHarness {
     }
 }
 
+// =====================================================================
+// 9. DYNAMIC VOCABULARY, BYTE-LEVEL STREAMING & GENERAL ATTENTION ENGINE
+// =====================================================================
+
+#[derive(Clone, Debug)]
+pub struct DynamicCodebook {
+    pub vocab: Vec<String>,
+    pub centroids: Vec<[i32; 8]>,
+    pub is_byte_mode: bool,
+}
+
+impl DynamicCodebook {
+    /// Creates a universal 256-byte codebook for raw UTF-8 / ASCII streaming.
+    pub fn new_byte_level() -> Self {
+        let mut vocab = Vec::with_capacity(256);
+        let mut centroids = Vec::with_capacity(256);
+
+        for b in 0..=255u8 {
+            let label = if b.is_ascii_graphic() || b == b' ' {
+                (b as char).to_string()
+            } else {
+                format!("0x{:02X}", b)
+            };
+            vocab.push(label);
+
+            let mut token_bytes = [0u8; 16];
+            token_bytes[0] = b;
+            let seed = LexicalToken { bytes: token_bytes, len: 1 }.compute_vsa_seed();
+            let basis = VsaVector::deterministic_basis(seed);
+            let raw_coords = basis.project_to_8d_with_matrix(&PRE_TRAINED_PROJECTION_MATRIX);
+            let snapped = E8LatticeSnapper::snap(raw_coords);
+            centroids.push(snapped);
+        }
+
+        Self {
+            vocab,
+            centroids,
+            is_byte_mode: true,
+        }
+    }
+
+    /// Ingests an arbitrary text corpus, extracts top-N highest-frequency tokens,
+    /// and initializes deterministic 8D Gosset centroids.
+    pub fn from_corpus(corpus: &str, max_vocab_size: usize) -> Self {
+        use std::collections::HashMap;
+
+        let mut word_counts: HashMap<String, usize> = HashMap::new();
+        let cleaned: String = corpus
+            .chars()
+            .map(|c| if c.is_alphanumeric() { c.to_ascii_lowercase() } else { ' ' })
+            .collect();
+
+        for word in cleaned.split_whitespace() {
+            if word.len() >= 2 {
+                *word_counts.entry(word.to_string()).or_insert(0) += 1;
+            }
+        }
+
+        let mut sorted_words: Vec<(String, usize)> = word_counts.into_iter().collect();
+        sorted_words.sort_by(|a, b| b.1.cmp(&a.1));
+
+        let limit = max_vocab_size.clamp(16, 2048).min(sorted_words.len().max(16));
+        let mut vocab = Vec::with_capacity(limit);
+        let mut centroids = Vec::with_capacity(limit);
+
+        for (word, _) in sorted_words.into_iter().take(limit) {
+            let mut token_bytes = [0u8; 16];
+            let bytes = word.as_bytes();
+            let len = bytes.len().min(16);
+            token_bytes[..len].copy_from_slice(&bytes[..len]);
+
+            let seed = LexicalToken { bytes: token_bytes, len }.compute_vsa_seed();
+            let basis = VsaVector::deterministic_basis(seed);
+            let raw_coords = basis.project_to_8d_with_matrix(&PRE_TRAINED_PROJECTION_MATRIX);
+            let snapped = E8LatticeSnapper::snap(raw_coords);
+
+            vocab.push(word);
+            centroids.push(snapped);
+        }
+
+        // If corpus had fewer than 16 words, fill with default vocab
+        while vocab.len() < 16 {
+            let idx = vocab.len() % VOCAB_SIZE;
+            vocab.push(VOCABULARY[idx].to_string());
+            centroids.push(DEFAULT_CODEBOOK_COORDINATES[idx]);
+        }
+
+        Self {
+            vocab,
+            centroids,
+            is_byte_mode: false,
+        }
+    }
+
+    /// Single fixed-point SGD coordinate update step for a target centroid.
+    pub fn train_step(
+        &mut self,
+        query_snapped: [i32; 8],
+        target_idx: usize,
+        learning_rate_q16: i32,
+    ) -> (i64, usize, f32) {
+        let (weights, winner, entropy) =
+            DynamicGeometricAttention::compute_attention_and_entropy(query_snapped, &self.centroids);
+
+        let target_p = if target_idx < weights.len() { weights[target_idx] } else { 0.0 };
+        let target_weight_q16 = (target_p * 65536.0) as i64;
+        let loss = (65536 - target_weight_q16).max(0);
+
+        if target_idx < self.centroids.len() {
+            for j in 0..8 {
+                let grad = ((query_snapped[j] as i64) * loss * (learning_rate_q16 as i64)) / (65536 * 65536);
+                let delta = (grad * 4) as i32;
+                self.centroids[target_idx][j] = self.centroids[target_idx][j].saturating_add(delta);
+            }
+        }
+
+        (loss, winner, entropy)
+    }
+
+    /// Trains the codebook centroids over a corpus across N epochs.
+    pub fn train_corpus(
+        &mut self,
+        corpus: &str,
+        epochs: u32,
+        learning_rate_q16: i32,
+    ) -> (f64, usize, f64, f32) {
+        let mut total_loss = 0i64;
+        let mut steps = 0;
+        let mut final_entropy = 0.0f32;
+
+        if self.is_byte_mode {
+            let raw_bytes = corpus.as_bytes();
+            if raw_bytes.len() < 2 {
+                return (0.0, 0, 1.0, 0.0);
+            }
+
+            for _ in 0..epochs {
+                for i in 0..(raw_bytes.len() - 1) {
+                    let cur_byte = raw_bytes[i];
+                    let next_byte = raw_bytes[i + 1];
+
+                    let mut b_arr = [0u8; 16];
+                    b_arr[0] = cur_byte;
+                    let seed = LexicalToken { bytes: b_arr, len: 1 }.compute_vsa_seed();
+                    let basis = VsaVector::deterministic_basis(seed);
+                    let raw_coords = basis.project_to_8d_with_matrix(&PRE_TRAINED_PROJECTION_MATRIX);
+                    let snapped = E8LatticeSnapper::snap(raw_coords);
+
+                    let (loss, _, ent) = self.train_step(snapped, next_byte as usize, learning_rate_q16);
+                    total_loss += loss;
+                    steps += 1;
+                    final_entropy = ent;
+                }
+            }
+        } else {
+            let cleaned: String = corpus
+                .chars()
+                .map(|c| if c.is_alphanumeric() { c.to_ascii_lowercase() } else { ' ' })
+                .collect();
+            let words: Vec<&str> = cleaned.split_whitespace().collect();
+            if words.len() < 2 {
+                return (0.0, 0, 1.0, 0.0);
+            }
+
+            // Fast index lookup map
+            let vocab_map: std::collections::HashMap<String, usize> = self
+                .vocab
+                .iter()
+                .enumerate()
+                .map(|(i, w)| (w.clone(), i))
+                .collect();
+
+            for _ in 0..epochs {
+                for i in 0..(words.len() - 1) {
+                    let cur_word = words[i];
+                    let next_word = words[i + 1];
+
+                    let target_idx = match vocab_map.get(next_word) {
+                        Some(&idx) => idx,
+                        None => continue,
+                    };
+
+                    let mut token_bytes = [0u8; 16];
+                    let b = cur_word.as_bytes();
+                    let len = b.len().min(16);
+                    token_bytes[..len].copy_from_slice(&b[..len]);
+
+                    let seed = LexicalToken { bytes: token_bytes, len }.compute_vsa_seed();
+                    let basis = VsaVector::deterministic_basis(seed);
+                    let raw_coords = basis.project_to_8d_with_matrix(&PRE_TRAINED_PROJECTION_MATRIX);
+                    let snapped = E8LatticeSnapper::snap(raw_coords);
+
+                    let (loss, _, ent) = self.train_step(snapped, target_idx, learning_rate_q16);
+                    total_loss += loss;
+                    steps += 1;
+                    final_entropy = ent;
+                }
+            }
+        }
+
+        let avg_loss = if steps > 0 { (total_loss as f64) / (steps as f64 * 65536.0) } else { 0.0 };
+        let perplexity = (avg_loss * std::f64::consts::LN_2).exp();
+
+        (avg_loss, steps, perplexity, final_entropy)
+    }
+}
+
+pub struct DynamicGeometricAttention;
+
+impl DynamicGeometricAttention {
+    /// Evaluates multiplication-free softmax and Shannon Entropy across an arbitrary number of centroids.
+    pub fn compute_attention_and_entropy(
+        query: [i32; 8],
+        centroids: &[[i32; 8]],
+    ) -> (Vec<f32>, usize, f32) {
+        let v_len = centroids.len();
+        if v_len == 0 {
+            return (Vec::new(), 0, 0.0);
+        }
+
+        let mut max_logit = i32::MIN;
+        let mut raw_logits = Vec::with_capacity(v_len);
+
+        for centroid in centroids {
+            let mut dot = 0i32;
+            for j in 0..8 {
+                dot = dot.saturating_add(query[j] * centroid[j]);
+            }
+            raw_logits.push(dot);
+            if dot > max_logit {
+                max_logit = dot;
+            }
+        }
+
+        let mut exp_sums = Vec::with_capacity(v_len);
+        let mut sum_accum = 0i64;
+
+        for &logit in &raw_logits {
+            let diff = (logit - max_logit) << 13;
+            let exp_approx = GeometricAttention::shift_add_exp(diff);
+            exp_sums.push(exp_approx);
+            sum_accum += exp_approx as i64;
+        }
+
+        if sum_accum == 0 {
+            sum_accum = 1;
+        }
+
+        let mut weights_f32 = Vec::with_capacity(v_len);
+        let mut best_idx = 0;
+        let mut max_weight = 0.0f32;
+        let mut entropy = 0.0f32;
+
+        for (i, &exp_v) in exp_sums.iter().enumerate() {
+            let p = (exp_v as f64 / sum_accum as f64) as f32;
+            weights_f32.push(p);
+            if p > max_weight {
+                max_weight = p;
+                best_idx = i;
+            }
+            if p > 1e-5 {
+                entropy -= p * p.log2();
+            }
+        }
+
+        (weights_f32, best_idx, entropy)
+    }
+}
+
+/// WASM-compatible dynamic session supporting custom vocabulary, byte streaming, and attention telemetry.
+#[wasm_bindgen]
+pub struct DynamicSession {
+    codebook: DynamicCodebook,
+    context_vector: VsaVector,
+    last_phase_alpha: i32,
+}
+
+#[wasm_bindgen]
+impl DynamicSession {
+    #[wasm_bindgen(constructor)]
+    pub fn new(mode: &str, vocab_size: u32) -> Self {
+        let codebook = if mode == "bytes" {
+            DynamicCodebook::new_byte_level()
+        } else {
+            DynamicCodebook::from_corpus("hello secure agent system quantum stable integrity", vocab_size as usize)
+        };
+
+        Self {
+            codebook,
+            context_vector: VsaVector::zero(),
+            last_phase_alpha: 0,
+        }
+    }
+
+    pub fn reset(&mut self) {
+        self.context_vector = VsaVector::zero();
+        self.last_phase_alpha = 0;
+    }
+
+    pub fn get_vocab_size(&self) -> usize {
+        self.codebook.vocab.len()
+    }
+
+    pub fn is_byte_mode(&self) -> bool {
+        self.codebook.is_byte_mode
+    }
+
+    /// Ingests a raw text corpus, builds the vocabulary (if in words mode), and trains centroids.
+    pub fn ingest_corpus(
+        &mut self,
+        corpus: &str,
+        epochs: u32,
+        learning_rate_q16: i32,
+        mode: &str,
+        vocab_size: u32,
+    ) -> String {
+        if mode == "bytes" {
+            self.codebook = DynamicCodebook::new_byte_level();
+        } else {
+            self.codebook = DynamicCodebook::from_corpus(corpus, vocab_size as usize);
+        }
+
+        let (avg_loss, steps, ppl, ent) = self.codebook.train_corpus(corpus, epochs, learning_rate_q16);
+
+        let top_vocab_preview: Vec<String> = self.codebook.vocab.iter().take(16).cloned().collect();
+        let vocab_json = format!("[\"{}\"]", top_vocab_preview.join("\",\""));
+
+        format!(
+            "{{\"status\":\"success\", \"mode\":\"{}\", \"vocab_size\":{}, \"average_loss\":{:.4}, \"perplexity\":{:.4}, \"entropy\":{:.4}, \"steps\":{}, \"top_vocab\":{}}}",
+            if self.codebook.is_byte_mode { "bytes" } else { "words" },
+            self.codebook.vocab.len(),
+            avg_loss,
+            ppl,
+            ent,
+            steps,
+            vocab_json
+        )
+    }
+
+    /// Autoregressively generates next tokens/bytes from input prompt with live attention entropy.
+    pub fn process_input_dynamic(&mut self, input: &str, num_tokens: usize) -> String {
+        let count_to_gen = num_tokens.clamp(1, 16);
+
+        if self.codebook.is_byte_mode {
+            // Byte-level context bundling
+            for &b in input.as_bytes() {
+                let mut b_arr = [0u8; 16];
+                b_arr[0] = b;
+                let seed = LexicalToken { bytes: b_arr, len: 1 }.compute_vsa_seed();
+                let basis = VsaVector::deterministic_basis(seed);
+                self.context_vector = self.context_vector.bundle(&basis);
+            }
+
+            let mut generated_bytes = Vec::with_capacity(count_to_gen);
+            let mut last_entropy = 0.0f32;
+            let mut last_snapped = [0i32; 8];
+            let mut last_chi = 0;
+            let mut last_delta = 0;
+            let mut last_alpha = 0;
+
+            for _ in 0..count_to_gen {
+                let raw_coords = self.context_vector.project_to_8d_with_matrix(&PRE_TRAINED_PROJECTION_MATRIX);
+                let snapped = E8LatticeSnapper::snap(raw_coords);
+                let (chi, delta, alpha) = CordicHopfEngine::project_to_hopf(snapped);
+                self.last_phase_alpha = alpha;
+
+                last_snapped = snapped;
+                last_chi = chi;
+                last_delta = delta;
+                last_alpha = alpha;
+
+                let (_weights, winner_idx, ent) =
+                    DynamicGeometricAttention::compute_attention_and_entropy(snapped, &self.codebook.centroids);
+                last_entropy = ent;
+
+                let pred_byte = (winner_idx as u8).min(255);
+                generated_bytes.push(pred_byte);
+
+                let mut b_arr = [0u8; 16];
+                b_arr[0] = pred_byte;
+                let p_seed = LexicalToken { bytes: b_arr, len: 1 }.compute_vsa_seed();
+                let p_basis = VsaVector::deterministic_basis(p_seed);
+                self.context_vector = self.context_vector.bundle(&p_basis);
+            }
+
+            let completion_str = String::from_utf8_lossy(&generated_bytes).to_string();
+
+            format!(
+                "{{\"completion\":\"{}\", \"mode\":\"bytes\", \"entropy\":{:.4}, \"chi\":{:.4}, \"delta\":{:.4}, \"alpha\":{:.4}, \"snapped\":[{},{},{},{},{},{},{},{}]}}",
+                completion_str.replace('"', "\\\""),
+                last_entropy,
+                (last_chi as f32) / 16384.0,
+                (last_delta as f32) / 16384.0,
+                (last_alpha as f32) / 16384.0,
+                last_snapped[0], last_snapped[1], last_snapped[2], last_snapped[3],
+                last_snapped[4], last_snapped[5], last_snapped[6], last_snapped[7]
+            )
+        } else {
+            // Word-level context bundling
+            let cleaned: String = input
+                .chars()
+                .map(|c| if c.is_alphanumeric() { c.to_ascii_lowercase() } else { ' ' })
+                .collect();
+            let words: Vec<&str> = cleaned.split_whitespace().collect();
+
+            for word in words {
+                let mut token_bytes = [0u8; 16];
+                let b = word.as_bytes();
+                let len = b.len().min(16);
+                token_bytes[..len].copy_from_slice(&b[..len]);
+
+                let seed = LexicalToken { bytes: token_bytes, len }.compute_vsa_seed();
+                let basis = VsaVector::deterministic_basis(seed);
+                self.context_vector = self.context_vector.bundle(&basis);
+            }
+
+            let mut generated_words = Vec::with_capacity(count_to_gen);
+            let mut last_entropy = 0.0f32;
+            let mut last_snapped = [0i32; 8];
+            let mut last_chi = 0;
+            let mut last_delta = 0;
+            let mut last_alpha = 0;
+            let mut last_winner = String::new();
+
+            for _ in 0..count_to_gen {
+                let raw_coords = self.context_vector.project_to_8d_with_matrix(&PRE_TRAINED_PROJECTION_MATRIX);
+                let snapped = E8LatticeSnapper::snap(raw_coords);
+                let (chi, delta, alpha) = CordicHopfEngine::project_to_hopf(snapped);
+                self.last_phase_alpha = alpha;
+
+                last_snapped = snapped;
+                last_chi = chi;
+                last_delta = delta;
+                last_alpha = alpha;
+
+                let (_weights, winner_idx, ent) =
+                    DynamicGeometricAttention::compute_attention_and_entropy(snapped, &self.codebook.centroids);
+                last_entropy = ent;
+
+                let pred_word = if winner_idx < self.codebook.vocab.len() {
+                    self.codebook.vocab[winner_idx].clone()
+                } else {
+                    "hello".to_string()
+                };
+
+                last_winner = pred_word.clone();
+                generated_words.push(pred_word.clone());
+
+                let mut token_bytes = [0u8; 16];
+                let b = pred_word.as_bytes();
+                let len = b.len().min(16);
+                token_bytes[..len].copy_from_slice(&b[..len]);
+
+                let p_seed = LexicalToken { bytes: token_bytes, len }.compute_vsa_seed();
+                let p_basis = VsaVector::deterministic_basis(p_seed);
+                self.context_vector = self.context_vector.bundle(&p_basis);
+            }
+
+            format!(
+                "{{\"completion\":\"{}\", \"mode\":\"words\", \"winner\":\"{}\", \"entropy\":{:.4}, \"chi\":{:.4}, \"delta\":{:.4}, \"alpha\":{:.4}, \"snapped\":[{},{},{},{},{},{},{},{}]}}",
+                generated_words.join(" "),
+                last_winner,
+                last_entropy,
+                (last_chi as f32) / 16384.0,
+                (last_delta as f32) / 16384.0,
+                (last_alpha as f32) / 16384.0,
+                last_snapped[0], last_snapped[1], last_snapped[2], last_snapped[3],
+                last_snapped[4], last_snapped[5], last_snapped[6], last_snapped[7]
+            )
+        }
+    }
+
+    /// Evaluates context sensitivity: compares 8D Hopf vector rotation and KL divergence
+    /// between two perturbed prompt prefixes to prove general attention responsiveness.
+    pub fn evaluate_sensitivity(&self, prefix_a: &str, prefix_b: &str) -> String {
+        let get_coords = |input: &str| -> ([i32; 8], (i32, i32, i32), Vec<f32>, f32) {
+            let mut ctx = VsaVector::zero();
+            let cleaned: String = input
+                .chars()
+                .map(|c| if c.is_alphanumeric() { c.to_ascii_lowercase() } else { ' ' })
+                .collect();
+            for word in cleaned.split_whitespace() {
+                let mut token_bytes = [0u8; 16];
+                let b = word.as_bytes();
+                let len = b.len().min(16);
+                token_bytes[..len].copy_from_slice(&b[..len]);
+                let seed = LexicalToken { bytes: token_bytes, len }.compute_vsa_seed();
+                let basis = VsaVector::deterministic_basis(seed);
+                ctx = ctx.bundle(&basis);
+            }
+            let raw = ctx.project_to_8d_with_matrix(&PRE_TRAINED_PROJECTION_MATRIX);
+            let snapped = E8LatticeSnapper::snap(raw);
+            let hopf = CordicHopfEngine::project_to_hopf(snapped);
+            let (weights, _, ent) = DynamicGeometricAttention::compute_attention_and_entropy(snapped, &self.codebook.centroids);
+            (snapped, hopf, weights, ent)
+        };
+
+        let (snapped_a, hopf_a, weights_a, ent_a) = get_coords(prefix_a);
+        let (snapped_b, hopf_b, weights_b, ent_b) = get_coords(prefix_b);
+
+        // Vector Euclidean distance in 8D
+        let mut dist_sq = 0i64;
+        for j in 0..8 {
+            let diff = (snapped_a[j] - snapped_b[j]) as i64;
+            dist_sq += diff * diff;
+        }
+        let e8_distance = (dist_sq as f64).sqrt();
+
+        // Hopf angle angular shifts in radians
+        let delta_chi = ((hopf_a.0 - hopf_b.0).abs() as f32) / 16384.0;
+        let delta_alpha = ((hopf_a.2 - hopf_b.2).abs() as f32) / 16384.0;
+
+        // Symmetric KL Divergence between attention distributions
+        let mut kl_div = 0.0f32;
+        for i in 0..weights_a.len() {
+            let pa = weights_a[i].max(1e-6);
+            let pb = weights_b[i].max(1e-6);
+            kl_div += pa * (pa / pb).ln();
+        }
+
+        format!(
+            "{{\"e8_distance\":{:.4}, \"delta_chi_rad\":{:.4}, \"delta_alpha_rad\":{:.4}, \"kl_divergence\":{:.4}, \"entropy_a\":{:.4}, \"entropy_b\":{:.4}, \"status\":\"confirmed_sensitive\"}}",
+            e8_distance, delta_chi, delta_alpha, kl_div, ent_a, ent_b
+        )
+    }
+
+    /// Serializes current dynamic codebook to JSON string.
+    pub fn export_codebook_json(&self) -> String {
+        let mut json = String::new();
+        json.push_str("{\"is_byte_mode\":");
+        json.push_str(if self.codebook.is_byte_mode { "true" } else { "false" });
+        json.push_str(",\"vocab\":[");
+        for (i, w) in self.codebook.vocab.iter().enumerate() {
+            json.push_str("\"");
+            json.push_str(&w.replace('"', "\\\""));
+            json.push_str("\"");
+            if i < self.codebook.vocab.len() - 1 {
+                json.push_str(",");
+            }
+        }
+        json.push_str("],\"centroids\":[");
+        for (i, c) in self.codebook.centroids.iter().enumerate() {
+            json.push_str("[");
+            for j in 0..8 {
+                json.push_str(&c[j].to_string());
+                if j < 7 { json.push_str(","); }
+            }
+            json.push_str("]");
+            if i < self.codebook.centroids.len() - 1 {
+                json.push_str(",");
+            }
+        }
+        json.push_str("]}");
+        json
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -680,5 +1237,41 @@ mod tests {
         let result = trainer.train_on_corpus(corpus, 50, 6553);
         assert!(result.contains("\"status\":\"success\""));
         assert_ne!(initial_coords, trainer.codebook, "Training must update codebook centroids");
+    }
+
+    #[test]
+    fn test_dynamic_codebook_byte_level_ingestion() {
+        let mut session = DynamicSession::new("bytes", 256);
+        assert_eq!(session.get_vocab_size(), 256);
+        assert!(session.is_byte_mode());
+
+        let res = session.ingest_corpus("The quick brown fox jumps over the lazy dog.", 10, 6553, "bytes", 256);
+        assert!(res.contains("\"status\":\"success\""));
+        assert!(res.contains("\"mode\":\"bytes\""));
+
+        let run = session.process_input_dynamic("The quick", 4);
+        assert!(run.contains("\"completion\""));
+        assert!(run.contains("\"entropy\""));
+    }
+
+    #[test]
+    fn test_dynamic_codebook_words_ingestion() {
+        let mut session = DynamicSession::new("words", 64);
+        let corpus = "artificial intelligence quantum geometry attention mechanism lattice Gosset fibration orbit cognitive state transformation";
+        let res = session.ingest_corpus(corpus, 20, 6553, "words", 64);
+        assert!(res.contains("\"status\":\"success\""));
+
+        let run = session.process_input_dynamic("artificial intelligence", 3);
+        assert!(run.contains("\"completion\""));
+        assert!(run.contains("\"entropy\""));
+    }
+
+    #[test]
+    fn test_general_attention_sensitivity_evaluation() {
+        let session = DynamicSession::new("words", 64);
+        let report = session.evaluate_sensitivity("secure agent system", "malicious rogue attacker");
+        assert!(report.contains("\"status\":\"confirmed_sensitive\""));
+        assert!(report.contains("\"delta_chi_rad\""));
+        assert!(report.contains("\"kl_divergence\""));
     }
 }

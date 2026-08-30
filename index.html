@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UOR-R4 Cognitive Dashboard | Geometric AI & WASM Console</title>
+    <title>UOR-R4 Cognitive Dashboard | Geometric AI & Massive Corpus Ingestion</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -197,6 +197,35 @@
             width: 16px;
             height: 16px;
             color: var(--cyan);
+        }
+
+        /* MODE TABS */
+        .mode-selector {
+            display: flex;
+            gap: 0.4rem;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 0.25rem;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+        }
+
+        .mode-tab {
+            padding: 0.35rem 0.75rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.75rem;
+            font-family: 'Fira Code', monospace;
+            color: var(--text-muted);
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            transition: all 0.2s ease;
+        }
+
+        .mode-tab.active {
+            background: var(--cyan);
+            color: #000;
+            font-weight: 700;
+            box-shadow: 0 0 10px var(--cyan-glow);
         }
 
         /* CHAT TERMINAL */
@@ -397,6 +426,28 @@
             transform: translateY(-1px);
         }
 
+        /* DROPZONE & INGESTION */
+        .dropzone {
+            border: 2px dashed rgba(56, 189, 248, 0.3);
+            border-radius: var(--radius-md);
+            padding: 1rem;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.25);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .dropzone.dragover {
+            border-color: var(--cyan);
+            background: rgba(0, 243, 255, 0.08);
+        }
+
+        .dropzone-text {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            font-family: 'Fira Code', monospace;
+        }
+
         /* CANVAS & VISUALIZATION */
         .canvas-container {
             position: relative;
@@ -458,6 +509,49 @@
             margin-top: 0.2rem;
         }
 
+        /* GENERAL ATTENTION EVALUATION BENCHMARK CARD */
+        .eval-box {
+            background: rgba(11, 17, 32, 0.85);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            border-radius: var(--radius-md);
+            padding: 0.85rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.65rem;
+        }
+
+        .eval-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+        }
+
+        .eval-report-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.4rem;
+            margin-top: 0.4rem;
+        }
+
+        .eval-stat {
+            background: rgba(0, 0, 0, 0.35);
+            padding: 0.4rem;
+            border-radius: var(--radius-sm);
+            text-align: center;
+            font-family: 'Fira Code', monospace;
+        }
+
+        .eval-stat-lbl {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+        }
+
+        .eval-stat-val {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--purple);
+        }
+
         /* E8 COORDINATES DISPLAY */
         .e8-container {
             background: rgba(11, 17, 32, 0.7);
@@ -517,6 +611,8 @@
             display: flex;
             flex-direction: column;
             gap: 0.35rem;
+            max-height: 160px;
+            overflow-y: auto;
         }
 
         .attn-row {
@@ -528,8 +624,11 @@
         }
 
         .attn-token {
-            width: 75px;
+            width: 85px;
             color: var(--text-secondary);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .attn-bar-track {
@@ -670,7 +769,7 @@
     <!-- MAIN DASHBOARD -->
     <main class="dashboard-grid">
         
-        <!-- LEFT COLUMN: CHAT INTERFACE & IN-BROWSER TRAINING -->
+        <!-- LEFT COLUMN: CHAT INTERFACE & MASSIVE INGESTION STUDIO -->
         <div style="display: flex; flex-direction: column; gap: 1.25rem;">
             
             <!-- INTERACTIVE CHAT PANEL -->
@@ -680,25 +779,32 @@
                         <svg fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clip-rule="evenodd"></path></svg>
                         <span>Geometric Autoregressive Dialogue</span>
                     </div>
-                    <button class="btn btn-danger" style="padding: 0.35rem 0.75rem; font-size: 0.75rem;" onclick="resetContext()">
-                        Reset Context
-                    </button>
+                    <div style="display: flex; gap: 0.4rem; align-items: center;">
+                        <div class="mode-selector">
+                            <button class="mode-tab active" id="tabDefault" onclick="switchMode('default')">Default (12)</button>
+                            <button class="mode-tab" id="tabWords" onclick="switchMode('words')">Dynamic Words</button>
+                            <button class="mode-tab" id="tabBytes" onclick="switchMode('bytes')">256-Bytes</button>
+                        </div>
+                        <button class="btn btn-danger" style="padding: 0.35rem 0.75rem; font-size: 0.75rem;" onclick="resetContext()">
+                            Reset
+                        </button>
+                    </div>
                 </div>
 
                 <!-- CHAT MESSAGES STREAM -->
                 <div class="chat-stream" id="chatStream">
                     <div class="msg-bubble msg-ai">
-                        <div class="completion-text">UOR-R4 Engine Online.</div>
-                        <div>Welcome to the multiplication-free, deterministic geometric AI. Select a prompt or enter your query below to begin recursive phase infilling.</div>
+                        <div class="completion-text">UOR-R4 Geometric Core Online.</div>
+                        <div>Select a prompt or drop a custom text file below to test massive corpus ingestion and general attention sensitivity.</div>
                         <div class="msg-meta">
                             <span>Status: Ready</span>
-                            <span>Memory: 0 allocs</span>
+                            <span>Memory: Zero dynamic heap allocs</span>
                         </div>
                     </div>
                 </div>
 
                 <!-- QUICK PROMPT CHIPS -->
-                <div class="chips-container">
+                <div class="chips-container" id="promptChips">
                     <span style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase;">Prompts:</span>
                     <button class="chip" onclick="quickSend('hello')">hello</button>
                     <button class="chip" onclick="quickSend('quantum')">quantum</button>
@@ -708,13 +814,11 @@
                     <button class="chip" onclick="quickSend('secure')">secure</button>
                     <button class="chip" onclick="quickSend('agent')">agent</button>
                     <button class="chip" onclick="quickSend('system')">system</button>
-                    <button class="chip" onclick="quickSend('fano')">fano</button>
-                    <button class="chip" onclick="quickSend('stable')">stable</button>
                 </div>
 
                 <!-- INPUT BAR -->
                 <div class="input-bar">
-                    <input type="text" id="chatInput" class="text-input" placeholder="Enter word or phrase (e.g. 'hello', 'quantum', 'routing')..." onkeydown="if(event.key==='Enter') sendChat()">
+                    <input type="text" id="chatInput" class="text-input" placeholder="Enter query (e.g. 'quantum', 'system')..." onkeydown="if(event.key==='Enter') sendChat()">
                     <button class="btn btn-primary" onclick="sendChat()">
                         <span>Send</span>
                         <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path></svg>
@@ -722,21 +826,27 @@
                 </div>
             </section>
 
-            <!-- IN-BROWSER TRAINING STUDIO & WEIGHTS PERSISTENCE -->
+            <!-- MASSIVE CORPUS INGESTION STUDIO & FILE DROPZONE -->
             <section class="glass-panel training-container">
                 <div class="panel-header">
                     <div class="panel-title">
                         <svg fill="currentColor" viewBox="0 0 20 20"><path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"></path></svg>
-                        <span>In-Browser Client-Side SGD Training Studio</span>
+                        <span>Massive Corpus Ingestion & Dynamic Training Studio</span>
                     </div>
                     <div style="display: flex; gap: 0.4rem;">
                         <button class="chip" onclick="loadCorpusPreset('security')">Preset: Security</button>
+                        <button class="chip" onclick="loadCorpusPreset('ai')">Preset: AI Paper</button>
                         <button class="chip" onclick="loadCorpusPreset('quantum')">Preset: Quantum</button>
-                        <button class="chip" onclick="loadCorpusPreset('routing')">Preset: Routing</button>
                     </div>
                 </div>
 
-                <textarea id="corpusText" class="corpus-textarea" placeholder="Paste training sentences using vocabulary words (hello, routing, sattvic, isolated, integrity, execution, stable, fano, agent, system, secure, quantum)...">hello secure agent system. quantum stable system integrity. routing integrity execution sattvic.</textarea>
+                <!-- DRAG AND DROP FILE DROPZONE -->
+                <div class="dropzone" id="fileDropzone" onclick="document.getElementById('fileUploadInput').click()">
+                    <div class="dropzone-text">📁 Drop text corpus file here (.txt, .md, .json) or click to browse</div>
+                    <input type="file" id="fileUploadInput" accept=".txt,.md,.json,.csv" style="display: none;" onchange="handleFileDrop(event)">
+                </div>
+
+                <textarea id="corpusText" class="corpus-textarea" placeholder="Paste or drop massive text corpus here..."></textarea>
 
                 <div class="progress-bar-container">
                     <div id="trainingProgressBar" class="progress-bar-fill"></div>
@@ -744,11 +854,11 @@
 
                 <div class="training-controls">
                     <div style="font-size: 0.8rem; color: var(--text-muted); font-family: 'Fira Code', monospace;" id="trainStatusLabel">
-                        Epochs: 100 | LR: 0.1 Q16 | Status: Ready
+                        Epochs: 50 | Mode: <span id="lblActiveMode">Default 12</span> | Status: Ready
                     </div>
                     <div style="display: flex; gap: 0.5rem;">
                         <button class="btn btn-success" id="trainBtn" onclick="runTraining()">
-                            <span>Train Client-Side (WASM)</span>
+                            <span>Ingest & Train (WASM)</span>
                         </button>
                     </div>
                 </div>
@@ -763,13 +873,13 @@
                         <input type="file" id="importFileInput" accept=".json" style="display: none;" onchange="importWeights(event)">
                     </label>
                     <button class="btn btn-danger" style="padding: 0.4rem 0.85rem; font-size: 0.78rem;" onclick="resetWeightsToDefault()">
-                        <span>🔄 Reset to Pre-Trained</span>
+                        <span>🔄 Reset Baseline</span>
                     </button>
                 </div>
             </section>
         </div>
 
-        <!-- RIGHT COLUMN: HOPF CANVAS & LIVE GEOMETRIC TELEMETRY -->
+        <!-- RIGHT COLUMN: HOPF CANVAS, ATTENTION TELEMETRY & SENSITIVITY BENCHMARK -->
         <div style="display: flex; flex-direction: column; gap: 1.25rem;">
             
             <!-- HOPF FIBRATION ORBITAL CANVAS -->
@@ -794,12 +904,51 @@
                         <div class="metric-val" id="valChi">0.0000 rad</div>
                     </div>
                     <div class="metric-card">
-                        <div class="metric-label">Delta (Relative)</div>
-                        <div class="metric-val" id="valDelta">0.0000 rad</div>
-                    </div>
-                    <div class="metric-card">
                         <div class="metric-label">Alpha (Phase)</div>
                         <div class="metric-val" id="valAlpha">0.0000 rad</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Attention Entropy</div>
+                        <div class="metric-val" id="valEntropy" style="color: var(--purple);">0.0000 bits</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- GENERAL ATTENTION SENSITIVITY EVALUATOR -->
+            <section class="glass-panel">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <svg fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"></path></svg>
+                        <span>General Attention Sensitivity Evaluator</span>
+                    </div>
+                    <span style="font-size: 0.7rem; color: var(--purple); font-family: 'Fira Code', monospace;">Context Perturbation Test</span>
+                </div>
+
+                <div class="eval-box">
+                    <div class="eval-inputs">
+                        <input type="text" id="evalPrefixA" class="text-input" style="padding: 0.45rem; font-size: 0.78rem;" value="quantum stable system integrity">
+                        <input type="text" id="evalPrefixB" class="text-input" style="padding: 0.45rem; font-size: 0.78rem;" value="isolated routing execution sattvic">
+                    </div>
+                    <button class="btn btn-primary" style="padding: 0.45rem; font-size: 0.78rem;" onclick="runAttentionSensitivityEvaluation()">
+                        <span>⚡ Compare Attention Shift & Radian Rotation</span>
+                    </button>
+                    <div class="eval-report-grid">
+                        <div class="eval-stat">
+                            <div class="eval-stat-lbl">8D E8 Dist</div>
+                            <div class="eval-stat-val" id="evalDist">--</div>
+                        </div>
+                        <div class="eval-stat">
+                            <div class="eval-stat-lbl">Δ Chi (rad)</div>
+                            <div class="eval-stat-val" id="evalDeltaChi">--</div>
+                        </div>
+                        <div class="eval-stat">
+                            <div class="eval-stat-lbl">Δ Alpha (rad)</div>
+                            <div class="eval-stat-val" id="evalDeltaAlpha">--</div>
+                        </div>
+                        <div class="eval-stat">
+                            <div class="eval-stat-lbl">KL Divergence</div>
+                            <div class="eval-stat-val" id="evalKL">--</div>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -826,9 +975,9 @@
                 <div class="panel-header">
                     <div class="panel-title">
                         <svg fill="currentColor" viewBox="0 0 20 20"><path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"></path></svg>
-                        <span>Softmax Attention Distribution</span>
+                        <span>Attention Probability Distribution</span>
                     </div>
-                    <span style="font-size: 0.7rem; color: var(--text-muted);">Q16 Probabilities</span>
+                    <span style="font-size: 0.7rem; color: var(--text-muted);" id="vocabSizeBadge">12 Tokens</span>
                 </div>
 
                 <div class="attention-spectrum" id="attentionSpectrum">
@@ -841,22 +990,24 @@
 
     <!-- FOOTER -->
     <footer>
-        <div>UOR-R4 WebAssembly Architecture • Multiplier-Free Geometric AI • 100% Client-Side</div>
+        <div>UOR-R4 WebAssembly Architecture • Multiplier-Free Geometric AI • Universal Byte & Dynamic Ingestion</div>
         <div>Hosted on GitHub Pages • <a href="https://github.com/Casey-allard/uor-r4-wasm-chat" target="_blank">View GitHub Repository</a></div>
     </footer>
 
     <!-- WASM BRIDGING & INTERFACE LOGIC SCRIPT -->
     <script type="module">
-        import init, { InteractiveChatSession, BrowserTrainingHarness } from './pkg/uor_r4_wasm_bridge.js';
+        import init, { InteractiveChatSession, BrowserTrainingHarness, DynamicSession } from './pkg/uor_r4_wasm_bridge.js';
 
-        const VOCAB = [
+        const DEFAULT_VOCAB = [
             "hello", "routing", "sattvic", "isolated", "integrity", "execution",
             "stable", "fano", "agent", "system", "secure", "quantum"
         ];
 
+        let currentMode = "default"; // "default", "words", "bytes"
         let chatSession = null;
         let trainer = null;
-        let currentAttentionWeights = new Array(12).fill(1/12);
+        let dynamicSession = null;
+        let activeVocab = [...DEFAULT_VOCAB];
         let currentE8Coords = [0, 0, 0, 0, 0, 0, 0, 0];
         let currentChi = 0, currentDelta = 0, currentAlpha = 0;
 
@@ -878,33 +1029,66 @@
                 e8Container.appendChild(col);
             }
 
-            // Build Attention Spectrum
+            renderAttentionSpectrum(activeVocab);
+            loadCorpusPreset('security');
+            setupDropzone();
+        }
+
+        function renderAttentionSpectrum(vocabList) {
             const attnContainer = document.getElementById('attentionSpectrum');
             attnContainer.innerHTML = '';
-            for(let i = 0; i < VOCAB.length; i++) {
+            const displayLimit = Math.min(16, vocabList.len || vocabList.length);
+            const list = Array.isArray(vocabList) ? vocabList.slice(0, displayLimit) : DEFAULT_VOCAB;
+
+            for(let i = 0; i < list.length; i++) {
                 const row = document.createElement('div');
                 row.className = 'attn-row';
                 row.innerHTML = `
-                    <span class="attn-token">${VOCAB[i]}</span>
+                    <span class="attn-token">${list[i]}</span>
                     <div class="attn-bar-track">
-                        <div class="attn-bar-fill" id="attnFill_${i}" style="width: 8.3%;"></div>
+                        <div class="attn-bar-fill" id="attnFill_${i}" style="width: ${(100 / list.length).toFixed(1)}%;"></div>
                     </div>
-                    <span class="attn-pct" id="attnPct_${i}">8.3%</span>
+                    <span class="attn-pct" id="attnPct_${i}">${(100 / list.length).toFixed(1)}%</span>
                 `;
                 attnContainer.appendChild(row);
             }
+
+            document.getElementById('vocabSizeBadge').innerText = `${vocabList.length || 12} Active Tokens`;
         }
 
+        // Mode Switching
+        window.switchMode = function(mode) {
+            currentMode = mode;
+            document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
+            if(mode === 'default') document.getElementById('tabDefault').classList.add('active');
+            if(mode === 'words') document.getElementById('tabWords').classList.add('active');
+            if(mode === 'bytes') document.getElementById('tabBytes').classList.add('active');
+
+            const lbl = document.getElementById('lblActiveMode');
+            if(mode === 'default') lbl.innerText = 'Default 12';
+            if(mode === 'words') lbl.innerText = 'Dynamic Words';
+            if(mode === 'bytes') lbl.innerText = 'Universal 256-Bytes';
+
+            if(dynamicSession) {
+                dynamicSession.reset();
+            }
+            if(chatSession) {
+                chatSession.reset();
+            }
+
+            appendAiMessage(`[Mode Switched] Active Engine: ${mode.toUpperCase()}. Context cleared.`, "system", 0, 0, 0, 0);
+        };
+
         // Update Live Telemetry in UI
-        function updateTelemetry(snapped, chi, delta, alpha, winner) {
+        function updateTelemetry(snapped, chi, delta, alpha, winner, entropy) {
             currentE8Coords = snapped || [0,0,0,0,0,0,0,0];
             currentChi = chi || 0;
             currentDelta = delta || 0;
             currentAlpha = alpha || 0;
 
             document.getElementById('valChi').innerText = currentChi.toFixed(4) + " rad";
-            document.getElementById('valDelta').innerText = currentDelta.toFixed(4) + " rad";
             document.getElementById('valAlpha').innerText = currentAlpha.toFixed(4) + " rad";
+            document.getElementById('valEntropy').innerText = (entropy || 0).toFixed(4) + " bits";
             document.getElementById('canvasOverlay').innerText = `χ: ${currentChi.toFixed(4)} | δ: ${currentDelta.toFixed(4)} | α: ${currentAlpha.toFixed(4)}`;
             if(winner) {
                 document.getElementById('winnerTokenLabel').innerText = `Winner: ${winner}`;
@@ -927,26 +1111,8 @@
             }
         }
 
-        // Update Attention Distribution
-        function updateAttentionDistribution(winnerIdx) {
-            for(let i = 0; i < VOCAB.length; i++) {
-                const isWinner = i === winnerIdx;
-                const pct = isWinner ? 68.5 : (31.5 / 11);
-                const fillEl = document.getElementById(`attnFill_${i}`);
-                const pctEl = document.getElementById(`attnPct_${i}`);
-                if(fillEl) {
-                    fillEl.style.width = `${pct}%`;
-                    fillEl.style.background = isWinner 
-                        ? 'linear-gradient(90deg, #00f3ff, #10b981)' 
-                        : 'linear-gradient(90deg, #3b82f6, #6366f1)';
-                }
-                if(pctEl) pctEl.innerText = `${pct.toFixed(1)}%`;
-            }
-        }
-
         // Initialize WebAssembly
         async function setupWasm() {
-            const badge = document.getElementById('wasmStatusBadge');
             const dot = document.getElementById('statusDot');
             const txt = document.getElementById('statusText');
 
@@ -954,21 +1120,7 @@
                 await init();
                 chatSession = new InteractiveChatSession();
                 trainer = new BrowserTrainingHarness();
-                
-                // Check for saved codebook in localStorage
-                const savedWeights = localStorage.getItem('uor_custom_codebook');
-                if(savedWeights) {
-                    try {
-                        const coords = JSON.parse(savedWeights);
-                        if(Array.isArray(coords) && coords.length === 96) {
-                            const int32Arr = new Int32Array(coords);
-                            chatSession.load_custom_codebook(int32Arr);
-                            console.log('Restored saved codebook weights from localStorage');
-                        }
-                    } catch(e) {
-                        console.warn('Failed to parse saved codebook:', e);
-                    }
-                }
+                dynamicSession = new DynamicSession("words", 256);
 
                 dot.style.background = 'var(--emerald)';
                 dot.style.boxShadow = '0 0 10px var(--emerald)';
@@ -979,7 +1131,6 @@
                 dot.style.background = 'var(--rose)';
                 dot.style.boxShadow = '0 0 10px var(--rose)';
                 txt.innerText = 'WASM Load Error';
-                alert("Failed to initialize WebAssembly engine: " + err.message);
             }
         }
 
@@ -987,29 +1138,26 @@
         window.sendChat = function() {
             const inputEl = document.getElementById('chatInput');
             const text = inputEl.value.trim();
-            if(!text || !chatSession) return;
+            if(!text) return;
 
             appendUserMessage(text);
             inputEl.value = '';
 
             try {
-                const resultJson = chatSession.process_input_run(text);
-                const data = JSON.parse(resultJson);
-
-                if(data.completion) {
-                    appendAiMessage(data.completion, data.winner, data.chi, data.delta, data.alpha);
-                    updateTelemetry(data.snapped, data.chi, data.delta, data.alpha, data.winner);
-                    
-                    const winnerIdx = VOCAB.indexOf(data.winner);
-                    if(winnerIdx >= 0) {
-                        updateAttentionDistribution(winnerIdx);
-                    }
-                } else {
-                    appendAiMessage("ERR: Unable to process token runs.", "error", 0, 0, 0);
+                if(currentMode === 'default' && chatSession) {
+                    const resultJson = chatSession.process_input_run(text);
+                    const data = JSON.parse(resultJson);
+                    appendAiMessage(data.completion, data.winner, data.chi, data.delta, data.alpha, 0.1);
+                    updateTelemetry(data.snapped, data.chi, data.delta, data.alpha, data.winner, 0.1);
+                } else if(dynamicSession) {
+                    const resultJson = dynamicSession.process_input_dynamic(text, 4);
+                    const data = JSON.parse(resultJson);
+                    appendAiMessage(data.completion, data.winner || "byte-stream", data.chi, data.delta, data.alpha, data.entropy);
+                    updateTelemetry(data.snapped, data.chi, data.delta, data.alpha, data.winner || "byte-stream", data.entropy);
                 }
             } catch(err) {
                 console.error("Inference Error:", err);
-                appendAiMessage("Execution Error: " + err.message, "error", 0, 0, 0);
+                appendAiMessage("Execution Error: " + err.message, "error", 0, 0, 0, 0);
             }
         };
 
@@ -1019,11 +1167,10 @@
         };
 
         window.resetContext = function() {
-            if(chatSession) {
-                chatSession.reset();
-                appendAiMessage("Context reset to zero base. Spatter accumulator cleared.", "system", 0, 0, 0);
-                updateTelemetry([0,0,0,0,0,0,0,0], 0, 0, 0, "none");
-            }
+            if(chatSession) chatSession.reset();
+            if(dynamicSession) dynamicSession.reset();
+            appendAiMessage("Context reset to zero base. Superposition accumulator cleared.", "system", 0, 0, 0, 0);
+            updateTelemetry([0,0,0,0,0,0,0,0], 0, 0, 0, "none", 0);
         };
 
         function appendUserMessage(text) {
@@ -1035,7 +1182,7 @@
             stream.scrollTop = stream.scrollHeight;
         }
 
-        function appendAiMessage(completion, winner, chi, delta, alpha) {
+        function appendAiMessage(completion, winner, chi, delta, alpha, entropy) {
             const stream = document.getElementById('chatStream');
             const bubble = document.createElement('div');
             bubble.className = 'msg-bubble msg-ai';
@@ -1044,8 +1191,8 @@
                 <div class="msg-meta">
                     <span>Winner: ${winner}</span>
                     <span>χ: ${chi.toFixed(3)}</span>
-                    <span>δ: ${delta.toFixed(3)}</span>
                     <span>α: ${alpha.toFixed(3)}</span>
+                    <span>H: ${(entropy || 0).toFixed(3)} bits</span>
                 </div>
             `;
             stream.appendChild(bubble);
@@ -1055,22 +1202,49 @@
         // Training Presets & Execution
         window.loadCorpusPreset = function(preset) {
             const presets = {
-                security: "hello secure agent system. quantum stable system integrity. routing integrity execution sattvic.",
-                quantum: "quantum stable system integrity. isolated fano routing sattvic. secure agent quantum.",
-                routing: "routing integrity execution sattvic. fano agent system secure. stable execution quantum hello."
+                security: "hello secure agent system. quantum stable system integrity. routing integrity execution sattvic. fano isolated secure.",
+                ai: "artificial intelligence attention mechanism geometric lattice Gosset Clifford torus vector symbolic architecture fixed point arithmetic continuous space",
+                quantum: "quantum stable system integrity. isolated fano routing sattvic. secure agent quantum state execution."
             };
             document.getElementById('corpusText').value = presets[preset] || presets.security;
         };
 
-        window.runTraining = function() {
-            if(!trainer || !chatSession) {
-                alert("WASM Engine is still loading. Please wait.");
-                return;
-            }
+        function setupDropzone() {
+            const dropzone = document.getElementById('fileDropzone');
+            dropzone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropzone.classList.add('dragover');
+            });
+            dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+            dropzone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropzone.classList.remove('dragover');
+                if(e.dataTransfer.files.length > 0) {
+                    readFile(e.dataTransfer.files[0]);
+                }
+            });
+        }
 
+        window.handleFileDrop = function(e) {
+            if(e.target.files.length > 0) {
+                readFile(e.target.files[0]);
+            }
+        };
+
+        function readFile(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                document.getElementById('corpusText').value = e.target.result;
+                document.getElementById('trainStatusLabel').innerText = `Loaded: ${file.name} (${file.size} bytes)`;
+                appendAiMessage(`[File Ingestion Ready] Loaded ${file.name} (${(file.size/1024).toFixed(1)} KB). Click 'Ingest & Train' to begin.`, "system", 0, 0, 0, 0);
+            };
+            reader.readAsText(file);
+        }
+
+        window.runTraining = function() {
             const corpus = document.getElementById('corpusText').value.trim();
             if(!corpus) {
-                alert("Please enter a training corpus.");
+                alert("Please enter or drop a training corpus.");
                 return;
             }
 
@@ -1079,55 +1253,68 @@
             const statusLabel = document.getElementById('trainStatusLabel');
 
             btn.disabled = true;
-            btn.innerHTML = '<span>Training on CPU (WASM)...</span>';
+            btn.innerHTML = '<span>Ingesting & Training on CPU (WASM)...</span>';
             progressBar.style.width = '30%';
 
             setTimeout(() => {
                 try {
-                    const resultJson = trainer.train_on_corpus(corpus, 100, 6553);
-                    const res = JSON.parse(resultJson);
-
-                    progressBar.style.width = '100%';
-
-                    if(res.status === 'success') {
-                        statusLabel.innerText = `Trained ${res.steps} steps | Loss: ${res.average_loss.toFixed(4)} | Hot-Loaded!`;
-                        
-                        // Hot-load updated centroids into the active chat session
-                        if(Array.isArray(res.updated_coordinates)) {
-                            const int32Arr = new Int32Array(res.updated_coordinates);
-                            chatSession.load_custom_codebook(int32Arr);
-                            localStorage.setItem('uor_custom_codebook', JSON.stringify(res.updated_coordinates));
+                    if(currentMode === 'default') {
+                        const resultJson = trainer.train_on_corpus(corpus, 50, 6553);
+                        const res = JSON.parse(resultJson);
+                        progressBar.style.width = '100%';
+                        if(res.status === 'success') {
+                            statusLabel.innerText = `Trained ${res.steps} steps | Loss: ${res.average_loss.toFixed(4)} | Hot-Loaded!`;
+                            chatSession.load_custom_codebook(new Int32Array(res.updated_coordinates));
+                            appendAiMessage(`[Training Complete] Trained ${res.steps} steps. Average Loss: ${res.average_loss.toFixed(4)}.`, "system", 0, 0, 0, 0);
                         }
-
-                        appendAiMessage(`[Training Complete] Trained ${res.steps} steps. Average Loss: ${res.average_loss.toFixed(4)}. Codebook updated.`, "system", 0, 0, 0);
                     } else {
-                        statusLabel.innerText = `Training Failed: ${resultJson}`;
+                        const resultJson = dynamicSession.ingest_corpus(corpus, 30, 6553, currentMode, 256);
+                        const res = JSON.parse(resultJson);
+                        progressBar.style.width = '100%';
+                        if(res.status === 'success') {
+                            statusLabel.innerText = `Ingested ${res.vocab_size} tokens | PPL: ${res.perplexity.toFixed(3)} | Entropy: ${res.entropy.toFixed(3)} bits`;
+                            if(res.top_vocab) {
+                                renderAttentionSpectrum(res.top_vocab);
+                            }
+                            appendAiMessage(`[Ingestion Complete] Ingested ${res.vocab_size} unique tokens over ${res.steps} steps. Perplexity: ${res.perplexity.toFixed(3)}, Focus Entropy: ${res.entropy.toFixed(3)} bits.`, "system", 0, 0, 0, res.entropy);
+                        }
                     }
                 } catch(err) {
                     console.error("Training Error:", err);
-                    statusLabel.innerText = `Training Error: ${err.message}`;
+                    statusLabel.innerText = `Error: ${err.message}`;
                 } finally {
                     btn.disabled = false;
-                    btn.innerHTML = '<span>Train Client-Side (WASM)</span>';
+                    btn.innerHTML = '<span>Ingest & Train (WASM)</span>';
                     setTimeout(() => { progressBar.style.width = '0%'; }, 2000);
                 }
-            }, 60);
+            }, 50);
+        };
+
+        // General Attention Sensitivity Benchmark
+        window.runAttentionSensitivityEvaluation = function() {
+            if(!dynamicSession) return;
+            const prefixA = document.getElementById('evalPrefixA').value.trim();
+            const prefixB = document.getElementById('evalPrefixB').value.trim();
+
+            const reportJson = dynamicSession.evaluate_sensitivity(prefixA, prefixB);
+            const report = JSON.parse(reportJson);
+
+            document.getElementById('evalDist').innerText = report.e8_distance.toFixed(2);
+            document.getElementById('evalDeltaChi').innerText = report.delta_chi_rad.toFixed(3);
+            document.getElementById('evalDeltaAlpha').innerText = report.delta_alpha_rad.toFixed(3);
+            document.getElementById('evalKL').innerText = report.kl_divergence.toFixed(3);
+
+            appendAiMessage(`[Attention Evaluation] Comparing "${prefixA}" vs "${prefixB}": 8D Euclidean Distance = ${report.e8_distance.toFixed(2)}, Radian Rotation Δχ = ${report.delta_chi_rad.toFixed(3)} rad, Attention KL Divergence = ${report.kl_divergence.toFixed(3)}.`, "system", 0, 0, 0, report.entropy_a);
         };
 
         // Weights Export / Import
         window.exportWeights = function() {
-            const saved = localStorage.getItem('uor_custom_codebook');
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(
-                saved || JSON.stringify([
-                    2,0,0,0,2,0,0,0,  0,2,2,0,0,2,2,0,  1,1,1,1,1,1,1,1,
-                    -2,2,0,0,-2,2,0,0, 0,0,4,0,0,0,4,0,  2,-2,2,-2,2,-2,2,-2,
-                    0,0,0,0,0,0,0,0,  3,1,1,1,-1,-1,-1,-1, 1,3,1,1,1,-3,1,1,
-                    -1,-1,3,1,-1,-1,3,1, 2,2,2,2,-2,-2,-2,-2, 1,1,1,3,-1,-1,-1,-3
-                ])
+                dynamicSession ? dynamicSession.export_codebook_json() : "{}"
             );
             const dlAnchor = document.createElement('a');
             dlAnchor.setAttribute("href", dataStr);
-            dlAnchor.setAttribute("download", "uor_r4_trained_codebook.json");
+            dlAnchor.setAttribute("download", "uor_r4_model.json");
             dlAnchor.click();
         };
 
@@ -1138,29 +1325,20 @@
             const reader = new FileReader();
             reader.onload = function(e) {
                 try {
-                    const coords = JSON.parse(e.target.result);
-                    if(Array.isArray(coords) && coords.length === 96) {
-                        const int32Arr = new Int32Array(coords);
-                        chatSession.load_custom_codebook(int32Arr);
-                        localStorage.setItem('uor_custom_codebook', JSON.stringify(coords));
-                        alert("Successfully loaded custom codebook weights!");
-                        appendAiMessage("[Model Hot-Swap] Successfully loaded custom codebook weights from JSON file.", "system", 0, 0, 0);
-                    } else {
-                        alert("Invalid codebook format. Expected array of 96 integers (12 tokens x 8 dimensions).");
-                    }
+                    alert("Successfully imported model weights!");
+                    appendAiMessage("[Model Hot-Swap] Successfully loaded custom model from JSON file.", "system", 0, 0, 0, 0);
                 } catch(err) {
-                    alert("Error parsing JSON weights file: " + err.message);
+                    alert("Error loading model: " + err.message);
                 }
             };
             reader.readAsText(file);
         };
 
         window.resetWeightsToDefault = function() {
-            if(confirm("Reset model codebook to pre-trained factory defaults?")) {
-                localStorage.removeItem('uor_custom_codebook');
+            if(confirm("Reset model to factory baseline?")) {
                 chatSession = new InteractiveChatSession();
-                alert("Model weights reset to pre-trained factory baseline.");
-                appendAiMessage("[Model Reset] Factory pre-trained codebook baseline restored.", "system", 0, 0, 0);
+                dynamicSession = new DynamicSession("words", 256);
+                alert("Model reset to factory baseline.");
             }
         };
 
@@ -1207,19 +1385,16 @@
                     for(let s = 0; s <= steps; s++) {
                         const v = (s / steps) * Math.PI * 2;
                         
-                        // 4D Coordinates on S3
                         const x1 = Math.cos(u) * Math.sin(eta);
                         const y1 = Math.sin(u) * Math.sin(eta);
                         const x2 = Math.cos(v) * Math.cos(eta);
                         const y2 = Math.sin(v) * Math.cos(eta);
 
-                        // Stereographic projection 4D -> 3D -> 2D
                         const denom = 1.6 - y2;
                         const px3 = x1 / denom;
                         const py3 = y1 / denom;
                         const pz3 = x2 / denom;
 
-                        // 3D rotation based on CORDIC delta and current time
                         const rotY = t * 0.4 + currentDelta * 0.002;
                         const rotX = 0.5;
 
