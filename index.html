@@ -7,6 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         :root {
             --bg-main: #212121;
@@ -214,6 +215,10 @@
             transition: background 0.15s ease;
         }
 
+        .model-selector:hover {
+            background: var(--bg-surface);
+        }
+
         .model-version-tag {
             font-size: 0.65rem;
             background: rgba(0, 243, 255, 0.12);
@@ -350,6 +355,99 @@
             font-size: 0.96rem;
             line-height: 1.68;
             color: var(--text-primary);
+            min-width: 0;
+        }
+
+        .ai-text {
+            word-break: break-word;
+        }
+
+        .ai-text p {
+            margin-bottom: 0.75rem;
+        }
+
+        .ai-text p:last-child {
+            margin-bottom: 0;
+        }
+
+        .ai-text ul, .ai-text ol {
+            margin-left: 1.25rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .ai-text li {
+            margin-bottom: 0.35rem;
+        }
+
+        .ai-text code:not(pre code) {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--accent-cyan);
+            padding: 0.15rem 0.4rem;
+            border-radius: 4px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.86em;
+        }
+
+        /* CODE BLOCK WINDOW WITH COPY BUTTON */
+        .code-block-wrapper {
+            background: #181818;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            margin: 0.85rem 0;
+            overflow: hidden;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+        }
+
+        .code-block-header {
+            background: #262626;
+            padding: 0.4rem 0.85rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .code-lang-label {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            font-family: 'Fira Code', monospace;
+            text-transform: lowercase;
+            font-weight: 500;
+        }
+
+        .copy-code-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            font-size: 0.72rem;
+            font-family: 'Inter', sans-serif;
+            padding: 0.2rem 0.45rem;
+            border-radius: 4px;
+            transition: all 0.15s ease;
+        }
+
+        .copy-code-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-primary);
+        }
+
+        .code-block-wrapper pre {
+            margin: 0;
+            padding: 1rem 1.15rem;
+            overflow-x: auto;
+            background: transparent;
+        }
+
+        .code-block-wrapper pre code {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.86rem;
+            line-height: 1.55;
+            color: #ececec;
+            white-space: pre;
         }
 
         .ai-meta {
@@ -746,6 +844,57 @@
             btn.classList.toggle('active');
         };
 
+        window.copyCodeBlock = function(btn) {
+            const code = btn.closest('.code-block-wrapper').querySelector('pre code');
+            if(!code) return;
+            navigator.clipboard.writeText(code.innerText).then(() => {
+                const span = btn.querySelector('span');
+                const prev = span.innerText;
+                span.innerText = 'Copied!';
+                btn.style.color = '#10b981';
+                setTimeout(() => {
+                    span.innerText = prev;
+                    btn.style.color = '';
+                }, 2000);
+            });
+        };
+
+        function renderMarkdown(rawText) {
+            try {
+                const parsed = marked.parse(rawText || '');
+                const div = document.createElement('div');
+                div.innerHTML = parsed;
+
+                div.querySelectorAll('pre code').forEach((codeBlock) => {
+                    const pre = codeBlock.parentElement;
+                    const className = codeBlock.className || '';
+                    const langMatch = className.match(/language-(\w+)/);
+                    const lang = langMatch ? langMatch[1] : 'code';
+
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'code-block-wrapper';
+
+                    const header = document.createElement('div');
+                    header.className = 'code-block-header';
+                    header.innerHTML = `
+                        <span class="code-lang-label">${lang}</span>
+                        <button class="copy-code-btn" onclick="copyCodeBlock(this)" title="Copy Code">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                            <span>Copy code</span>
+                        </button>
+                    `;
+
+                    pre.parentNode.insertBefore(wrapper, pre);
+                    wrapper.appendChild(header);
+                    wrapper.appendChild(pre);
+                });
+
+                return div.innerHTML;
+            } catch(e) {
+                return rawText;
+            }
+        }
+
         window.resetChat = function() {
             chatHistory = [];
             const stream = document.getElementById('chatStream');
@@ -850,7 +999,6 @@
 
                 const device = navigator.gpu ? 'webgpu' : 'wasm';
                 
-                // Load Qwen2.5-0.5B-Instruct (ultra-fast, highly optimized ONNX q4, ~280MB)
                 generator = await pipeline('text-generation', 'onnx-community/Qwen2.5-0.5B-Instruct', {
                     dtype: 'q4',
                     device: device,
@@ -929,7 +1077,7 @@
             if(generator) {
                 try {
                     const messages = [
-                        { role: 'system', content: 'You are UOR-R4, a brilliant, thoughtful, and articulate AI reasoning assistant. Give clear, elegant, insightful, and natural explanations.' },
+                        { role: 'system', content: 'You are UOR-R4, a brilliant, thoughtful, and articulate AI reasoning assistant. Give clear, elegant, insightful, and natural explanations with proper code blocks.' },
                         ...chatHistory.slice(-6)
                     ];
 
@@ -942,7 +1090,7 @@
                         skip_prompt: true,
                         callback_function: (chunk) => {
                             fullResponse += chunk;
-                            contentDiv.innerText = fullResponse;
+                            contentDiv.innerHTML = renderMarkdown(fullResponse);
                             scrollDown();
 
                             // Dynamically rotate geometric coordinates on token arrival
@@ -956,7 +1104,7 @@
                     });
 
                     await generator(prompt, {
-                        max_new_tokens: 300,
+                        max_new_tokens: 350,
                         temperature: 0.7,
                         top_p: 0.9,
                         do_sample: true,
@@ -970,11 +1118,12 @@
             } else if(dynamicSession) {
                 const fallbackJson = JSON.parse(dynamicSession.process_input_dynamic(text, 25));
                 fullResponse = fallbackJson.completion;
-                contentDiv.innerText = fullResponse;
+                contentDiv.innerHTML = renderMarkdown(fullResponse);
                 updateTelemetry(fallbackJson.snapped, fallbackJson.chi, fallbackJson.delta, fallbackJson.alpha, fallbackJson.winner);
             }
 
             contentDiv.classList.remove('typing-cursor');
+            contentDiv.innerHTML = renderMarkdown(fullResponse);
             chatHistory.push({ role: 'assistant', content: fullResponse });
             isGenerating = false;
             sendBtn.disabled = false;
