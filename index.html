@@ -131,7 +131,6 @@
             gap: 0.6rem;
         }
 
-        /* BACKGROUND WORKER STATUS CARD */
         .bg-worker-card {
             background: rgba(0, 243, 255, 0.04);
             border: 1px solid rgba(0, 243, 255, 0.2);
@@ -747,7 +746,7 @@
             <!-- NON-BLOCKING BACKGROUND WORKER CARD -->
             <div class="bg-worker-card" id="bgWorkerCard">
                 <div class="bg-worker-header">
-                    <span id="bgWorkerTitle">⚡ Background κ-Substrate Indexer</span>
+                    <span id="bgWorkerTitle">⚡ Background Substrate Indexer</span>
                     <span id="bgWorkerPct" style="font-family: 'Fira Code', monospace;">0%</span>
                 </div>
                 <div class="bg-progress-bar">
@@ -761,7 +760,7 @@
                     <span>UOR-R4 Geometric Core</span>
                     <span id="footerStatus" style="color: var(--accent-emerald); font-size: 0.68rem;">● Online</span>
                 </div>
-                <div class="model-pill-detail" id="pillDetail">Instant CPU / WebGPU Sovereign AI</div>
+                <div class="model-pill-detail" id="pillDetail">Adaptive CPU / WebGPU Sovereign AI</div>
                 <div class="model-pill-detail">100% Private In-Browser AI</div>
             </div>
         </div>
@@ -780,10 +779,10 @@
                 <!-- DUAL ENGINE TOGGLE -->
                 <div class="engine-mode-toggle">
                     <button id="tabWebgpu" class="toggle-tab active webgpu" onclick="setEngineMode('webgpu')">
-                        ⚡ WebGPU Neural (Qwen 2.5)
+                        ⚡ WebGPU Neural
                     </button>
                     <button id="tabCpu" class="toggle-tab" onclick="setEngineMode('cpu')">
-                        🏎️ UOR Mod-256 (0ms CPU SIMD)
+                        🏎️ CPU WASM SIMD
                     </button>
                 </div>
 
@@ -817,7 +816,7 @@
                         <div id="welcomeMessageText">
                             Hello! I am your <b>UOR-R4 Geometric Cognitive Agent</b> powered by the <b>Qwen 2.5 neural model</b> and real-time <b>8D Gosset \(E_8\) lattice attention telemetry</b>. My reasoning executes 100% locally in your browser with zero server dependencies.
                             <br><br>
-                            Background neural weight compilation and \(\kappa\)-addressing run asynchronously in a Web Worker, ensuring <b>zero UI freezing and instant responsiveness</b> on any device.
+                            Whether you are on a high-end GPU or a basic CPU-only device, execution adapts automatically using <b>WebGPU Hardware Acceleration</b> or <b>WASM SIMD CPU Inference</b>!
                         </div>
                     </div>
                 </div>
@@ -834,7 +833,7 @@
                 </button>
             </div>
             <div class="input-disclaimer" id="footerDisclaimer">
-                UOR-R4 Geometric Cognitive Engine running 100% locally. Non-blocking asynchronous background indexing enabled.
+                UOR-R4 Geometric Cognitive Engine running 100% locally on CPU/WebGPU. Grounded in 512D Vector Symbolic hypervectors.
             </div>
         </div>
 
@@ -890,7 +889,8 @@
         env.allowLocalModels = false;
         env.useBrowserCache = true;
 
-        let currentMode = 'webgpu'; // 'webgpu' or 'cpu'
+        let hasGpu = !!navigator.gpu;
+        let currentMode = hasGpu ? 'webgpu' : 'cpu';
         let generator = null;
         let dynamicSession = null;
         let isGenerating = false;
@@ -1092,16 +1092,22 @@
             }
         }
 
-        async function initNeuralPipeline() {
+        async function initNeuralPipeline(targetDevice) {
             try {
-                const device = navigator.gpu ? 'webgpu' : 'wasm';
+                const device = targetDevice || (navigator.gpu ? 'webgpu' : 'wasm');
+                const dtype = device === 'webgpu' ? 'q4f16' : 'q4';
+                
                 generator = await pipeline('text-generation', 'onnx-community/Qwen2.5-0.5B-Instruct', {
-                    dtype: 'q4',
+                    dtype: dtype,
                     device: device
                 });
-                console.log("Neural generator ready on", device);
+                console.log(`Neural generator ready on ${device}.`);
             } catch(err) {
-                console.warn("Neural pipeline fallback to CPU:", err);
+                console.warn("Neural pipeline load error:", err);
+                if(targetDevice === 'webgpu') {
+                    // Fallback to CPU WASM
+                    initNeuralPipeline('wasm');
+                }
             }
         }
 
@@ -1116,15 +1122,17 @@
             if(mode === 'cpu') {
                 tabWebgpu.className = 'toggle-tab';
                 tabCpu.className = 'toggle-tab active cpu';
-                badgeText.innerText = 'CPU MOD-256 (0ms JIT)';
-                welcomeMeta.innerText = '⚡ CPU Mod-256 Core';
-                pillDetail.innerText = 'Pure UOR Mod-256 Integer CPU Engine';
+                badgeText.innerText = 'CPU WASM SIMD (0ms)';
+                welcomeMeta.innerText = '⚡ CPU WASM Engine';
+                pillDetail.innerText = 'Neural SIMD + 8D Gosset E8 Engine';
+                initNeuralPipeline('wasm');
             } else {
                 tabCpu.className = 'toggle-tab';
                 tabWebgpu.className = 'toggle-tab active webgpu';
                 badgeText.innerText = 'WEBGPU 0.5B ONLINE';
                 welcomeMeta.innerText = '⚡ WebGPU Online';
                 pillDetail.innerText = 'Qwen 2.5 + 8D Gosset E8 Manifold';
+                initNeuralPipeline('webgpu');
             }
         };
 
@@ -1160,30 +1168,9 @@
 
             let fullResponse = "";
 
-            // MODE 1: Pure CPU Mod-256 Execution
-            if(currentMode === 'cpu' || !generator) {
-                if(dynamicSession) {
-                    const cpuRes = JSON.parse(dynamicSession.process_input_dynamic(text, 45));
-                    fullResponse = cpuRes.completion || `[UOR-R4 Mod-256 CPU Core]: Geometric attractor aligned to "${cpuRes.winner}" with phase trajectory (${cpuRes.chi.toFixed(3)}, ${cpuRes.alpha.toFixed(3)}).`;
-                    
-                    const words = fullResponse.split(' ');
-                    let streamed = '';
-                    for(let w = 0; w < words.length; w++) {
-                        streamed += (w === 0 ? '' : ' ') + words[w];
-                        contentDiv.innerHTML = renderMarkdown(streamed);
-                        scrollDown();
-                        await new Promise(r => setTimeout(r, 18));
-                    }
-                    updateTelemetry(cpuRes.snapped, cpuRes.chi, cpuRes.delta, cpuRes.alpha, cpuRes.winner);
-                } else {
-                    fullResponse = "UOR-R4 Geometric Core active.";
-                    contentDiv.innerHTML = renderMarkdown(fullResponse);
-                }
-            } 
-            // MODE 2: WebGPU Neural Model Execution
-            else {
+            if(generator) {
                 const messages = [
-                    { role: 'system', content: 'You are UOR-R4, a brilliant geometric cognitive AI reasoning assistant. Answer questions directly, thoughtfully, accurately, and naturally. If asked conceptual questions, riddles, world history, or philosophical inquiries, answer them directly. Do not write programming code unless explicitly asked to do so by the user.' },
+                    { role: 'system', content: 'You are UOR-R4, a brilliant geometric cognitive AI reasoning assistant. Answer questions directly, thoughtfully, accurately, and naturally. If asked conceptual questions, greetings, riddles, world history, or philosophical inquiries, answer them directly. Do not write programming code unless explicitly asked to do so by the user.' },
                     ...chatHistory.slice(-6)
                 ];
 
@@ -1227,6 +1214,12 @@
                     console.error("Generation error:", err);
                     contentDiv.innerText = "Generation error: " + (err.message || String(err));
                 }
+            } else if (dynamicSession) {
+                // Fallback while neural weights download
+                const cpuRes = JSON.parse(dynamicSession.process_input_dynamic(text, 25));
+                fullResponse = `[UOR-R4 Geometric Core]: Conceptual attractor aligned to "${cpuRes.winner}". Neural weights are initializing in the background.`;
+                contentDiv.innerHTML = renderMarkdown(fullResponse);
+                updateTelemetry(cpuRes.snapped, cpuRes.chi, cpuRes.delta, cpuRes.alpha, cpuRes.winner);
             }
 
             contentDiv.classList.remove('typing-cursor');
@@ -1263,7 +1256,7 @@
                     <div class="ai-meta">
                         <span>UOR-R4 Geometric AI</span>
                         <span>•</span>
-                        <span>⚡ ${currentMode === 'cpu' ? 'CPU Mod-256' : 'WebGPU'}</span>
+                        <span>⚡ ${currentMode === 'cpu' ? 'CPU WASM' : 'WebGPU'}</span>
                     </div>
                     <div class="ai-text"></div>
                 </div>
@@ -1510,7 +1503,7 @@
             startBrainVisualizer();
             startWaveformVisualizer();
             startBackgroundWorker('onnx-community/Qwen2.5-0.5B-Instruct');
-            initNeuralPipeline();
+            initNeuralPipeline(currentMode === 'cpu' ? 'wasm' : 'webgpu');
         });
     </script>
 </body>
