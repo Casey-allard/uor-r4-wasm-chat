@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UOR-R4 Geometric Cognitive AI</title>
-    <script src="coi-serviceworker.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -168,7 +167,7 @@
             overflow: hidden;
         }
 
-        /* TOP NAVIGATION BAR */
+        /* TOP NAVBAR */
         .top-navbar {
             display: flex;
             align-items: center;
@@ -203,22 +202,17 @@
             color: var(--text-primary);
         }
 
-        .model-dropdown-select {
+        .brand-badge {
             background: var(--bg-surface);
             border: 1px solid var(--border);
             color: var(--text-primary);
-            padding: 0.35rem 0.65rem;
+            padding: 0.35rem 0.75rem;
             border-radius: var(--radius-md);
             font-size: 0.85rem;
             font-weight: 600;
-            font-family: 'Inter', sans-serif;
-            outline: none;
-            cursor: pointer;
-            transition: border-color 0.15s ease;
-        }
-
-        .model-dropdown-select:hover {
-            border-color: rgba(255, 255, 255, 0.25);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         .model-status-indicator {
@@ -678,10 +672,10 @@
         <div class="sidebar-footer">
             <div class="model-pill-card">
                 <div class="model-pill-header">
-                    <span id="footerModelName">UOR-R4 Geometric Core</span>
+                    <span>UOR-R4 Geometric Core</span>
                     <span id="footerStatus" style="color: var(--accent-amber); font-size: 0.68rem;">● Initializing...</span>
                 </div>
-                <div class="model-pill-detail" id="footerModelDesc">Qwen2.5 Neural Substrate + E8 Gosset Manifold</div>
+                <div class="model-pill-detail">Qwen 2.5 (1.5B) Substrate + E8 Gosset Manifold</div>
                 <div class="model-pill-detail">100% Private In-Browser WebGPU</div>
             </div>
         </div>
@@ -696,11 +690,9 @@
                 <button class="icon-btn" onclick="toggleSidebar()" title="Toggle Sidebar">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg>
                 </button>
-                <select id="modelSelectorDropdown" class="model-dropdown-select" onchange="changeModel(this.value)">
-                    <option value="onnx-community/Qwen2.5-0.5B-Instruct" selected>UOR-R4 (Qwen 2.5 Substrate • Ultra Fast WebGPU)</option>
-                    <option value="onnx-community/Qwen2.5-Coder-0.5B-Instruct">UOR-R4 (Qwen 2.5 Coder • Code Synthesis)</option>
-                    <option value="onnx-community/SmolLM2-360M-Instruct">UOR-R4 (SmolLM2 360M • Lightweight)</option>
-                </select>
+                <div class="brand-badge">
+                    <span>UOR-R4 (Qwen 1.5B Substrate • Deep Reasoning)</span>
+                </div>
                 <div id="modelBadge" class="model-status-indicator">
                     <span id="badgeDot">●</span>
                     <span id="badgeText">Initializing...</span>
@@ -729,12 +721,12 @@
                             <span id="welcomeMeta">⚡ Loading Engine</span>
                         </div>
                         <div>
-                            Hello! I am your <b>UOR-R4 Geometric Cognitive Agent</b>. While my lexical substrate utilizes open pretrained neural weight tensors (such as Qwen 2.5), my reasoning trajectories are dynamically projected through <b>512-dimensional Vector Symbolic Superposition</b>, <b>CORDIC Hopf phase rotations</b>, and discrete <b>8D Gosset \(E_8\) root lattice quantization</b> directly in your browser with zero server GPUs. Ask me any conceptual, philosophical, coding, historical, or scientific question!
+                            Hello! I am your <b>UOR-R4 Geometric Cognitive Agent</b> powered by the <b>Qwen 1.5B neural model</b> and real-time <b>8D Gosset \(E_8\) lattice attention telemetry</b>. My reasoning executes 100% locally in your browser via WebGPU with zero server dependencies. Ask me any conceptual, philosophical, coding, historical, or scientific question!
                         </div>
                         
                         <div id="loaderCard" class="loading-progress-card">
                             <div style="display: flex; justify-content: space-between; font-size: 0.78rem; font-weight: 500;">
-                                <span id="loadTitle">Downloading Neural Weight Substrate...</span>
+                                <span id="loadTitle">Downloading Qwen 1.5B Neural Weights...</span>
                                 <span id="loadPercent" style="font-family: 'Fira Code', monospace; color: var(--accent-cyan);">0%</span>
                             </div>
                             <div class="progress-bar-container">
@@ -760,7 +752,7 @@
                 </button>
             </div>
             <div class="input-disclaimer">
-                UOR-R4 Geometric Cognitive Engine running 100% locally via WebGPU. Pretrained weightsets (Qwen) serve as the lexical substrate for geometric projection.
+                UOR-R4 Geometric Cognitive Engine running 100% locally via WebGPU. Pretrained weightsets (Qwen 1.5B) serve as the lexical base for UOR-R4 geometric projection.
             </div>
         </div>
 
@@ -813,7 +805,6 @@
     <script type="module">
         import { pipeline, env, TextStreamer } from 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.3.3';
 
-        // Configure ONNX Runtime Web backend flags
         env.allowLocalModels = false;
         env.useBrowserCache = true;
 
@@ -821,7 +812,6 @@
         let dynamicSession = null;
         let isGenerating = false;
         let chatHistory = [];
-        let currentModelId = 'onnx-community/Qwen2.5-0.5B-Instruct';
 
         let currentE8Coords = [0, 0, 0, 0, 0, 0, 0, 0];
         let currentChi = 0, currentDelta = 0, currentAlpha = 0;
@@ -905,7 +895,7 @@
                             <span>⚡ Ready</span>
                         </div>
                         <div>
-                            Hello! I am your <b>UOR-R4 Geometric Cognitive Agent</b>. While my lexical substrate utilizes open pretrained neural weight tensors (such as Qwen 2.5), my reasoning trajectories are dynamically projected through <b>512-dimensional Vector Symbolic Superposition</b>, <b>CORDIC Hopf phase rotations</b>, and discrete <b>8D Gosset \(E_8\) root lattice quantization</b> directly in your browser with zero server GPUs. Ask me any conceptual, philosophical, coding, historical, or scientific question!
+                            Hello! I am your <b>UOR-R4 Geometric Cognitive Agent</b> powered by the <b>Qwen 1.5B neural model</b> and real-time <b>8D Gosset \(E_8\) lattice attention telemetry</b>. My reasoning executes 100% locally in your browser via WebGPU with zero server dependencies. Ask me any conceptual, philosophical, coding, historical, or scientific question!
                         </div>
                     </div>
                 </div>
@@ -961,104 +951,18 @@
             }
         }
 
-        window.changeModel = async function(modelId) {
-            if(isGenerating) return;
-            currentModelId = modelId;
-            generator = null;
-            document.getElementById('chatInput').disabled = true;
-            document.getElementById('sendBtn').disabled = true;
-            await loadNeuralModel(modelId);
-        };
-
-        async function loadNeuralModel(modelId) {
+        async function initEngines() {
             const badge = document.getElementById('modelBadge');
             const badgeText = document.getElementById('badgeText');
             const footerStatus = document.getElementById('footerStatus');
-            const footerModelName = document.getElementById('footerModelName');
             const loaderCard = document.getElementById('loaderCard');
             const progressFill = document.getElementById('progressFill');
             const loadPercent = document.getElementById('loadPercent');
             const loadTitle = document.getElementById('loadTitle');
-            const loadSubtext = document.getElementById('loadSubtext');
             const welcomeMeta = document.getElementById('welcomeMeta');
             const chatInput = document.getElementById('chatInput');
             const sendBtn = document.getElementById('sendBtn');
 
-            chatInput.disabled = true;
-            sendBtn.disabled = true;
-            chatInput.placeholder = `Loading ${modelId.split('/')[1] || modelId}... Please wait...`;
-
-            badge.classList.remove('ready');
-            badgeText.innerText = 'Loading...';
-            footerStatus.innerText = '● Downloading...';
-            footerStatus.style.color = 'var(--accent-amber)';
-
-            if(loaderCard) {
-                loaderCard.style.display = 'flex';
-                loadTitle.innerText = `Loading ${modelId.split('/')[1] || modelId}...`;
-                loadPercent.innerText = '0%';
-                progressFill.style.width = '0%';
-                if(loadSubtext) {
-                    loadSubtext.innerText = 'Weights are cached in IndexedDB for instant startup on future visits.';
-                    loadSubtext.style.color = 'var(--text-muted)';
-                }
-            }
-
-            const progressCb = (p) => {
-                if(p.status === 'progress') {
-                    const pct = Math.round(p.progress || 0);
-                    if(loadPercent) loadPercent.innerText = `${pct}%`;
-                    if(progressFill) progressFill.style.width = `${pct}%`;
-                    badgeText.innerText = `Downloading: ${pct}%`;
-                    chatInput.placeholder = `Downloading shards: ${pct}%...`;
-                } else if(p.status === 'done') {
-                    if(loadTitle) loadTitle.innerText = 'Compiling Neural Shaders...';
-                    badgeText.innerText = 'Compiling Shaders...';
-                    chatInput.placeholder = 'Compiling shaders... please wait...';
-                }
-            };
-
-            const device = navigator.gpu ? 'webgpu' : 'wasm';
-            console.log(`Initializing ${modelId} on ${device}...`);
-
-            try {
-                generator = await pipeline('text-generation', modelId, {
-                    dtype: 'q4',
-                    device: device,
-                    progress_callback: progressCb
-                });
-
-                badge.classList.add('ready');
-                badgeText.innerText = `${device.toUpperCase()} Online`;
-                footerStatus.innerText = `● ${device.toUpperCase()} Ready`;
-                footerStatus.style.color = 'var(--accent-emerald)';
-                if(welcomeMeta) welcomeMeta.innerText = `⚡ ${device.toUpperCase()} Online`;
-                if(footerModelName) footerModelName.innerText = `UOR-R4 (${(modelId.split('/')[1] || modelId).replace('-Instruct', '')})`;
-                if(loaderCard) loaderCard.style.display = 'none';
-
-                chatInput.disabled = false;
-                sendBtn.disabled = false;
-                chatInput.placeholder = 'Message UOR-R4 Geometric AI...';
-                chatInput.focus();
-                console.log(`${modelId} successfully online on ${device}.`);
-            } catch(err) {
-                console.error(`Pipeline error for ${modelId}:`, err);
-                badgeText.innerText = 'Load Error';
-                footerStatus.innerText = '● Error';
-                footerStatus.style.color = 'var(--accent-amber)';
-                chatInput.placeholder = 'Failed to load model. Please refresh the page.';
-                if(loaderCard) {
-                    loaderCard.style.display = 'flex';
-                    loadTitle.innerText = `Initialization Failed for ${modelId.split('/')[1] || modelId}`;
-                    if(loadSubtext) {
-                        loadSubtext.innerText = err ? (err.message || String(err)) : "Could not compile model shaders.";
-                        loadSubtext.style.color = '#ef4444';
-                    }
-                }
-            }
-        }
-
-        async function initEngines() {
             // 1. Initialize UOR-R4 Geometric WASM Telemetry Engine
             try {
                 const timestamp = Date.now();
@@ -1074,8 +978,55 @@
                 console.warn("WASM Telemetry initialized:", err);
             }
 
-            // 2. Initialize Default Neural Model Substrate (Qwen 2.5)
-            await loadNeuralModel(currentModelId);
+            // 2. Initialize Qwen 1.5B Neural Engine on WebGPU
+            try {
+                badgeText.innerText = 'Downloading Qwen 1.5B...';
+                const device = navigator.gpu ? 'webgpu' : 'wasm';
+
+                generator = await pipeline('text-generation', 'onnx-community/Qwen2.5-1.5B-Instruct', {
+                    dtype: 'q4',
+                    device: device,
+                    progress_callback: (p) => {
+                        if(p.status === 'progress') {
+                            const pct = Math.round(p.progress || 0);
+                            loadPercent.innerText = `${pct}%`;
+                            progressFill.style.width = `${pct}%`;
+                            badgeText.innerText = `Downloading: ${pct}%`;
+                            chatInput.placeholder = `Downloading shards: ${pct}%...`;
+                        } else if(p.status === 'done') {
+                            loadTitle.innerText = 'Compiling WebGPU Shaders...';
+                            badgeText.innerText = 'Compiling Shaders...';
+                            chatInput.placeholder = 'Compiling shaders... please wait...';
+                        }
+                    }
+                });
+
+                badge.classList.add('ready');
+                badgeText.innerText = `${device.toUpperCase()} 1.5B Online`;
+                footerStatus.innerText = `● ${device.toUpperCase()} 1.5B Ready`;
+                footerStatus.style.color = 'var(--accent-emerald)';
+                welcomeMeta.innerText = `⚡ ${device.toUpperCase()} Online`;
+                if(loaderCard) loaderCard.style.display = 'none';
+
+                chatInput.disabled = false;
+                sendBtn.disabled = false;
+                chatInput.placeholder = 'Message UOR-R4 Geometric AI...';
+                chatInput.focus();
+
+                console.log(`Qwen2.5-1.5B-Instruct loaded successfully on ${device}.`);
+            } catch(err) {
+                console.error("Qwen2.5-1.5B load failed:", err);
+                badgeText.innerText = 'Load Error';
+                footerStatus.innerText = '● Error';
+                footerStatus.style.color = 'var(--accent-amber)';
+                chatInput.placeholder = 'Failed to load model. Please refresh the page.';
+                if(loaderCard) {
+                    loaderCard.style.display = 'flex';
+                    loadTitle.innerText = 'Initialization Failed for Qwen 1.5B';
+                    document.getElementById('loadSubtext').innerText = err ? (err.message || String(err)) : "Could not compile model shaders.";
+                    document.getElementById('loadSubtext').style.color = '#ef4444';
+                }
+            }
         }
 
         window.sendChat = async function() {
@@ -1149,7 +1100,7 @@
                 });
 
                 await generator(prompt, {
-                    max_new_tokens: 512,
+                    max_new_tokens: 1024,
                     temperature: 0.6,
                     top_p: 0.9,
                     repetition_penalty: 1.15,
