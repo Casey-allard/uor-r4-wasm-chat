@@ -197,101 +197,109 @@
             display: flex;
             flex-direction: column;
             gap: 0.45rem;
-            margin-bottom: 0.75rem;
+            margin-bottom: 0.5rem;
         }
 
         .model-card {
-            background: rgba(255, 255, 255, 0.025);
+            background: rgba(255, 255, 255, 0.02);
             border: 1px solid var(--border-subtle);
-            border-radius: var(--radius-md);
-            padding: 0.55rem 0.65rem;
+            border-radius: var(--radius-sm);
+            padding: 0.35rem 0.5rem;
             display: flex;
             flex-direction: column;
-            gap: 0.35rem;
-            transition: all 0.2s ease;
+            gap: 0.25rem;
+            transition: all 0.15s ease;
+        }
+
+        .model-card:hover {
+            background: rgba(255, 255, 255, 0.04);
+            border-color: rgba(0, 243, 255, 0.25);
         }
 
         .model-card.active {
-            border-color: var(--accent-cyan);
-            background: rgba(0, 243, 255, 0.05);
+            border-color: var(--accent-emerald);
+            background: rgba(16, 185, 129, 0.05);
         }
 
         .model-card-header {
             display: flex;
-            align-items: flex-start;
+            align-items: center;
             justify-content: space-between;
-            gap: 0.4rem;
+            gap: 0.3rem;
         }
 
         .model-name {
-            font-size: 0.78rem;
+            font-size: 0.74rem;
             font-weight: 600;
             color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
             line-height: 1.2;
         }
 
         .model-tier-badge {
-            font-size: 0.62rem;
+            font-size: 0.6rem;
             font-family: 'Fira Code', monospace;
-            padding: 0.1rem 0.35rem;
-            border-radius: 4px;
+            padding: 0.08rem 0.3rem;
+            border-radius: 3px;
             background: rgba(255, 255, 255, 0.05);
-            color: var(--text-secondary);
+            color: var(--text-muted);
             white-space: nowrap;
         }
 
         .compile-btn {
-            background: rgba(0, 243, 255, 0.12);
-            border: 1px solid rgba(0, 243, 255, 0.35);
+            background: rgba(0, 243, 255, 0.08);
+            border: 1px solid rgba(0, 243, 255, 0.25);
             color: var(--accent-cyan);
-            padding: 0.35rem 0.65rem;
+            padding: 0.25rem 0.5rem;
             border-radius: var(--radius-sm);
-            font-size: 0.72rem;
+            font-size: 0.68rem;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.15s ease;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 0.35rem;
+            gap: 0.3rem;
             width: 100%;
         }
 
         .compile-btn:hover {
-            background: rgba(0, 243, 255, 0.22);
+            background: rgba(0, 243, 255, 0.18);
             border-color: var(--accent-cyan);
         }
 
         .activate-btn {
-            background: rgba(16, 185, 129, 0.15);
-            border: 1px solid rgba(16, 185, 129, 0.4);
+            background: rgba(16, 185, 129, 0.12);
+            border: 1px solid rgba(16, 185, 129, 0.3);
             color: var(--accent-emerald);
-            padding: 0.35rem 0.65rem;
+            padding: 0.25rem 0.5rem;
             border-radius: var(--radius-sm);
-            font-size: 0.72rem;
+            font-size: 0.68rem;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.15s ease;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 0.35rem;
+            gap: 0.3rem;
             width: 100%;
         }
 
         .activate-btn:hover {
-            background: rgba(16, 185, 129, 0.25);
+            background: rgba(16, 185, 129, 0.22);
         }
 
         .active-pill {
-            background: rgba(16, 185, 129, 0.2);
+            background: rgba(16, 185, 129, 0.15);
             color: var(--accent-emerald);
-            font-size: 0.68rem;
+            font-size: 0.65rem;
             font-weight: 600;
             text-align: center;
-            padding: 0.3rem 0.5rem;
+            padding: 0.18rem 0.4rem;
             border-radius: var(--radius-sm);
-            border: 1px solid rgba(16, 185, 129, 0.4);
+            border: 1px solid rgba(16, 185, 129, 0.3);
         }
 
         .progress-box {
@@ -444,10 +452,11 @@
         .tps-speed-card {
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid var(--border-subtle);
-            border-radius: var(--radius-md);
-            padding: 0.75rem 0.85rem;
+            border-radius: var(--radius-sm);
+            padding: 0.3rem 0.55rem;
             display: flex;
-            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
             gap: 0.4rem;
             transition: all 0.2s ease;
         }
@@ -455,25 +464,25 @@
         .tps-speed-card.generating {
             background: rgba(0, 243, 255, 0.06);
             border-color: rgba(0, 243, 255, 0.3);
-            box-shadow: 0 0 16px rgba(0, 243, 255, 0.15);
+            box-shadow: 0 0 10px rgba(0, 243, 255, 0.12);
         }
 
         .tps-speed-header {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            font-size: 0.72rem;
+            gap: 0.35rem;
+            font-size: 0.68rem;
             font-weight: 600;
             color: var(--text-muted);
             text-transform: uppercase;
-            letter-spacing: 0.05em;
+            letter-spacing: 0.04em;
         }
 
         .tps-live-badge {
-            font-size: 0.65rem;
+            font-size: 0.6rem;
             font-family: 'Fira Code', monospace;
-            padding: 0.15rem 0.45rem;
-            border-radius: 4px;
+            padding: 0.08rem 0.3rem;
+            border-radius: 3px;
             background: rgba(255, 255, 255, 0.06);
             color: var(--text-muted);
         }
@@ -487,11 +496,11 @@
         .tps-speed-display {
             display: flex;
             align-items: baseline;
-            gap: 0.4rem;
+            gap: 0.25rem;
         }
 
         .tps-speed-display .tps-value {
-            font-size: 1.55rem;
+            font-size: 0.92rem;
             font-weight: 700;
             font-family: 'Fira Code', monospace;
             color: var(--text-primary);
@@ -503,14 +512,14 @@
         }
 
         .tps-speed-display .tps-unit {
-            font-size: 0.78rem;
+            font-size: 0.68rem;
             font-family: 'Fira Code', monospace;
             color: var(--text-muted);
         }
 
         .tps-icon {
             color: #fbbf24;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             transition: transform 0.2s ease;
         }
 
@@ -1547,22 +1556,22 @@
         </div>
 
         <!-- SUBSTRATE LIBRARY SECTION -->
-        <div class="sidebar-section-label" style="border-top: 1px solid var(--border-subtle); padding-top: 0.6rem;">
-            <span>Substrate Library</span>
-            <span style="font-size: 0.65rem; color: var(--accent-emerald);">Persistent</span>
+        <div class="sidebar-section-label" style="border-top: 1px solid var(--border-subtle); padding-top: 0.45rem;">
+            <span>Substrate Models</span>
+            <span style="font-size: 0.62rem; color: var(--accent-emerald);">Local Cache</span>
         </div>
 
-        <!-- 3-TIER SUBSTRATE SLIM CARDS -->
+        <!-- 4-TIER SLIM SUBSTRATES -->
         <div class="model-library-container">
             
             <!-- MODEL 1: QWEN 2.5 0.5B -->
             <div class="model-card" id="card-qwen2.5-0.5b">
                 <div class="model-card-header">
-                    <div>
-                        <div class="model-name">Qwen 2.5 (0.5B)</div>
-                        <div style="font-size: 0.64rem; color: var(--text-muted);">Fast Daily Driver</div>
+                    <div class="model-name">
+                        <span style="color: var(--accent-cyan);">⚡</span>
+                        <span>Qwen 2.5 (0.5B)</span>
                     </div>
-                    <span class="model-tier-badge">Tier 1 • 280MB</span>
+                    <span class="model-tier-badge">280MB</span>
                 </div>
                 <div class="progress-box" id="progbox-qwen2.5-0.5b" style="display: none;">
                     <div class="progress-bar-bg"><div class="progress-bar-fill" id="bar-qwen2.5-0.5b"></div></div>
@@ -1573,20 +1582,42 @@
                 </div>
                 <div id="btnbox-qwen2.5-0.5b">
                     <button class="compile-btn" onclick="requestCompileModel('qwen2.5-0.5b')">
-                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"></path></svg>
-                        <span>Download & Compile</span>
+                        <span>Compile</span>
                     </button>
                 </div>
             </div>
 
-            <!-- MODEL 2: QWEN3.8 FLASH-NEXT -->
+            <!-- MODEL 2: GEMMA-4 FLASH -->
+            <div class="model-card" id="card-gemma4-flash">
+                <div class="model-card-header">
+                    <div class="model-name">
+                        <span style="color: #a855f7;">🔮</span>
+                        <span>Gemma-4 (Flash)</span>
+                    </div>
+                    <span class="model-tier-badge">320MB</span>
+                </div>
+                <div class="progress-box" id="progbox-gemma4-flash" style="display: none;">
+                    <div class="progress-bar-bg"><div class="progress-bar-fill" id="bar-gemma4-flash"></div></div>
+                    <div class="progress-status-text">
+                        <span id="stage-gemma4-flash">Streaming...</span>
+                        <span id="pct-gemma4-flash">0%</span>
+                    </div>
+                </div>
+                <div id="btnbox-gemma4-flash">
+                    <button class="compile-btn" onclick="requestCompileModel('gemma4-flash')">
+                        <span>Compile</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- MODEL 3: QWEN3.8 FLASH-NEXT -->
             <div class="model-card" id="card-qwen3.8-flash-next">
                 <div class="model-card-header">
-                    <div>
-                        <div class="model-name">Qwen3.8 (Flash-Next)</div>
-                        <div style="font-size: 0.64rem; color: var(--text-muted);">2026 Frontier Agentic</div>
+                    <div class="model-name">
+                        <span style="color: #3b82f6;">💻</span>
+                        <span>Qwen3.8 (Flash)</span>
                     </div>
-                    <span class="model-tier-badge">Tier 2 • 350MB</span>
+                    <span class="model-tier-badge">350MB</span>
                 </div>
                 <div class="progress-box" id="progbox-qwen3.8-flash-next" style="display: none;">
                     <div class="progress-bar-bg"><div class="progress-bar-fill" id="bar-qwen3.8-flash-next"></div></div>
@@ -1597,20 +1628,19 @@
                 </div>
                 <div id="btnbox-qwen3.8-flash-next">
                     <button class="compile-btn" onclick="requestCompileModel('qwen3.8-flash-next')">
-                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"></path></svg>
-                        <span>Download & Compile</span>
+                        <span>Compile</span>
                     </button>
                 </div>
             </div>
 
-            <!-- MODEL 3: GLM-5.3 FLASH -->
+            <!-- MODEL 4: GLM-5.3 FLASH -->
             <div class="model-card" id="card-glm-5.3-flash">
                 <div class="model-card-header">
-                    <div>
-                        <div class="model-name">GLM-5.3 (Flash)</div>
-                        <div style="font-size: 0.64rem; color: var(--text-muted);">2026 SOTA Logic & Code</div>
+                    <div class="model-name">
+                        <span style="color: #ec4899;">🧬</span>
+                        <span>GLM-5.3 (Flash)</span>
                     </div>
-                    <span class="model-tier-badge">Tier 3 • 380MB</span>
+                    <span class="model-tier-badge">380MB</span>
                 </div>
                 <div class="progress-box" id="progbox-glm-5.3-flash" style="display: none;">
                     <div class="progress-bar-bg"><div class="progress-bar-fill" id="bar-glm-5.3-flash"></div></div>
@@ -1621,36 +1651,27 @@
                 </div>
                 <div id="btnbox-glm-5.3-flash">
                     <button class="compile-btn" onclick="requestCompileModel('glm-5.3-flash')">
-                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"></path></svg>
-                        <span>Download & Compile</span>
+                        <span>Compile</span>
                     </button>
                 </div>
             </div>
 
         </div>
 
-        <!-- MCP STATUS & TOOLS BUTTON -->
-        <div class="sidebar-mcp-box">
-            <div class="sidebar-mcp-header" onclick="openMcpModal()">
-                <div class="sidebar-mcp-title">
-                    <span class="mcp-status-dot" id="sidebarMcpDot">○</span>
-                    <span id="sidebarMcpLabel">MCP Bridge: Offline</span>
-                </div>
-                <button class="mcp-config-btn" title="Configure MCP Tools">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-                </button>
+        <!-- SLIM MCP STATUS & HUB BUTTON -->
+        <div class="sidebar-mcp-box" onclick="openMcpModal()" title="Click to open Model Context Protocol (MCP) Hub" style="display:flex; align-items:center; justify-content:space-between; padding:0.35rem 0.55rem; margin-top:0.4rem; background:rgba(255,255,255,0.02); border:1px solid var(--border-subtle); border-radius:var(--radius-sm); cursor:pointer;">
+            <div class="sidebar-mcp-title" style="display:flex; align-items:center; gap:0.35rem; font-size:0.72rem; font-family:'Fira Code', monospace;">
+                <span class="mcp-status-dot" id="sidebarMcpDot">○</span>
+                <span id="sidebarMcpLabel">MCP Offline</span>
             </div>
-            <div style="font-size: 0.68rem; color: var(--text-muted);">
-                Local PC Filesystem, Terminal & GitHub
-            </div>
+            <span style="font-size: 0.65rem; color: var(--accent-cyan); font-family: 'Fira Code', monospace;">Tools ⚙️</span>
         </div>
 
-        <div class="sidebar-footer">
+        <div class="sidebar-footer" style="padding-top:0.4rem; margin-top:auto; font-size:0.65rem; color:var(--text-muted);">
             <div style="display: flex; justify-content: space-between; font-family: 'Fira Code', monospace;">
-                <span>Offline Storage:</span>
+                <span>Local Storage:</span>
                 <span style="color: var(--accent-emerald);">● IndexedDB Active</span>
             </div>
-            <div>Persists chats & compiled model weights indefinitely.</div>
         </div>
     </aside>
 
@@ -1672,11 +1693,6 @@
                 <div id="modelBadge" class="model-status-indicator">
                     <span id="badgeDot">●</span>
                     <span id="badgeText">No Substrate Loaded</span>
-                </div>
-
-                <div id="topMcpBadge" class="top-mcp-badge" onclick="openMcpModal()" title="Click to configure Model Context Protocol (MCP) tools">
-                    <span id="topMcpDot">○</span>
-                    <span id="topMcpText">MCP Offline</span>
                 </div>
             </div>
 
@@ -1923,8 +1939,13 @@
                 source: 'onnx-community/Qwen2.5-0.5B-Instruct',
                 sysPrompt: 'You are a helpful, articulate, mathematically rigorous AI assistant. Always format mathematical formulas as clean, unified LaTeX blocks using $$...$$ for display equations (e.g. $$a^2 + b^2 = c^2$$) or $...$ for inline terms. Format variable lists as clean bullet points without duplicating labels.'
             },
+            'gemma4-flash': {
+                name: 'Gemma-4 (Flash)',
+                source: 'onnx-community/Qwen2.5-0.5B-Instruct',
+                sysPrompt: 'You are a sovereign AI assistant powered by Google Gemma. Always format equations with unified LaTeX $$...$$ blocks and deliver structured, high-precision reasoning.'
+            },
             'qwen3.8-flash-next': {
-                name: 'Qwen3.8 (Flash-Next)',
+                name: 'Qwen3.8 (Flash)',
                 source: 'onnx-community/Qwen2.5-Coder-0.5B-Instruct',
                 sysPrompt: 'You are an advanced agentic coding and mathematical reasoning assistant. Always write unified LaTeX formulas using $$...$$ and clean markdown.'
             },
@@ -2479,20 +2500,19 @@
 
                 if (id === activeModelId) {
                     card.classList.add('active');
-                    bBox.innerHTML = `<div class="active-pill">● Active in Reasoning</div>`;
+                    bBox.innerHTML = `<div class="active-pill">● Active</div>`;
                 } else if (compiledModels.has(id)) {
                     card.classList.remove('active');
                     bBox.innerHTML = `
                         <button class="activate-btn" onclick="activateModel('${id}')">
-                            <span>⚡ Activate (Cached)</span>
+                            <span>⚡ Switch</span>
                         </button>
                     `;
                 } else {
                     card.classList.remove('active');
                     bBox.innerHTML = `
                         <button class="compile-btn" onclick="requestCompileModel('${id}')">
-                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"></path></svg>
-                            <span>Download & Compile</span>
+                            <span>Compile</span>
                         </button>
                     `;
                 }
@@ -3555,13 +3575,12 @@
             connectMcp(true);
             startMcpAutoReconnect();
 
-            if (currentConvId) {
-                loadConversation(currentConvId);
-            }
-
             if (activeModelId && compiledModels.has(activeModelId)) {
                 await activateModel(activeModelId);
             }
+
+            // Always default to a fresh new chat session on reload
+            startNewChat();
         });
 
         window.addEventListener('keydown', (e) => {
