@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UOR-R4 WebAssembly Local-First AI Terminal</title>
+    <style>
+        body { background: #121214; color: #e1e1e6; font-family: monospace; padding: 20px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .panel { background: #1a1a1e; border: 1px solid #29292e; border-radius: 8px; padding: 15px; }
+        h2 { border-bottom: 2px solid #00e676; padding-bottom: 5px; color: #00e676; }
+        textarea { width: 100%; height: 100px; background: #202024; color: #fff; border: 1px solid #29292e; padding: 10px; box-sizing: border-box; }
+        input[type="text"] { width: 70%; background: #202024; color: #fff; border: 1px solid #29292e; padding: 8px; }
+        button { background: #00e676; border: none; padding: 8px 15px; color: #000; font-weight: bold; cursor: pointer; }
+        button:hover { background: #00b348; }
+        .meter { background: #202024; border-radius: 4px; height: 12px; margin-top: 5px; overflow: hidden; }
+        .bar { background: #00e676; height: 100%; width: 0%; transition: width 0.3s; }
+        .log { height: 120px; overflow-y: scroll; background: #0c0c0e; padding: 10px; font-size: 11px; color: #888; }
+    </style>
+</head>
+<body>
+
+    <h1>UOR-R4 WebAssembly Cognitive Console</h1>
+    <div class="grid">
+        <!-- 1. TRAINING GATEWAY -->
+        <div class="panel">
+            <h2>Local Training & Alignment</h2>
+            <p>Paste a local text corpus or download an alignment dataset locally in-browser:</p>
+            <textarea id="corpusText">hello secure agent system. quantum stable system integrity. routing integrity execution sattvic.</textarea>
+            <br/><br/>
+            <button onclick="runLocalTraining()">Run Alignment (100 Epochs)</button>
+            <div class="meter"><div id="trainingBar" class="bar"></div></div>
+            <p id="trainMetrics">Loss: -- | Steps: --</p>
+            <h3>Execution Logs</h3>
+            <div id="trainLogs" class="log"></div>
+        </div>
+
+        <!-- 2. GENERATIVE INTERACTIVE CHAT -->
+        <div class="panel">
+            <h2>Autoregressive Chat Session</h2>
+            <div id="chatHistory" style="height: 180px; overflow-y: scroll; border: 1px solid #29292e; padding: 10px; background: #0c0c0e; margin-bottom: 10px;">
+                <p style="color: #444;">&gt;&gt; UOR-R4 zero-allocation chat initialized.</p>
+            </div>
+            <input type="text" id="chatInput" placeholder="Type coordinate query (e.g. hello)..." onkeydown="if(event.key === 'Enter') sendChat()"/>
+            <button onclick="sendChat()">Send</button>
+            <button onclick="resetChat()" style="background: #ff5555; color: #fff;">Reset Context</button>
+            <h3>Hopf Trajectory Diagnostics</h3>
+            <p id="diagText">Hopf Angles: Chi = 0.0000 | Delta = 0.0000 | Alpha = 0.0000</p>
+            <p id="e8Coords">Snapped E8: [0, 0, 0, 0, 0, 0, 0, 0]</p>
+        </div>
+    </div>
+
+    <!-- WASM BINDINGS INTERFACE SCRIPT -->
+    <script type="module">
+        import init, { InteractiveChatSession, BrowserTrainingHarness } from './uor_r4_wasm_bridge.js';
+
+        let chatSession = null;
+        let trainer = null;
+
+        async function setup() {
+            // Initialize the WebAssembly binary runtime locally
+            await init();
+            chatSession = new InteractiveChatSession();
+            trainer = new BrowserTrainingHarness();
+            logMsg("WASM module loaded. Client-side M1 CORDIC engines active.", "trainLogs");
+        }
+
+        window.runLocalTraining = function() {
+            if(!trainer) return;
+            logMsg("Tokenising input runs on CPU stack...", "trainLogs");
+            document.getElementById("trainingBar").style.width = "50%";
+            
+            setTimeout(() => {
+                const corpus = document.getElementById("corpusText").value;
+                const resultJson = trainer.train_on_corpus(corpus, 100, 6553); // Epochs: 100, LR: 0.1 Q16
+                const res = JSON.parse(resultJson);
+
+                if(res.status === "success") {
+                    document.getElementById("trainingBar").style.width = "100%";
+                    document.getElementById("trainMetrics").innerText = `Loss: ${res.average_loss.toFixed(4)} | Steps: ${res.steps}`;
+                    logMsg(`Alignment Successful! Average Loss: ${res.average_loss.toFixed(4)}`, "trainLogs");
+                    
+                    // Direct hot-load of optimized coordinate vectors into the Chat Session with zero copy
+                    const loaded = chatSession.load_custom_codebook(new Int32Array(res.updated_coordinates));
+                    if(loaded) {
+                        logMsg("Hot-loaded optimized E8 centroids into active chat space.", "trainLogs");
+                    }
+                } else {
+                    logMsg(`ERR: ${res.message}`, "trainLogs");
+                }
+            }, 50);
+        }
+
+        window.sendChat = function() {
+            const input = document.getElementById("chatInput").value;
+            if(!input.trim()) return;
+
+            document.getElementById("chatInput").value = "";
+            const history = document.getElementById("chatHistory");
+            history.innerHTML += `<p style="color: #00e676;">&gt; ${input}</p>`;
+
+            // Process text run using heap-free CORDIC-attention stack inside WASM
+            const resultJson = chatSession.process_input_run(input);
+            const res = JSON.parse(resultJson);
+
+            history.innerHTML += `<p style="color: #fff;">&lt;&lt;&lt; "${res.completion}"</p>`;
+            history.scrollTop = history.scrollHeight;
+
+            // Render live trajectory metrics
+            document.getElementById("diagText").innerText = `Hopf Angles: Chi = ${res.chi.toFixed(4)} rad | Delta = ${res.delta.toFixed(4)} rad | Alpha = ${res.alpha.toFixed(4)} rad`;
+            document.getElementById("e8Coords").innerText = `Snapped E8: [${res.snapped.join(", ")}]`;
+        }
+
+        window.resetChat = function() {
+            if(chatSession) {
+                chatSession.reset();
+                document.getElementById("chatHistory").innerHTML += `<p style="color: #ff5555;">&gt;&gt; Context vector wiped. Accumulator reset.</p>`;
+            }
+        }
+
+        function logMsg(msg, id) {
+            const logs = document.getElementById(id);
+            logs.innerHTML += `[${new Date().toLocaleTimeString()}] ${msg}<br/>`;
+            logs.scrollTop = logs.scrollHeight;
+        }
+
+        setup();
+    </script>
+</body>
+</html>
