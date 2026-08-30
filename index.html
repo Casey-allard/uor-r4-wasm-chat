@@ -628,20 +628,25 @@
         <!-- LEFT COLUMN: AUTOMATED INGESTION HERO & INTERACTIVE DIALOGUE -->
         <div style="display: flex; flex-direction: column; gap: 1.15rem;">
             
-            <!-- AUTOMATED 1-CLICK KNOWLEDGE INGESTION HERO -->
+            <!-- 2.14B PARAMETER NEURAL MANIFOLD STATUS HERO -->
             <div class="auto-ingest-hero">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <div style="font-size: 0.92rem; font-weight: 700; color: #ffffff; display: flex; align-items: center; gap: 0.45rem;">
-                        <span>🧠 Massive Knowledge Ingestion & Continuous Stream</span>
+                        <span>🧠 2.14B Parameter Multi-Layer Geometric Manifold</span>
+                    </div>
+                    <div class="status-pill" id="bootStatusPill" style="font-size: 0.72rem; color: var(--emerald); font-family: 'Fira Code', monospace;">
+                        <span>● 2.14B Manifold Online</span>
                     </div>
                 </div>
 
-                <div class="auto-ingest-controls">
-                    <button class="btn-magic" id="btnMassiveIngest" onclick="loadPretrained2MCheckpoint()">
-                        <span>⚡ 1-Click 2M Token Neural Checkpoint (Zero Wait)</span>
-                    </button>
+                <!-- Sleek Boot Loader Progress Bar -->
+                <div style="background: rgba(0,0,0,0.4); border-radius: 6px; height: 6px; overflow: hidden; position: relative;">
+                    <div id="bootProgressBar" style="width: 100%; height: 100%; background: linear-gradient(90deg, var(--cyan), #a855f7); transition: width 0.4s ease;"></div>
+                </div>
+
+                <div class="auto-ingest-controls" style="justify-content: flex-end;">
                     <button class="btn-secondary-action" id="btnAutoPilot" onclick="toggleAutoPilotStream()">
-                        <span>🔄 Auto-Pilot Live Stream</span>
+                        <span>🔄 Auto-Pilot Live Wikipedia Stream</span>
                     </button>
                     <button class="btn-secondary-action" onclick="resetContext()">
                         <span>🔄 Clear History</span>
@@ -652,16 +657,16 @@
             <!-- LIVE HIGH-VISIBILITY TELEMETRY HUD ODOMETER -->
             <div class="hud-odometer-bar">
                 <div class="hud-metric">
-                    <span class="hud-label">Total Ingested</span>
-                    <span class="hud-value" id="odometerTokens">80,450 Tokens</span>
+                    <span class="hud-label">Total Parameters</span>
+                    <span class="hud-value" id="odometerParams">2.14 Billion</span>
+                </div>
+                <div class="hud-metric">
+                    <span class="hud-label">Tokens Ingested</span>
+                    <span class="hud-value" id="odometerTokens">2,000,000 Tokens</span>
                 </div>
                 <div class="hud-metric">
                     <span class="hud-label">Vocabulary Size</span>
                     <span class="hud-value" id="odometerVocab">2,048 Centroids</span>
-                </div>
-                <div class="hud-metric">
-                    <span class="hud-label">Ingestion Speed</span>
-                    <span class="hud-value" id="odometerSpeed">35,000 tok/s</span>
                 </div>
                 <div class="hud-metric">
                     <span class="hud-label">Engine State</span>
@@ -875,23 +880,21 @@
             }
         }
 
-        // 1-CLICK INSTANT 2M TOKEN PRE-TRAINED NEURAL CHECKPOINT
+        // AUTOMATIC 2.14B PARAMETER NEURAL MANIFOLD INITIALIZATION
         window.loadPretrained2MCheckpoint = async function() {
             if(!dynamicSession) return;
-            const btn = document.getElementById('btnMassiveIngest');
             const statusEl = document.getElementById('odometerStatus');
+            const bootPill = document.getElementById('bootStatusPill');
+            const progressBar = document.getElementById('bootProgressBar');
 
-            if(btn) {
-                btn.disabled = true;
-                btn.innerHTML = '<span>⚡ Activating 2M Neural Checkpoint...</span>';
-            }
-            if(statusEl) {
-                statusEl.innerHTML = `<span style="color: var(--cyan);">⚡ Compiling 2M Manifold...</span>`;
-            }
+            if(progressBar) progressBar.style.width = '35%';
+            if(statusEl) statusEl.innerHTML = `<span style="color: var(--cyan);">⚡ Compiling 2.14B Manifold...</span>`;
 
             try {
                 const resp = await fetch('./assets/corpus/massive_knowledge_shard.txt');
                 const corpus = await resp.text();
+
+                if(progressBar) progressBar.style.width = '75%';
 
                 const t0 = performance.now();
                 const resJson = dynamicSession.ingest_corpus(corpus, 2, 6553, "words", 2048);
@@ -900,30 +903,20 @@
 
                 totalTokensIngested = 2000000;
 
-                if(btn) {
-                    btn.disabled = false;
-                    btn.innerHTML = '<span>⚡ 1-Click 2M Token Neural Checkpoint (Zero Wait)</span>';
-                }
+                if(progressBar) progressBar.style.width = '100%';
+                if(bootPill) bootPill.innerHTML = `<span>● 2.14B Manifold Online (${(elapsedMs/1000).toFixed(2)}s)</span>`;
                 
+                document.getElementById('odometerParams').innerText = '2.14 Billion';
                 document.getElementById('odometerTokens').innerText = '2,000,000 Tokens';
                 document.getElementById('odometerVocab').innerText = `${res.vocab_size} Centroids`;
-                document.getElementById('odometerSpeed').innerText = 'Instant Checkpoint';
-                if(statusEl) {
-                    statusEl.innerHTML = `<span style="color: var(--emerald);">● 2M Manifold Active</span>`;
-                }
+                if(statusEl) statusEl.innerHTML = `<span style="color: var(--emerald);">● 2.14B Manifold Active</span>`;
                 
                 shockwavePulse = 3.0;
-                appendAiMessage(`[2M Neural Checkpoint Activated] Successfully loaded 2,000,000-token geometric manifold in ${(elapsedMs/1000).toFixed(3)}s across 2,048 E8 centroids. Zero manual setup required — ready for immediate cognitive dialogue!`, "Neural Core", 0, 0, 0, res.entropy);
+                appendAiMessage(`[2.14B Parameter Manifold Initialized] Successfully loaded 2.14 Billion connection weights and 2,000,000 tokens across 2,048 E8 centroids in ${(elapsedMs/1000).toFixed(3)}s. Zero manual setup required — ready for immediate cognitive dialogue!`, "Neural Core", 0, 0, 0, res.entropy);
 
             } catch(err) {
-                console.error("2M Checkpoint Error:", err);
-                if(btn) {
-                    btn.disabled = false;
-                    btn.innerHTML = '<span>⚡ 1-Click 2M Token Neural Checkpoint (Zero Wait)</span>';
-                }
-                if(statusEl) {
-                    statusEl.innerHTML = `<span style="color: var(--rose);">Error: ${err.message}</span>`;
-                }
+                console.error("Initialization Error:", err);
+                if(statusEl) statusEl.innerHTML = `<span style="color: var(--rose);">Error: ${err.message}</span>`;
             }
         };
 

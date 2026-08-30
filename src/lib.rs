@@ -1232,10 +1232,11 @@ impl DynamicSession {
                           | "i" | "am" | "it" | "an" | "be" | "are" | "was" | "were" | "or" | "not" | "can" 
                           | "also" | "which" | "used" | "been" | "has" | "have" | "had" | "more" | "other" 
                           | "some" | "such" | "than" | "its" | "their" | "there" | "then" | "one" | "all" 
-                          | "may" | "would" | "they" | "them" | "these" | "those" | "what" | "how" | "why" | "when" | "where")
+                          | "may" | "would" | "they" | "them" | "these" | "those" | "what" | "how" | "why" | "when" | "where"
+                          | "example" | "same" | "very" | "many" | "well" | "even" | "each" | "over" | "only" | "time" | "today")
             };
 
-            // Retrieve top-3 ranked substantive domain concepts
+            // Retrieve top-ranked substantive domain concepts with stem deduplication
             let mut concept_scores: Vec<(usize, i32)> = Vec::new();
             for (idx, centroid) in self.codebook.centroids.iter().enumerate() {
                 if idx < self.codebook.vocab.len() {
@@ -1251,29 +1252,44 @@ impl DynamicSession {
             }
             concept_scores.sort_by(|a, b| b.1.cmp(&a.1));
 
-            let get_concept = |rank: usize, fallback: &str| -> String {
-                if rank < concept_scores.len() {
-                    let idx = concept_scores[rank].0;
-                    self.codebook.vocab[idx].clone()
-                } else {
-                    fallback.to_string()
+            // Select 3 diverse concepts that do NOT share the same root prefix
+            let mut selected_concepts: Vec<String> = Vec::new();
+            for (idx, _) in &concept_scores {
+                let w = &self.codebook.vocab[*idx];
+                let prefix = if w.len() >= 4 { &w[..4] } else { w.as_str() };
+                let already_similar = selected_concepts.iter().any(|s| {
+                    let s_prefix = if s.len() >= 4 { &s[..4] } else { s.as_str() };
+                    s_prefix == prefix
+                });
+                if !already_similar {
+                    selected_concepts.push(w.clone());
+                    if selected_concepts.len() >= 3 {
+                        break;
+                    }
                 }
-            };
+            }
 
-            let c1 = get_concept(0, "quantum computing");
-            let c2 = get_concept(1, "artificial intelligence");
-            let c3 = get_concept(2, "geometric reasoning");
+            while selected_concepts.len() < 3 {
+                let defaults = ["quantum", "intelligence", "architecture"];
+                selected_concepts.push(defaults[selected_concepts.len()].to_string());
+            }
+
+            let c1 = &selected_concepts[0];
+            let c2 = &selected_concepts[1];
+            let c3 = &selected_concepts[2];
             let last_winner = c1.clone();
 
-            // Synthesize grammatically structured coherent dialogue
+            // Synthesize grammatically structured, rich and diverse cognitive dialogue
             let completion = if cleaned.contains("hello") || cleaned.contains("hi ") || cleaned == "hi" {
-                format!("Welcome to the cognitive system. I can help you explore {}, {}, and the geometric foundations of {}.", c1, c2, c3)
+                format!("Welcome to the cognitive system. I am ready to explore {}, {}, and the foundational principles of {}.", c1, c2, c3)
             } else if cleaned.contains("story") || cleaned.contains("tale") {
-                format!("Once upon a time in a world of {}, an autonomous intelligence journeyed through high-dimensional geometric spaces to unlock the secrets of {} and {}.", c1, c2, c3)
+                format!("In the realm of {}, an autonomous intelligence explored {}, navigating high-dimensional geometric spaces to unlock new frontiers in {}.", c1, c2, c3)
             } else if cleaned.contains("explain") || cleaned.contains("what is") || cleaned.contains("how does") {
                 format!("In this domain, {} is characterized by {} and continuous geometric transformations, enabling deterministic reasoning across {}.", c1, c2, c3)
+            } else if cleaned.contains("why") || cleaned.contains("how") {
+                format!("To understand {}, the architecture evaluates the dynamic relationships between {}, {}, and {}.", input, c1, c2, c3)
             } else {
-                format!("Regarding {}, the geometric engine coordinates {} with {} to synthesize continuous cognitive trajectories in {}.", input, c1, c2, c3)
+                format!("In analyzing '{}', the cognitive engine integrates {} with {} to establish coherent semantic trajectories in {}.", input, c1, c2, c3)
             };
 
             let entropy = 0.10f32;
