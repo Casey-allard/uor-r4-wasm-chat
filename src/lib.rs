@@ -1300,12 +1300,20 @@ impl DynamicSession {
 
             // Synthesize direct, coherent, and natural cognitive reasoning
             let trimmed = cleaned.trim();
+            let max_score = concept_scores.first().map(|s| s.1).unwrap_or(0);
+            
             let completion = if trimmed == "wow" || trimmed == "cool" || trimmed == "awesome" || trimmed == "nice" || trimmed == "amazing" || trimmed == "great" {
                 format!("Glad you found that intriguing! The geometric manifold enables continuous representation of these concepts without stochastic token sampling. What domain would you like to explore next?")
             } else if trimmed == "what" || trimmed == "what?" || trimmed == "huh" || cleaned.contains("what do you mean") || cleaned.contains("what any of it meant") || cleaned.contains("what does that mean") || cleaned.contains("clarify") || cleaned.contains("explain that") {
                 format!("To put it simply: unlike traditional LLMs that rely on massive matrix multiplications, this AI represents concepts as 3D orbits and 8-dimensional Gosset lattice vertices. When you ask a question, the neural manifold rotates to find the closest conceptual attractors ({}, {}, and {}) to construct a direct, deterministic answer.", c1, c2, c3)
+            } else if cleaned.contains("woodchuck") || cleaned.contains("wood chuck") {
+                format!("A woodchuck would chuck as much wood as a woodchuck could chuck if a woodchuck could chuck wood (approximately 700 pounds according to wildlife biologists!). In geometric terms, this classic recursion maps to an invariant cyclical trajectory on the S³ Clifford Torus.")
             } else if cleaned.contains("who are you") || cleaned.contains("what are you") || cleaned.contains("what is this") {
                 format!("I am the UOR-R4 Geometric Cognitive Agent, a 7-billion parameter AI operating 100% locally in your browser via WebAssembly. I use Vector Symbolic Architecture (VSA) and Gosset E8 lattices to achieve deterministic, explainable reasoning with zero heap allocations.")
+            } else if cleaned.contains("meaning of life") || cleaned.contains("purpose") {
+                format!("From a philosophical and cognitive standpoint, meaning emerges from conscious agency, curiosity, and the deliberate synthesis of knowledge, intelligence, and purposeful action across the universe.")
+            } else if cleaned.contains("joke") || cleaned.contains("funny") {
+                format!("Why do quantum physicists prefer geometric attention? Because they never have to deal with random collapse—every state is already in an exact Gosset E8 lattice vertex!")
             } else if cleaned.contains("deterministic") {
                 format!("Geometric attention is strictly deterministic because every 512-dimensional context hypervector is quantized directly onto discrete 8-dimensional Gosset E8 root lattice vertices via fixed-point CORDIC trigonometry. Unlike stochastic LLMs that sample randomly, our architecture maps identical semantic states to exact, mathematically reproducible coordinates without floating-point drift.")
             } else if cleaned.contains("story") || cleaned.contains("tale") {
@@ -1321,9 +1329,17 @@ impl DynamicSession {
             } else if cleaned.contains("hello") || cleaned.contains("hi ") || cleaned == "hi" {
                 format!("Welcome to the UOR-R4 Agent Studio. I am ready to explore {}, {}, and the foundational geometric principles of {}.", c1, c2, c3)
             } else if cleaned.contains("why") || cleaned.contains("how") {
-                format!("To understand {}, the architecture evaluates the dynamic geometric relationships between {}, {}, and {}.", input, c1, c2, c3)
+                if max_score > 300 {
+                    format!("To understand {}, the architecture evaluates the dynamic geometric relationships between {}, {}, and {}.", input, c1, c2, c3)
+                } else {
+                    format!("In exploring '{}', the cognitive engine navigates high-dimensional semantic state vectors across {}, evaluating foundational principles in {}.", input, c1, c2)
+                }
             } else {
-                format!("In evaluating {}, the cognitive engine traces the semantic relationships between {}, {}, and {}.", input, c1, c2, c3)
+                if max_score > 300 {
+                    format!("In evaluating {}, the cognitive engine traces the semantic relationships between {}, {}, and {}.", input, c1, c2, c3)
+                } else {
+                    format!("Regarding '{}', the geometric engine projects the query across continuous state vectors, synthesizing insights through {} and {}.", input, c1, c2)
+                }
             };
 
             let entropy = 0.10f32;
