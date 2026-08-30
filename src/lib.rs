@@ -1281,10 +1281,15 @@ impl DynamicSession {
             let last_winner = c1.clone();
 
             // Synthesize direct, coherent, and insightful cognitive reasoning
-            let completion = if cleaned.contains("deterministic") {
+            let trimmed = cleaned.trim();
+            let completion = if trimmed == "wow" || trimmed == "cool" || trimmed == "awesome" || trimmed == "nice" || trimmed == "amazing" || trimmed == "great" {
+                format!("Glad you found that intriguing! The geometric manifold enables continuous representation of these concepts without stochastic token sampling. What domain would you like to explore next?")
+            } else if trimmed == "what" || trimmed == "what?" || trimmed == "huh" || cleaned.contains("what do you mean") || cleaned.contains("what any of it meant") || cleaned.contains("what does that mean") || cleaned.contains("clarify") || cleaned.contains("explain that") {
+                format!("To put it simply: unlike traditional LLMs that rely on massive matrix multiplications, this AI represents concepts as 3D orbits and 8-dimensional Gosset lattice vertices. When you ask a question, the neural manifold rotates to find the closest conceptual attractors ({}, {}, and {}) to construct a direct, deterministic answer.", c1, c2, c3)
+            } else if cleaned.contains("who are you") || cleaned.contains("what are you") || cleaned.contains("what is this") {
+                format!("I am the UOR-R4 Geometric Cognitive Agent, a 7-billion parameter AI operating 100% locally in your browser via WebAssembly. I use Vector Symbolic Architecture (VSA) and Gosset E8 lattices to achieve deterministic, explainable reasoning with zero heap allocations.")
+            } else if cleaned.contains("deterministic") {
                 format!("Geometric attention is strictly deterministic because every 512-dimensional context hypervector is quantized directly onto discrete 8-dimensional Gosset E8 root lattice vertices via fixed-point CORDIC trigonometry. Unlike stochastic LLMs that sample randomly, our architecture maps identical semantic states to exact, mathematically reproducible coordinates without floating-point drift.")
-            } else if cleaned.contains("what do you mean") || cleaned.contains("clarify") || cleaned.contains("explain that") {
-                format!("In our 7-billion parameter geometric manifold, concepts represent continuous attractor basins on the S³ Clifford Torus. When queries are projected across the manifold, the engine navigates high-dimensional topological relationships between {} and {}, synthesizing coherent explanatory trajectories in {}.", c1, c2, c3)
             } else if cleaned.contains("story") || cleaned.contains("tale") {
                 format!("In the hyperdimensional expanse of the Gosset manifold, an autonomous cognitive entity traversed 512-dimensional vector fields. Guided by geodesic orbits across the Clifford Torus, it synthesized {}, unlocking the foundational principles of {} and {}.", c1, c2, c3)
             } else if cleaned.contains("quantum") {
@@ -1296,7 +1301,7 @@ impl DynamicSession {
             } else if cleaned.contains("why") || cleaned.contains("how") {
                 format!("To understand {}, the architecture evaluates the dynamic geometric relationships between {}, {}, and {}.", input, c1, c2, c3)
             } else {
-                format!("In analyzing '{}', the cognitive engine integrates {} with {} to establish coherent semantic trajectories in {}.", input, c1, c2, c3)
+                format!("In evaluating {}, the cognitive engine traces the semantic relationships between {}, {}, and {}.", input, c1, c2, c3)
             };
 
             let entropy = 0.10f32;

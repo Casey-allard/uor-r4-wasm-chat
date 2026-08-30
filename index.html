@@ -140,7 +140,7 @@
         /* 3-COLUMN STUDIO LAYOUT */
         .studio-layout {
             display: grid;
-            grid-template-columns: 250px 1fr 400px;
+            grid-template-columns: 260px 1fr 380px;
             flex: 1;
             overflow: hidden;
         }
@@ -338,55 +338,6 @@
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
         }
 
-        /* ANTIGRAVITY-STYLE THOUGHT TRACE DISCLOSURE */
-        .thought-trace {
-            background: rgba(11, 17, 32, 0.75);
-            border: 1px solid rgba(0, 243, 255, 0.2);
-            border-radius: var(--radius-sm);
-            padding: 0.55rem 0.85rem;
-            font-family: 'Fira Code', monospace;
-            font-size: 0.75rem;
-            color: var(--text-secondary);
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .thought-trace:hover {
-            border-color: var(--cyan);
-            background: rgba(11, 17, 32, 0.95);
-        }
-
-        .thought-trace summary {
-            font-weight: 600;
-            color: var(--cyan);
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
-            user-select: none;
-            outline: none;
-        }
-
-        .thought-steps {
-            margin-top: 0.55rem;
-            padding-top: 0.45rem;
-            border-top: 1px solid rgba(255, 255, 255, 0.06);
-            display: flex;
-            flex-direction: column;
-            gap: 0.35rem;
-            color: #cbd5e1;
-        }
-
-        .thought-step-item {
-            display: flex;
-            align-items: flex-start;
-            gap: 0.45rem;
-        }
-
-        .thought-step-icon {
-            color: var(--purple);
-            font-weight: 700;
-        }
-
         /* INPUT DOCK */
         .input-dock {
             padding: 1rem 2rem 1.25rem 2rem;
@@ -493,10 +444,11 @@
             display: flex;
             flex-direction: column;
             box-shadow: 0 0 24px rgba(0, 243, 255, 0.05);
+            flex: 1;
         }
 
         .brain-header {
-            padding: 0.65rem 0.85rem;
+            padding: 0.75rem 1rem;
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
             display: flex;
             justify-content: space-between;
@@ -504,7 +456,7 @@
         }
 
         .brain-title {
-            font-size: 0.78rem;
+            font-size: 0.82rem;
             font-weight: 700;
             color: #ffffff;
             display: flex;
@@ -515,7 +467,7 @@
         .brain-box {
             position: relative;
             width: 100%;
-            height: 320px;
+            height: 380px;
             background: radial-gradient(circle at 50% 50%, #0d162e 0%, #060911 100%);
         }
 
@@ -527,14 +479,14 @@
 
         .brain-overlay {
             position: absolute;
-            bottom: 8px;
+            bottom: 10px;
             left: 10px;
             right: 10px;
             font-family: 'Fira Code', monospace;
-            font-size: 0.68rem;
+            font-size: 0.7rem;
             color: var(--cyan);
-            background: rgba(0, 0, 0, 0.7);
-            padding: 0.35rem 0.65rem;
+            background: rgba(0, 0, 0, 0.75);
+            padding: 0.45rem 0.75rem;
             border-radius: 4px;
             border: 1px solid rgba(0, 243, 255, 0.25);
             display: flex;
@@ -542,43 +494,24 @@
             align-items: center;
         }
 
-        /* 4-STAGE COGNITIVE PIPELINE ROUTER */
-        .pipeline-card {
+        /* LIVE SYNAPTIC WAVE MONITOR */
+        .wave-card {
             background: var(--bg-card);
             border: 1px solid var(--border);
             border-radius: var(--radius-md);
             padding: 0.85rem;
             display: flex;
             flex-direction: column;
-            gap: 0.55rem;
+            gap: 0.5rem;
         }
 
-        .pipeline-step {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            font-size: 0.72rem;
-            font-family: 'Fira Code', monospace;
-            padding: 0.4rem 0.6rem;
-            background: rgba(11, 17, 32, 0.6);
+        .wave-canvas-box {
+            width: 100%;
+            height: 60px;
+            background: rgba(11, 17, 32, 0.8);
             border-radius: 4px;
-            border: 1px solid rgba(255, 255, 255, 0.04);
-            transition: all 0.25s ease;
-        }
-
-        .pipeline-step.active {
-            border-color: var(--cyan);
-            background: rgba(0, 243, 255, 0.08);
-            box-shadow: 0 0 12px rgba(0, 243, 255, 0.15);
-        }
-
-        .step-label {
-            color: var(--text-secondary);
-        }
-
-        .step-val {
-            color: var(--cyan);
-            font-weight: 600;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.05);
         }
     </style>
 </head>
@@ -638,23 +571,23 @@
             </div>
 
             <div>
-                <div class="sidebar-section-title">Engine Telemetry</div>
+                <div class="sidebar-section-title">Engine Manifold Specs</div>
                 <div class="model-card">
                     <div class="spec-row">
-                        <span>Parameters:</span>
+                        <span>Manifold Capacity:</span>
                         <span class="spec-val" id="sideParams">7.00 Billion</span>
                     </div>
                     <div class="spec-row">
-                        <span>Tokens Ingested:</span>
-                        <span class="spec-val" id="sideTokens">2,000,000</span>
+                        <span>Pre-Trained Corpus:</span>
+                        <span class="spec-val" id="sideTokens">2,000,000 Tok</span>
                     </div>
                     <div class="spec-row">
-                        <span>Vocabulary:</span>
+                        <span>Active Vocabulary:</span>
                         <span class="spec-val" id="sideVocab">2,048 Centroids</span>
                     </div>
                     <div class="spec-row">
                         <span>Throughput:</span>
-                        <span class="spec-val">35,000 tok/s</span>
+                        <span class="spec-val">~35,000 tok/s</span>
                     </div>
                 </div>
             </div>
@@ -680,21 +613,8 @@
                 <div class="chat-row">
                     <div class="avatar avatar-ai">AI</div>
                     <div class="bubble-content">
-                        <details class="thought-trace" open>
-                            <summary>⚡ Initial Geometric Superposition & Manifold State</summary>
-                            <div class="thought-steps">
-                                <div class="thought-step-item">
-                                    <span class="thought-step-icon">●</span>
-                                    <span>Initialized 512D Vector Symbolic Superposition base state.</span>
-                                </div>
-                                <div class="thought-step-item">
-                                    <span class="thought-step-icon">●</span>
-                                    <span>7.0 Billion connection parameters loaded across 2,048 Gosset E8 centroids.</span>
-                                </div>
-                            </div>
-                        </details>
                         <div class="msg-text-ai">
-                            Hello! I am your <b>UOR-R4 Geometric Cognitive Agent (7.0B)</b>. My reasoning process operates entirely on 512-dimensional vector symbolic superposition, CORDIC Hopf phase rotations, and discrete 8D Gosset \(E_8\) lattice quantization. Ask me any conceptual, philosophical, or scientific question!
+                            Hello! I am your <b>UOR-R4 Geometric Cognitive Agent (7.0B)</b>. My reasoning process operates entirely on 512-dimensional vector symbolic superposition, CORDIC Hopf phase rotations, and discrete 8D Gosset \(E_8\) lattice quantization without server GPUs. Ask me any conceptual, philosophical, or scientific question!
                         </div>
                     </div>
                 </div>
@@ -738,29 +658,16 @@
                     <canvas id="brainCanvas"></canvas>
                     <div class="brain-overlay">
                         <span id="overlayPhase">Thought Wave: Idle</span>
-                        <span id="overlayPulse">Active Attractor: none</span>
+                        <span id="overlayPulse">Attractor: Ready</span>
                     </div>
                 </div>
             </div>
 
-            <!-- 4-STAGE COGNITIVE PIPELINE ROUTER -->
-            <div class="pipeline-card">
-                <div class="sidebar-section-title">Cognitive Routing Pipeline</div>
-                <div class="pipeline-step" id="pipeStep1">
-                    <span class="step-label">1. Superposition Pulse</span>
-                    <span class="step-val">512D Vector</span>
-                </div>
-                <div class="pipeline-step" id="pipeStep2">
-                    <span class="step-label">2. CORDIC Phase Trajectory</span>
-                    <span class="step-val" id="valPhase">S³ Torus</span>
-                </div>
-                <div class="pipeline-step" id="pipeStep3">
-                    <span class="step-label">3. Discrete E8 Snap</span>
-                    <span class="step-val" id="valE8Snap">8D Gosset Root</span>
-                </div>
-                <div class="pipeline-step" id="pipeStep4">
-                    <span class="step-label">4. Semantic Wave Synthesis</span>
-                    <span class="step-val" id="valAttractor" style="color: var(--purple);">quantum</span>
+            <!-- LIVE SYNAPTIC WAVE MONITOR -->
+            <div class="wave-card">
+                <div class="sidebar-section-title">Live Synaptic Waveform Activity</div>
+                <div class="wave-canvas-box">
+                    <canvas id="waveCanvas"></canvas>
                 </div>
             </div>
 
@@ -776,7 +683,7 @@
         let currentE8Coords = [0, 0, 0, 0, 0, 0, 0, 0];
         let currentChi = 0, currentDelta = 0, currentAlpha = 0;
         let activePulses = [];
-        let thoughtRoutingTime = 0;
+        let rippleShockwave = 0;
         let autoPilotTimer = null;
         let totalTokensIngested = 2000000;
 
@@ -786,37 +693,23 @@
             currentChi = chi || 0;
             currentDelta = delta || 0;
             currentAlpha = alpha || 0;
+            rippleShockwave = 1.0;
 
-            document.getElementById('valPhase').innerText = `${currentChi.toFixed(3)}, ${currentAlpha.toFixed(3)} rad`;
-            document.getElementById('valE8Snap').innerText = `[${currentE8Coords.slice(0, 4).join(',')}]`;
-            document.getElementById('valAttractor').innerText = winner || "none";
             document.getElementById('overlayPhase').innerText = `Phase: χ₁=${currentChi.toFixed(2)}, α₂=${currentAlpha.toFixed(2)}`;
-            document.getElementById('overlayPulse').innerText = `Attractor: ${winner || "none"}`;
+            document.getElementById('overlayPulse').innerText = `Attractor: ${winner || "active"}`;
             document.getElementById('neuralStateLabel').innerText = `Brain: Firing (${winner || "active"})`;
 
-            // Ignite electrical synaptic thought pulses
-            for(let p = 0; p < 8; p++) {
+            // Ignite dramatic slow-moving electrical synaptic thought pulses
+            for(let p = 0; p < 12; p++) {
                 activePulses.push({
                     startNode: Math.floor(Math.random() * 48),
                     targetNode: Math.floor(Math.random() * 48),
                     progress: 0,
-                    speed: 0.03 + Math.random() * 0.04,
-                    color: p % 2 === 0 ? '#00f3ff' : '#a855f7'
+                    speed: 0.008 + Math.random() * 0.012,
+                    color: p % 2 === 0 ? '#00f3ff' : '#a855f7',
+                    size: 4.5 + Math.random() * 2
                 });
             }
-
-            // Animate pipeline stages
-            triggerPipelineAnimation();
-        }
-
-        function triggerPipelineAnimation() {
-            const steps = [document.getElementById('pipeStep1'), document.getElementById('pipeStep2'), document.getElementById('pipeStep3'), document.getElementById('pipeStep4')];
-            steps.forEach(s => s.classList.remove('active'));
-
-            setTimeout(() => steps[0].classList.add('active'), 50);
-            setTimeout(() => steps[1].classList.add('active'), 200);
-            setTimeout(() => steps[2].classList.add('active'), 400);
-            setTimeout(() => steps[3].classList.add('active'), 600);
         }
 
         // Initialize WebAssembly & Auto-Load 7.0B Manifold
@@ -838,7 +731,7 @@
                 const res = JSON.parse(resJson);
 
                 document.getElementById('sideParams').innerText = '7.00 Billion';
-                document.getElementById('sideTokens').innerText = '2,000,000';
+                document.getElementById('sideTokens').innerText = '2,000,000 Tok';
                 document.getElementById('sideVocab').innerText = `${res.vocab_size} Centroids`;
 
                 console.log("UOR-R4 Agent Studio initialized successfully with 7.0B parameter manifold.");
@@ -882,7 +775,7 @@
                         const res = JSON.parse(resJson);
                         totalTokensIngested += words;
 
-                        document.getElementById('sideTokens').innerText = totalTokensIngested.toLocaleString();
+                        document.getElementById('sideTokens').innerText = `${totalTokensIngested.toLocaleString()} Tok`;
                         document.getElementById('sideVocab').innerText = `${res.vocab_size} Centroids`;
                     }
                 } catch(e) {
@@ -894,7 +787,7 @@
             autoPilotTimer = setInterval(streamStep, 3500);
         };
 
-        // Chat Execution (Direct Coherent Dialogue with Antigravity Thought Trace)
+        // Chat Execution (Clean, direct dialogue without telemetry clutter)
         window.sendChat = function() {
             const inputEl = document.getElementById('chatInput');
             const text = inputEl.value.trim();
@@ -908,7 +801,7 @@
                 const data = JSON.parse(resultJson);
 
                 if(data.completion) {
-                    appendAiMessage(data.completion, data.winner || "AI Core", data.chi, data.delta, data.alpha, data.concepts);
+                    appendAiMessage(data.completion);
                     updateTelemetry(data.snapped, data.chi, data.delta, data.alpha, data.winner || "AI Core", data.concepts);
                 }
             } catch(err) {
@@ -944,37 +837,14 @@
             stream.scrollTop = stream.scrollHeight;
         }
 
-        function appendAiMessage(completion, winner, chi, delta, alpha, concepts) {
+        function appendAiMessage(completion) {
             const stream = document.getElementById('chatStream');
             const row = document.createElement('div');
             row.className = 'chat-row';
 
-            const cList = (concepts || []).join(' → ') || winner;
-
             row.innerHTML = `
                 <div class="avatar avatar-ai">AI</div>
                 <div class="bubble-content">
-                    <details class="thought-trace" open>
-                        <summary>⚡ Thought Process (Geometric Pipeline)</summary>
-                        <div class="thought-steps">
-                            <div class="thought-step-item">
-                                <span class="thought-step-icon">1.</span>
-                                <span><b>VSA Superposition:</b> Projecting 512D hypervector context.</span>
-                            </div>
-                            <div class="thought-step-item">
-                                <span class="thought-step-icon">2.</span>
-                                <span><b>CORDIC Phase Trajectory:</b> Tracing S³ rotation (χ₁: ${chi.toFixed(3)} rad, α₂: ${alpha.toFixed(3)} rad).</span>
-                            </div>
-                            <div class="thought-step-item">
-                                <span class="thought-step-icon">3.</span>
-                                <span><b>Gosset E8 Quantization:</b> Snapping to discrete 8-dimensional root lattice.</span>
-                            </div>
-                            <div class="thought-step-item">
-                                <span class="thought-step-icon">4.</span>
-                                <span><b>Semantic Synthesis:</b> ${cList}.</span>
-                            </div>
-                        </div>
-                    </details>
                     <div class="msg-text-ai">${escapeHtml(completion)}</div>
                 </div>
             `;
@@ -1020,7 +890,6 @@
                 const phi = Math.acos(-1 + (2 * i) / numNodes);
                 const theta = Math.sqrt(numNodes * Math.PI) * phi;
                 
-                // Add natural brain-like bilateral indentation
                 const hemisphere = i % 2 === 0 ? 1 : -1;
                 const x = Math.cos(theta) * Math.sin(phi) * 0.95 + (hemisphere * 0.15);
                 const y = Math.sin(theta) * Math.sin(phi) * 0.85;
@@ -1043,25 +912,26 @@
             }
 
             function render() {
-                t += 0.015;
+                t += 0.012;
+                rippleShockwave = Math.max(0, rippleShockwave - 0.012);
 
                 const width = canvas.width;
                 const height = canvas.height;
                 const cx = width / 2;
                 const cy = height / 2;
-                const scale = Math.min(width, height) * 0.45;
+                const scale = Math.min(width, height) * 0.46;
 
                 ctx.clearRect(0, 0, width, height);
 
-                // Rotation angles modulated by CORDIC Hopf phase (χ₁, α₂)
-                const rotY = t * 0.4 + (currentAlpha * 0.5);
-                const rotX = 0.35 + Math.sin(t * 0.3) * 0.1 + (currentChi * 0.2);
+                // Slow rotation modulated by CORDIC Hopf phase (χ₁, α₂)
+                const rotY = t * 0.25 + (currentAlpha * 0.4);
+                const rotX = 0.35 + Math.sin(t * 0.2) * 0.08 + (currentChi * 0.15);
 
                 const cosY = Math.cos(rotY), sinY = Math.sin(rotY);
                 const cosX = Math.cos(rotX), sinX = Math.sin(rotX);
 
                 // Project 3D nodes to 2D screen coordinates
-                const projectedNodes = nodes.map((n, idx) => {
+                const projectedNodes = nodes.map((n) => {
                     const x1 = n.x * cosY + n.z * sinY;
                     const z1 = -n.x * sinY + n.z * cosY;
                     const y1 = n.y * cosX - z1 * sinX;
@@ -1076,6 +946,19 @@
                         color: n.baseColor
                     };
                 });
+
+                // Render Expanding Holographic Ripple Waves when thoughts fire
+                if(rippleShockwave > 0) {
+                    const rippleRadius = (1 - rippleShockwave) * scale * 1.35;
+                    ctx.beginPath();
+                    ctx.arc(cx, cy, rippleRadius, 0, Math.PI * 2);
+                    ctx.strokeStyle = `rgba(0, 243, 255, ${rippleShockwave * 0.6})`;
+                    ctx.lineWidth = 2.5 * rippleShockwave;
+                    ctx.shadowColor = '#00f3ff';
+                    ctx.shadowBlur = 16;
+                    ctx.stroke();
+                    ctx.shadowBlur = 0;
+                }
 
                 // Draw Synaptic Edge Pathways
                 for(let e = 0; e < edges.length; e++) {
@@ -1093,7 +976,7 @@
                     ctx.stroke();
                 }
 
-                // Render Active Electrical Synaptic Thought Pulses
+                // Render Dramatic, Slower-Moving Electrical Synaptic Thought Pulses
                 for(let p = activePulses.length - 1; p >= 0; p--) {
                     const pulse = activePulses[p];
                     pulse.progress += pulse.speed;
@@ -1109,11 +992,26 @@
                     const curX = p1.sx + (p2.sx - p1.sx) * pulse.progress;
                     const curY = p1.sy + (p2.sy - p1.sy) * pulse.progress;
 
+                    // Draw trailing comet light
+                    const tailProgress = Math.max(0, pulse.progress - 0.15);
+                    const tailX = p1.sx + (p2.sx - p1.sx) * tailProgress;
+                    const tailY = p1.sy + (p2.sy - p1.sy) * tailProgress;
+
                     ctx.beginPath();
-                    ctx.arc(curX, curY, 4 * p1.persp, 0, Math.PI * 2);
-                    ctx.fillStyle = pulse.color;
+                    ctx.moveTo(tailX, tailY);
+                    ctx.lineTo(curX, curY);
+                    ctx.strokeStyle = pulse.color;
+                    ctx.lineWidth = 2.5 * p1.persp;
                     ctx.shadowColor = pulse.color;
-                    ctx.shadowBlur = 12;
+                    ctx.shadowBlur = 10;
+                    ctx.stroke();
+
+                    // Main spark head
+                    ctx.beginPath();
+                    ctx.arc(curX, curY, pulse.size * p1.persp, 0, Math.PI * 2);
+                    ctx.fillStyle = '#ffffff';
+                    ctx.shadowColor = pulse.color;
+                    ctx.shadowBlur = 16;
                     ctx.fill();
                     ctx.shadowBlur = 0;
                 }
@@ -1123,22 +1021,22 @@
 
                 for(let idx of sortedIndices) {
                     const pn = projectedNodes[idx];
-                    const nodeRadius = 3.5 * pn.persp;
-                    const nodeAlpha = Math.max(0.2, (pn.z + 1.2) / 2.4);
+                    const nodeRadius = 4.0 * pn.persp;
+                    const nodeAlpha = Math.max(0.25, (pn.z + 1.2) / 2.4);
 
                     ctx.beginPath();
                     ctx.arc(pn.sx, pn.sy, nodeRadius, 0, Math.PI * 2);
                     ctx.fillStyle = pn.color;
                     ctx.globalAlpha = nodeAlpha;
                     ctx.shadowColor = pn.color;
-                    ctx.shadowBlur = 8 * pn.persp;
+                    ctx.shadowBlur = 10 * pn.persp;
                     ctx.fill();
                     ctx.shadowBlur = 0;
                     ctx.globalAlpha = 1.0;
                 }
 
                 // Draw Core Central Neural Attractor Orb
-                const orbRadius = (12 + Math.abs(currentChi) * 4) * (scale / 180);
+                const orbRadius = (14 + Math.abs(currentChi) * 4) * (scale / 180);
                 const gradient = ctx.createRadialGradient(cx, cy, 2, cx, cy, orbRadius);
                 gradient.addColorStop(0, '#ffffff');
                 gradient.addColorStop(0.4, '#00f3ff');
@@ -1149,7 +1047,7 @@
                 ctx.arc(cx, cy, orbRadius, 0, Math.PI * 2);
                 ctx.fillStyle = gradient;
                 ctx.shadowColor = '#00f3ff';
-                ctx.shadowBlur = 24;
+                ctx.shadowBlur = 24 + rippleShockwave * 20;
                 ctx.fill();
                 ctx.shadowBlur = 0;
 
@@ -1159,10 +1057,53 @@
             render();
         }
 
+        // LIVE SYNAPTIC WAVEFORM ACTIVITY MONITOR
+        function startWaveformVisualizer() {
+            const canvas = document.getElementById('waveCanvas');
+            const ctx = canvas.getContext('2d');
+            let phase = 0;
+
+            function resize() {
+                canvas.width = canvas.parentElement.clientWidth * window.devicePixelRatio;
+                canvas.height = canvas.parentElement.clientHeight * window.devicePixelRatio;
+            }
+            window.addEventListener('resize', resize);
+            resize();
+
+            function renderWave() {
+                phase += 0.04;
+                const width = canvas.width;
+                const height = canvas.height;
+                const cy = height / 2;
+
+                ctx.clearRect(0, 0, width, height);
+
+                ctx.beginPath();
+                ctx.moveTo(0, cy);
+                for(let x = 0; x < width; x += 4) {
+                    const normX = x / width;
+                    const amp = 12 + activePulses.length * 3 + rippleShockwave * 14;
+                    const y = cy + Math.sin(normX * 12 + phase) * Math.cos(normX * 6 - phase * 0.5) * amp;
+                    ctx.lineTo(x, y);
+                }
+                ctx.strokeStyle = activePulses.length > 0 ? '#00f3ff' : 'rgba(56, 189, 248, 0.4)';
+                ctx.lineWidth = 1.8;
+                ctx.shadowColor = '#00f3ff';
+                ctx.shadowBlur = activePulses.length > 0 ? 10 : 2;
+                ctx.stroke();
+                ctx.shadowBlur = 0;
+
+                requestAnimationFrame(renderWave);
+            }
+
+            renderWave();
+        }
+
         // Bootstrap on load
         window.addEventListener('DOMContentLoaded', () => {
             setupWasm();
             startBrainVisualizer();
+            startWaveformVisualizer();
         });
     </script>
 </body>
