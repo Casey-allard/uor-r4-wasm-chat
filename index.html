@@ -74,13 +74,13 @@
             background: transparent;
             border: 1px solid var(--border);
             color: var(--text-primary);
-            padding: 0.65rem 0.85rem;
+            padding: 0.6rem 0.8rem;
             border-radius: var(--radius-md);
-            font-size: 0.88rem;
+            font-size: 0.86rem;
             font-weight: 500;
             cursor: pointer;
             transition: background 0.15s ease;
-            margin-bottom: 1rem;
+            margin-bottom: 0.75rem;
         }
 
         .new-chat-btn:hover {
@@ -88,10 +88,10 @@
         }
 
         .sidebar-section-label {
-            font-size: 0.72rem;
+            font-size: 0.7rem;
             color: var(--text-muted);
             font-weight: 600;
-            padding: 0.4rem 0.2rem;
+            padding: 0.35rem 0.2rem;
             text-transform: uppercase;
             letter-spacing: 0.05em;
             display: flex;
@@ -99,21 +99,106 @@
             justify-content: space-between;
         }
 
+        /* CONVERSATIONS SCROLLABLE LIST */
+        .conversations-scroll-container {
+            flex: 1;
+            min-height: 120px;
+            max-height: calc(100vh - 460px);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+            margin-bottom: 0.85rem;
+            padding-right: 0.2rem;
+        }
+
+        .conversations-scroll-container::-webkit-scrollbar {
+            width: 4px;
+        }
+        .conversations-scroll-container::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 9999px;
+        }
+
+        .conv-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.45rem 0.65rem;
+            border-radius: var(--radius-sm);
+            background: transparent;
+            border: 1px solid transparent;
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            user-select: none;
+            gap: 0.5rem;
+        }
+
+        .conv-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-primary);
+        }
+
+        .conv-item.active {
+            background: rgba(0, 243, 255, 0.08);
+            border-color: rgba(0, 243, 255, 0.25);
+            color: var(--accent-cyan);
+        }
+
+        .conv-title {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-weight: 500;
+        }
+
+        .conv-delete-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 0.15rem;
+            border-radius: 4px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.15s ease;
+        }
+
+        .conv-item:hover .conv-delete-btn {
+            display: flex;
+        }
+
+        .conv-delete-btn:hover {
+            color: #ef4444;
+        }
+
+        .empty-conv-hint {
+            font-size: 0.74rem;
+            color: var(--text-muted);
+            padding: 0.75rem 0.5rem;
+            font-style: italic;
+        }
+
+        /* SLIM SUBSTRATE CARDS */
         .model-library-container {
             display: flex;
             flex-direction: column;
-            gap: 0.75rem;
-            margin-bottom: 1rem;
+            gap: 0.45rem;
+            margin-bottom: 0.75rem;
         }
 
         .model-card {
-            background: rgba(255, 255, 255, 0.03);
+            background: rgba(255, 255, 255, 0.025);
             border: 1px solid var(--border-subtle);
             border-radius: var(--radius-md);
-            padding: 0.75rem;
+            padding: 0.55rem 0.65rem;
             display: flex;
             flex-direction: column;
-            gap: 0.5rem;
+            gap: 0.35rem;
             transition: all 0.2s ease;
         }
 
@@ -126,22 +211,22 @@
             display: flex;
             align-items: flex-start;
             justify-content: space-between;
-            gap: 0.5rem;
+            gap: 0.4rem;
         }
 
         .model-name {
-            font-size: 0.82rem;
+            font-size: 0.78rem;
             font-weight: 600;
             color: var(--text-primary);
-            line-height: 1.3;
+            line-height: 1.2;
         }
 
         .model-tier-badge {
-            font-size: 0.65rem;
+            font-size: 0.62rem;
             font-family: 'Fira Code', monospace;
-            padding: 0.15rem 0.4rem;
+            padding: 0.1rem 0.35rem;
             border-radius: 4px;
-            background: rgba(255, 255, 255, 0.06);
+            background: rgba(255, 255, 255, 0.05);
             color: var(--text-secondary);
             white-space: nowrap;
         }
@@ -150,9 +235,9 @@
             background: rgba(0, 243, 255, 0.12);
             border: 1px solid rgba(0, 243, 255, 0.35);
             color: var(--accent-cyan);
-            padding: 0.45rem 0.75rem;
+            padding: 0.35rem 0.65rem;
             border-radius: var(--radius-sm);
-            font-size: 0.75rem;
+            font-size: 0.72rem;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.15s ease;
@@ -172,9 +257,9 @@
             background: rgba(16, 185, 129, 0.15);
             border: 1px solid rgba(16, 185, 129, 0.4);
             color: var(--accent-emerald);
-            padding: 0.45rem 0.75rem;
+            padding: 0.35rem 0.65rem;
             border-radius: var(--radius-sm);
-            font-size: 0.75rem;
+            font-size: 0.72rem;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.15s ease;
@@ -192,10 +277,10 @@
         .active-pill {
             background: rgba(16, 185, 129, 0.2);
             color: var(--accent-emerald);
-            font-size: 0.72rem;
+            font-size: 0.68rem;
             font-weight: 600;
             text-align: center;
-            padding: 0.4rem;
+            padding: 0.3rem 0.5rem;
             border-radius: var(--radius-sm);
             border: 1px solid rgba(16, 185, 129, 0.4);
         }
@@ -203,12 +288,12 @@
         .progress-box {
             display: flex;
             flex-direction: column;
-            gap: 0.35rem;
+            gap: 0.3rem;
         }
 
         .progress-bar-bg {
             width: 100%;
-            height: 5px;
+            height: 4px;
             background: rgba(255, 255, 255, 0.1);
             border-radius: 9999px;
             overflow: hidden;
@@ -222,7 +307,7 @@
         }
 
         .progress-status-text {
-            font-size: 0.66rem;
+            font-size: 0.64rem;
             color: var(--text-muted);
             font-family: 'Fira Code', monospace;
             display: flex;
@@ -234,12 +319,12 @@
 
         .sidebar-footer {
             border-top: 1px solid var(--border-subtle);
-            padding-top: 0.85rem;
+            padding-top: 0.75rem;
             margin-top: auto;
             display: flex;
             flex-direction: column;
-            gap: 0.5rem;
-            font-size: 0.72rem;
+            gap: 0.35rem;
+            font-size: 0.7rem;
             color: var(--text-muted);
         }
 
@@ -767,7 +852,7 @@
 
     <!-- LEFT SIDEBAR -->
     <aside class="sidebar" id="sidebar">
-        <button class="new-chat-btn" onclick="resetChat()">
+        <button class="new-chat-btn" onclick="startNewChat()">
             <div style="display: flex; align-items: center; gap: 0.5rem;">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"></path></svg>
                 <span>New chat</span>
@@ -775,12 +860,23 @@
             <span style="font-size: 0.75rem; color: var(--text-muted); font-family: 'Fira Code', monospace;">⌘K</span>
         </button>
 
+        <!-- RECENT CONVERSATIONS LIST -->
         <div class="sidebar-section-label">
-            <span>Substrate Library</span>
-            <span style="font-size: 0.65rem; color: var(--accent-cyan);">Persistent Storage</span>
+            <span>Conversations</span>
+            <span style="font-size: 0.65rem; color: var(--accent-cyan);" id="convCountLabel">0 saved</span>
         </div>
 
-        <!-- 3-TIER SUBSTRATE CARDS -->
+        <div class="conversations-scroll-container" id="conversationsList">
+            <div class="empty-conv-hint">No past conversations yet.</div>
+        </div>
+
+        <!-- SUBSTRATE LIBRARY SECTION -->
+        <div class="sidebar-section-label" style="border-top: 1px solid var(--border-subtle); padding-top: 0.6rem;">
+            <span>Substrate Library</span>
+            <span style="font-size: 0.65rem; color: var(--accent-emerald);">Persistent</span>
+        </div>
+
+        <!-- 3-TIER SUBSTRATE SLIM CARDS -->
         <div class="model-library-container">
             
             <!-- MODEL 1: QWEN 2.5 0.5B -->
@@ -788,7 +884,7 @@
                 <div class="model-card-header">
                     <div>
                         <div class="model-name">Qwen 2.5 (0.5B)</div>
-                        <div style="font-size: 0.68rem; color: var(--text-muted);">Fast Daily Driver</div>
+                        <div style="font-size: 0.64rem; color: var(--text-muted);">Fast Daily Driver</div>
                     </div>
                     <span class="model-tier-badge">Tier 1 • 280MB</span>
                 </div>
@@ -801,7 +897,7 @@
                 </div>
                 <div id="btnbox-qwen2.5-0.5b">
                     <button class="compile-btn" onclick="requestCompileModel('qwen2.5-0.5b')">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"></path></svg>
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"></path></svg>
                         <span>Download & Compile</span>
                     </button>
                 </div>
@@ -812,7 +908,7 @@
                 <div class="model-card-header">
                     <div>
                         <div class="model-name">Qwen3.8 (Flash-Next)</div>
-                        <div style="font-size: 0.68rem; color: var(--text-muted);">2026 Frontier Agentic</div>
+                        <div style="font-size: 0.64rem; color: var(--text-muted);">2026 Frontier Agentic</div>
                     </div>
                     <span class="model-tier-badge">Tier 2 • 350MB</span>
                 </div>
@@ -825,7 +921,7 @@
                 </div>
                 <div id="btnbox-qwen3.8-flash-next">
                     <button class="compile-btn" onclick="requestCompileModel('qwen3.8-flash-next')">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"></path></svg>
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"></path></svg>
                         <span>Download & Compile</span>
                     </button>
                 </div>
@@ -836,7 +932,7 @@
                 <div class="model-card-header">
                     <div>
                         <div class="model-name">GLM-5.3 (Flash)</div>
-                        <div style="font-size: 0.68rem; color: var(--text-muted);">2026 SOTA Logic & Code</div>
+                        <div style="font-size: 0.64rem; color: var(--text-muted);">2026 SOTA Logic & Code</div>
                     </div>
                     <span class="model-tier-badge">Tier 3 • 380MB</span>
                 </div>
@@ -849,7 +945,7 @@
                 </div>
                 <div id="btnbox-glm-5.3-flash">
                     <button class="compile-btn" onclick="requestCompileModel('glm-5.3-flash')">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"></path></svg>
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"></path></svg>
                         <span>Download & Compile</span>
                     </button>
                 </div>
@@ -859,10 +955,10 @@
 
         <div class="sidebar-footer">
             <div style="display: flex; justify-content: space-between; font-family: 'Fira Code', monospace;">
-                <span>Storage Cache:</span>
-                <span style="color: var(--accent-emerald);">● Persisted in Storage</span>
+                <span>Offline Storage:</span>
+                <span style="color: var(--accent-emerald);">● IndexedDB Active</span>
             </div>
-            <div>Weights persist across refreshes. Never re-downloads once compiled.</div>
+            <div>Persists chats & compiled model weights indefinitely.</div>
         </div>
     </aside>
 
@@ -906,10 +1002,10 @@
                     <p style="font-size: 0.88rem; color: var(--text-secondary); max-width: 480px; line-height: 1.6;">
                         To protect your bandwidth and device memory, no models are downloaded automatically on startup.
                         <br><br>
-                        Select your preferred intelligence tier in the <b>left sidebar</b> and click <b>"Download & Compile"</b> to initialize. Once compiled, weights persist across all page refreshes.
+                        Select your preferred intelligence tier in the <b>left sidebar</b> and click <b>"Download & Compile"</b> to initialize. Your weights and conversation history persist across page refreshes.
                     </p>
                     <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
-                        <button class="compile-btn" onclick="requestCompileModel('qwen2.5-0.5b')" style="width: auto; padding: 0.5rem 1.25rem;">
+                        <button class="compile-btn" onclick="requestCompileModel('qwen2.5-0.5b')" style="width: auto; padding: 0.45rem 1.15rem;">
                             ⚡ Quick Start with Qwen 2.5 (280MB)
                         </button>
                     </div>
@@ -1007,6 +1103,9 @@
         let generator = null;
         let dynamicSession = null;
         let isGenerating = false;
+
+        let conversations = [];
+        let currentConvId = null;
         let chatHistory = [];
 
         let currentE8Coords = [0, 0, 0, 0, 0, 0, 0, 0];
@@ -1022,6 +1121,10 @@
                 if (activeModelId) {
                     localStorage.setItem('uor_active_model_v1', activeModelId);
                 }
+                localStorage.setItem('uor_conversations_v1', JSON.stringify(conversations));
+                if (currentConvId) {
+                    localStorage.setItem('uor_current_conv_id_v1', currentConvId);
+                }
             } catch(e) {
                 console.warn("Storage save error:", e);
             }
@@ -1029,9 +1132,9 @@
 
         function loadPersistentState() {
             try {
-                const saved = localStorage.getItem('uor_compiled_models_v1');
-                if (saved) {
-                    const arr = JSON.parse(saved);
+                const savedModels = localStorage.getItem('uor_compiled_models_v1');
+                if (savedModels) {
+                    const arr = JSON.parse(savedModels);
                     arr.forEach(id => {
                         if (MODEL_INFO[id]) compiledModels.add(id);
                     });
@@ -1040,10 +1143,131 @@
                 if (savedActive && MODEL_INFO[savedActive] && compiledModels.has(savedActive)) {
                     activeModelId = savedActive;
                 }
+
+                const savedConvs = localStorage.getItem('uor_conversations_v1');
+                if (savedConvs) {
+                    conversations = JSON.parse(savedConvs) || [];
+                }
+
+                const savedConvId = localStorage.getItem('uor_current_conv_id_v1');
+                if (savedConvId && conversations.find(c => c.id === savedConvId)) {
+                    currentConvId = savedConvId;
+                }
             } catch(e) {
                 console.warn("Storage load error:", e);
             }
         }
+
+        function renderConversationsList() {
+            const listEl = document.getElementById('conversationsList');
+            const countEl = document.getElementById('convCountLabel');
+            if(!listEl) return;
+
+            countEl.innerText = `${conversations.length} saved`;
+
+            if(conversations.length === 0) {
+                listEl.innerHTML = `<div class="empty-conv-hint">No past conversations yet.</div>`;
+                return;
+            }
+
+            listEl.innerHTML = '';
+            conversations.forEach(conv => {
+                const item = document.createElement('div');
+                item.className = `conv-item ${conv.id === currentConvId ? 'active' : ''}`;
+                item.onclick = (e) => {
+                    if (e.target.closest('.conv-delete-btn')) return;
+                    loadConversation(conv.id);
+                };
+
+                item.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 0.4rem; min-width: 0; flex: 1;">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink: 0;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                        <span class="conv-title">${escapeHtml(conv.title || 'Untitled Conversation')}</span>
+                    </div>
+                    <button class="conv-delete-btn" title="Delete conversation" onclick="deleteConversation('${conv.id}', event)">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                    </button>
+                `;
+                listEl.appendChild(item);
+            });
+        }
+
+        window.startNewChat = function() {
+            currentConvId = null;
+            chatHistory = [];
+            const stream = document.getElementById('chatStream');
+            stream.innerHTML = activeModelId ? `
+                <div class="message-row">
+                    <div class="ai-avatar">✦</div>
+                    <div class="ai-content">
+                        <div class="ai-meta">
+                            <span>UOR-R4 Geometric AI</span>
+                            <span>•</span>
+                            <span>⚡ ${MODEL_INFO[activeModelId].name}</span>
+                        </div>
+                        <div>
+                            New conversation started. <b>${MODEL_INFO[activeModelId].name}</b> is active and ready for your prompts!
+                        </div>
+                    </div>
+                </div>
+            ` : `
+                <div class="empty-state-card" id="emptyStatePrompt">
+                    <div class="empty-state-icon">✦</div>
+                    <h2 style="font-size: 1.15rem; font-weight: 600;">Welcome to UOR-R4 Geometric AI</h2>
+                    <p style="font-size: 0.88rem; color: var(--text-secondary); max-width: 480px; line-height: 1.6;">
+                        Select a model in the <b>left sidebar</b> and click <b>"Download & Compile"</b> to initialize.
+                    </p>
+                </div>
+            `;
+            if(dynamicSession) {
+                dynamicSession.reset();
+                persistentEngrams.clear();
+                persistentConnections = [];
+                activePulses = [];
+            }
+            renderConversationsList();
+            savePersistentState();
+        };
+
+        window.loadConversation = function(convId) {
+            const conv = conversations.find(c => c.id === convId);
+            if(!conv) return;
+
+            currentConvId = convId;
+            chatHistory = [...conv.messages];
+
+            const stream = document.getElementById('chatStream');
+            stream.innerHTML = '';
+
+            chatHistory.forEach(msg => {
+                if (msg.role === 'user') {
+                    appendUserMessage(msg.content);
+                } else if (msg.role === 'assistant') {
+                    const row = createAiMessageElement();
+                    const contentDiv = row.querySelector('.ai-text');
+                    contentDiv.innerHTML = renderMarkdown(msg.content);
+                }
+            });
+
+            if (conv.modelId && MODEL_INFO[conv.modelId] && compiledModels.has(conv.modelId) && conv.modelId !== activeModelId) {
+                activateModel(conv.modelId);
+            }
+
+            renderConversationsList();
+            savePersistentState();
+            scrollDown();
+        };
+
+        window.deleteConversation = function(convId, event) {
+            if(event) event.stopPropagation();
+            conversations = conversations.filter(c => c.id !== convId);
+            if (currentConvId === convId) {
+                startNewChat();
+            } else {
+                renderConversationsList();
+                savePersistentState();
+            }
+        };
 
         function refreshUiCards() {
             Object.keys(MODEL_INFO).forEach(id => {
@@ -1065,7 +1289,7 @@
                     card.classList.remove('active');
                     bBox.innerHTML = `
                         <button class="compile-btn" onclick="requestCompileModel('${id}')">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"></path></svg>
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"></path></svg>
                             <span>Download & Compile</span>
                         </button>
                     `;
@@ -1145,40 +1369,6 @@
             }
         }
 
-        window.resetChat = function() {
-            chatHistory = [];
-            const stream = document.getElementById('chatStream');
-            stream.innerHTML = activeModelId ? `
-                <div class="message-row">
-                    <div class="ai-avatar">✦</div>
-                    <div class="ai-content">
-                        <div class="ai-meta">
-                            <span>UOR-R4 Geometric AI</span>
-                            <span>•</span>
-                            <span>⚡ ${MODEL_INFO[activeModelId].name}</span>
-                        </div>
-                        <div>
-                            Session reset. <b>${MODEL_INFO[activeModelId].name}</b> is active and ready for your prompts!
-                        </div>
-                    </div>
-                </div>
-            ` : `
-                <div class="empty-state-card" id="emptyStatePrompt">
-                    <div class="empty-state-icon">✦</div>
-                    <h2 style="font-size: 1.15rem; font-weight: 600;">Welcome to UOR-R4 Geometric AI</h2>
-                    <p style="font-size: 0.88rem; color: var(--text-secondary); max-width: 480px; line-height: 1.6;">
-                        Select a model in the <b>left sidebar</b> and click <b>"Download & Compile"</b> to initialize.
-                    </p>
-                </div>
-            `;
-            if(dynamicSession) {
-                dynamicSession.reset();
-                persistentEngrams.clear();
-                persistentConnections = [];
-                activePulses = [];
-            }
-        };
-
         function updateTelemetry(snapped, chi, delta, alpha, winner) {
             currentE8Coords = snapped || [0,0,0,0,0,0,0,0];
             currentChi = chi || 0;
@@ -1245,7 +1435,7 @@
             const pct = document.getElementById(`pct-${modelId}`);
 
             progBox.style.display = 'flex';
-            btnBox.innerHTML = `<span style="font-size: 0.72rem; color: var(--accent-cyan); font-family: 'Fira Code', monospace;">Compiling Substrate...</span>`;
+            btnBox.innerHTML = `<span style="font-size: 0.7rem; color: var(--accent-cyan); font-family: 'Fira Code', monospace;">Compiling Substrate...</span>`;
             stage.innerText = 'Initializing stream...';
             pct.innerText = '0%';
             bar.style.width = '0%';
@@ -1367,6 +1557,19 @@
             const emptyState = document.getElementById('emptyStatePrompt');
             if(emptyState) emptyState.remove();
 
+            if(!currentConvId) {
+                currentConvId = 'conv_' + Date.now();
+                const title = text.length > 28 ? text.slice(0, 28) + '...' : text;
+                conversations.unshift({
+                    id: currentConvId,
+                    title: title,
+                    modelId: activeModelId,
+                    messages: [],
+                    timestamp: Date.now()
+                });
+                renderConversationsList();
+            }
+
             appendUserMessage(text);
             inputEl.value = '';
             isGenerating = true;
@@ -1376,7 +1579,15 @@
             const contentDiv = aiRow.querySelector('.ai-text');
             contentDiv.classList.add('typing-cursor');
 
-            chatHistory.push({ role: 'user', content: text });
+            const userMsg = { role: 'user', content: text };
+            chatHistory.push(userMsg);
+
+            const curConv = conversations.find(c => c.id === currentConvId);
+            if(curConv) {
+                curConv.messages.push(userMsg);
+                curConv.modelId = activeModelId;
+                savePersistentState();
+            }
 
             if(dynamicSession) {
                 try {
@@ -1429,7 +1640,14 @@
             } else {
                 contentDiv.innerHTML = renderMarkdown(fullResponse);
             }
-            chatHistory.push({ role: 'assistant', content: fullResponse });
+
+            const aiMsg = { role: 'assistant', content: fullResponse };
+            chatHistory.push(aiMsg);
+            if(curConv) {
+                curConv.messages.push(aiMsg);
+                savePersistentState();
+            }
+
             isGenerating = false;
             sendBtn.disabled = false;
             inputEl.focus();
@@ -1703,13 +1921,25 @@
 
         window.addEventListener('DOMContentLoaded', async () => {
             loadPersistentState();
+            renderConversationsList();
             refreshUiCards();
             await initWasmEngine();
             startBrainVisualizer();
             startWaveformVisualizer();
 
+            if (currentConvId) {
+                loadConversation(currentConvId);
+            }
+
             if (activeModelId && compiledModels.has(activeModelId)) {
                 await activateModel(activeModelId);
+            }
+        });
+
+        window.addEventListener('keydown', (e) => {
+            if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+                e.preventDefault();
+                startNewChat();
             }
         });
     </script>
