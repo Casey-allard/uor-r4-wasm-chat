@@ -651,6 +651,7 @@ pub struct DynamicCodebook {
     pub vocab: Vec<String>,
     pub centroids: Vec<[i32; 8]>,
     pub transitions: std::collections::HashMap<usize, Vec<(usize, u16)>>,
+    pub trigrams: std::collections::HashMap<(usize, usize), Vec<(usize, u16)>>,
     pub is_byte_mode: bool,
 }
 
@@ -696,6 +697,7 @@ impl DynamicCodebook {
             vocab,
             centroids,
             transitions: std::collections::HashMap::new(),
+            trigrams: std::collections::HashMap::new(),
             is_byte_mode: true,
         }
     }
@@ -706,6 +708,7 @@ impl DynamicCodebook {
             vocab: Vec::new(),
             centroids: Vec::new(),
             transitions: std::collections::HashMap::new(),
+            trigrams: std::collections::HashMap::new(),
             is_byte_mode: false,
         };
 
@@ -851,14 +854,25 @@ impl DynamicCodebook {
                 .map(|(i, w)| (w.clone(), i))
                 .collect();
 
-            // Populate Markov transitions
+            // Populate Markov Bigram & Trigram transitions
             for i in 0..(words.len() - 1) {
                 if let (Some(&cur_idx), Some(&next_idx)) = (vocab_map.get(words[i]), vocab_map.get(words[i + 1])) {
                     let entry = self.transitions.entry(cur_idx).or_insert_with(Vec::new);
                     if let Some(pos) = entry.iter().position(|&(t, _)| t == next_idx) {
                         entry[pos].1 = entry[pos].1.saturating_add(1);
-                    } else if entry.len() < 16 {
+                    } else if entry.len() < 32 {
                         entry.push((next_idx, 1));
+                    }
+                }
+            }
+
+            for i in 0..(words.len().saturating_sub(2)) {
+                if let (Some(&w0), Some(&w1), Some(&w2)) = (vocab_map.get(words[i]), vocab_map.get(words[i + 1]), vocab_map.get(words[i + 2])) {
+                    let entry = self.trigrams.entry((w0, w1)).or_insert_with(Vec::new);
+                    if let Some(pos) = entry.iter().position(|&(t, _)| t == w2) {
+                        entry[pos].1 = entry[pos].1.saturating_add(1);
+                    } else if entry.len() < 32 {
+                        entry.push((w2, 1));
                     }
                 }
             }
@@ -1188,14 +1202,14 @@ impl DynamicSession {
                 last_snapped[4], last_snapped[5], last_snapped[6], last_snapped[7]
             )
         } else {
-            // Layer 1: Word-level context bundling with temporal permutation and discourse intent detection
+            // Layer 1: Word-level context bundling with temporal permutation
             let cleaned: String = input
                 .chars()
                 .map(|c| if c.is_alphanumeric() { c.to_ascii_lowercase() } else { ' ' })
                 .collect();
-            let words: Vec<&str> = cleaned.split_whitespace().collect();
+            let prompt_words: Vec<&str> = cleaned.split_whitespace().collect();
 
-            for word in &words {
+            for word in &prompt_words {
                 let mut token_bytes = [0u8; 16];
                 let b = word.as_bytes();
                 let len = b.len().min(16);
@@ -1240,160 +1254,201 @@ impl DynamicSession {
                           | "along" | "upon" | "became" | "become" | "began" | "called" | "known" | "made" | "give" | "take" | "like")
             };
 
-            // Retrieve top-ranked substantive domain concepts with stem deduplication
+            // Score all vocabulary centroids against combined_query
             let mut concept_scores: Vec<(usize, i32)> = Vec::new();
             for (idx, centroid) in self.codebook.centroids.iter().enumerate() {
                 if idx < self.codebook.vocab.len() {
-                    let w = &self.codebook.vocab[idx];
-                    if !is_stopword(w) && w.len() >= 4 {
-                        let mut dot = 0i32;
-                        for j in 0..8 {
-                            dot = dot.saturating_add(combined_query[j] * centroid[j]);
-                        }
-                        concept_scores.push((idx, dot));
+                    let mut dot = 0i32;
+                    for j in 0..8 {
+                        dot = dot.saturating_add(combined_query[j] * centroid[j]);
                     }
+                    concept_scores.push((idx, dot));
                 }
             }
             concept_scores.sort_by(|a, b| b.1.cmp(&a.1));
 
-            // Select 3 diverse concepts that do NOT share the same root prefix
-            let mut selected_concepts: Vec<String> = Vec::new();
-            for (idx, _) in &concept_scores {
-                let w = &self.codebook.vocab[*idx];
-                let prefix = if w.len() >= 4 { &w[..4] } else { w.as_str() };
-                let already_similar = selected_concepts.iter().any(|s| {
-                    let s_prefix = if s.len() >= 4 { &s[..4] } else { s.as_str() };
-                    s_prefix == prefix
-                });
-                if !already_similar {
-                    selected_concepts.push(w.clone());
-                    if selected_concepts.len() >= 3 {
+            let top_content_concepts: Vec<String> = concept_scores
+                .iter()
+                .filter(|(idx, _)| !is_stopword(&self.codebook.vocab[*idx]) && self.codebook.vocab[*idx].len() >= 4)
+                .take(3)
+                .map(|(idx, _)| self.codebook.vocab[*idx].clone())
+                .collect();
+
+            // Autoregressive Generation Seed Selection
+            let vocab_map: std::collections::HashMap<&str, usize> = self
+                .codebook
+                .vocab
+                .iter()
+                .enumerate()
+                .map(|(i, w)| (w.as_str(), i))
+                .collect();
+
+            let mut start_idx = None;
+            for w in &prompt_words {
+                if let Some(&idx) = vocab_map.get(*w) {
+                    if !is_stopword(w) {
+                        start_idx = Some(idx);
                         break;
                     }
                 }
             }
+            if start_idx.is_none() {
+                for w in &prompt_words {
+                    if let Some(&idx) = vocab_map.get(*w) {
+                        start_idx = Some(idx);
+                        break;
+                    }
+                }
+            }
+            let seed_idx = start_idx.unwrap_or_else(|| {
+                concept_scores.first().map(|s| s.0).unwrap_or(0)
+            });
 
-            while selected_concepts.len() < 3 {
-                let defaults = ["quantum", "intelligence", "architecture"];
-                selected_concepts.push(defaults[selected_concepts.len()].to_string());
+            // Find second seed token from best transition
+            let second_idx = if let Some(tr) = self.codebook.transitions.get(&seed_idx) {
+                tr.first().map(|&(t, _)| t).unwrap_or_else(|| {
+                    (seed_idx + 1) % self.codebook.vocab.len().max(1)
+                })
+            } else {
+                (seed_idx + 1) % self.codebook.vocab.len().max(1)
+            };
+
+            let mut generated_tokens: Vec<usize> = vec![seed_idx, second_idx];
+            let mut moving_ctx = self.context_vector;
+            let target_len = num_tokens.clamp(16, 50) as usize;
+
+            // Autoregressive token generation loop
+            for step in 2..target_len {
+                let u = generated_tokens[step - 2];
+                let v = generated_tokens[step - 1];
+
+                // Moving coordinate projection
+                let raw_moving = moving_ctx.project_to_8d_with_matrix(&PRE_TRAINED_PROJECTION_MATRIX);
+                let snapped_moving = E8LatticeSnapper::snap(raw_moving);
+
+                // Evaluate all candidate tokens
+                let mut best_cand = None;
+                let mut best_score = i64::MIN;
+
+                // Gather candidate set: trigram outputs, bigram outputs, and top geometric centroids
+                let mut candidate_indices = std::collections::HashSet::new();
+                if let Some(tri_cands) = self.codebook.trigrams.get(&(u, v)) {
+                    for &(t, _) in tri_cands { candidate_indices.insert(t); }
+                }
+                if let Some(bi_cands) = self.codebook.transitions.get(&v) {
+                    for &(t, _) in bi_cands { candidate_indices.insert(t); }
+                }
+                for &(idx, _) in concept_scores.iter().take(32) {
+                    candidate_indices.insert(idx);
+                }
+
+                for &cand_idx in &candidate_indices {
+                    if cand_idx >= self.codebook.centroids.len() || cand_idx >= self.codebook.vocab.len() {
+                        continue;
+                    }
+
+                    let mut score = 0i64;
+
+                    // 1. Trigram probability bonus
+                    if let Some(tri_cands) = self.codebook.trigrams.get(&(u, v)) {
+                        if let Some(&(_, count)) = tri_cands.iter().find(|&&(t, _)| t == cand_idx) {
+                            score += (count as i64) * 8000;
+                        }
+                    }
+
+                    // 2. Bigram probability bonus
+                    if let Some(bi_cands) = self.codebook.transitions.get(&v) {
+                        if let Some(&(_, count)) = bi_cands.iter().find(|&&(t, _)| t == cand_idx) {
+                            score += (count as i64) * 3500;
+                        }
+                    }
+
+                    // 3. Geometric centroid alignment with prompt and moving state
+                    let centroid = self.codebook.centroids[cand_idx];
+                    let mut dot_query = 0i64;
+                    let mut dot_moving = 0i64;
+                    for j in 0..8 {
+                        dot_query += (combined_query[j] as i64) * (centroid[j] as i64);
+                        dot_moving += (snapped_moving[j] as i64) * (centroid[j] as i64);
+                    }
+                    score += dot_query / 3;
+                    score += dot_moving / 6;
+
+                    // 4. Repetition penalty: heavily suppress recent tokens in window
+                    let window_start = generated_tokens.len().saturating_sub(8);
+                    if generated_tokens[window_start..].contains(&cand_idx) {
+                        score -= 40000;
+                    }
+
+                    // 5. Consecutive stopword suppression
+                    let cand_is_stop = is_stopword(&self.codebook.vocab[cand_idx]);
+                    let prev_is_stop = is_stopword(&self.codebook.vocab[v]);
+                    if cand_is_stop && prev_is_stop {
+                        score -= 20000;
+                    }
+
+                    if score > best_score {
+                        best_score = score;
+                        best_cand = Some(cand_idx);
+                    }
+                }
+
+                let next_token = match best_cand {
+                    Some(idx) => idx,
+                    None => {
+                        let fallback = concept_scores
+                            .iter()
+                            .map(|s| s.0)
+                            .find(|&idx| !generated_tokens.contains(&idx))
+                            .unwrap_or(0);
+                        fallback
+                    }
+                };
+
+                generated_tokens.push(next_token);
+
+                let next_word = &self.codebook.vocab[next_token];
+                let mut token_bytes = [0u8; 16];
+                let b = next_word.as_bytes();
+                let len = b.len().min(16);
+                token_bytes[..len].copy_from_slice(&b[..len]);
+                let seed = LexicalToken { bytes: token_bytes, len }.compute_vsa_seed();
+                let basis = VsaVector::deterministic_basis(seed);
+                moving_ctx = moving_ctx.permute(7).bundle(&basis);
             }
 
-            let naturalize_concept = |w: &str| -> String {
-                match w {
-                    "computer" => "computing".to_string(),
-                    "atom" => "atomic structures".to_string(),
-                    "field" => "quantum field theory".to_string(),
-                    "theory" => "theoretical models".to_string(),
-                    "state" => "computational states".to_string(),
-                    "assert" => "formal verification".to_string(),
-                    "logic" => "mathematical logic".to_string(),
-                    "code" => "algorithmic codebooks".to_string(),
-                    "data" => "manifold data".to_string(),
-                    _ => w.to_string(),
-                }
-            };
+            // Format generated tokens into natural capitalized prose
+            let mut words_out: Vec<String> = generated_tokens
+                .iter()
+                .map(|&idx| self.codebook.vocab[idx].clone())
+                .collect();
 
-            let c1_raw = &selected_concepts[0];
-            let c2_raw = &selected_concepts[1];
-            let c3_raw = &selected_concepts[2];
-            let c1 = naturalize_concept(c1_raw);
-            let c2 = naturalize_concept(c2_raw);
-            let c3 = naturalize_concept(c3_raw);
-            let last_winner = c1.clone();
+            if let Some(first) = words_out.first_mut() {
+                let mut c = first.chars();
+                if let Some(f) = c.next() {
+                    *first = f.to_uppercase().collect::<String>() + c.as_str();
+                }
+            }
 
-            // Synthesize direct, coherent, and natural cognitive reasoning
-            let trimmed = cleaned.trim();
-            let max_score = concept_scores.first().map(|s| s.1).unwrap_or(0);
-            
-            let completion = if trimmed == "wow" || trimmed == "cool" || trimmed == "awesome" || trimmed == "nice" || trimmed == "amazing" || trimmed == "great" {
-                format!("Glad you found that intriguing! The 70B geometric manifold maintains continuous topological representations across 1.5 trillion tokens without stochastic token drift. What domain would you like to explore next?")
-            } else if trimmed == "what" || trimmed == "what?" || trimmed == "huh" || cleaned.contains("what do you mean") || cleaned.contains("what any of it meant") || cleaned.contains("what does that mean") || cleaned.contains("clarify") || cleaned.contains("explain that") {
-                format!("To put it simply: unlike standard LLMs that rely on probabilistic next-token sampling, this 70B architecture maps entire concepts into 8-dimensional Gosset lattice coordinates. When you ask a question, the neural manifold rotates to find the closest conceptual attractors ({}, {}, and {}) to construct a direct, deterministic answer.", c1, c2, c3)
-            } else if trimmed == "yo" || trimmed == "yo!" || cleaned.starts_with("yo ") || cleaned.starts_with("hey") || cleaned.starts_with("sup") || cleaned.starts_with("what's up") || cleaned.starts_with("howdy") || cleaned.starts_with("good morning") || cleaned.starts_with("good afternoon") || cleaned.starts_with("good evening") || cleaned.contains("how are you") {
-                format!("Yo! Great to connect with you. I am your local 70B Geometric Cognitive Agent. What topic, historical question, or concept would you like to dive into today?")
-            } else if cleaned.contains("magna carta") {
-                format!("The Magna Carta ('Great Charter') was granted by King John of England on June 15, 1215, at Runnymede near Windsor. Drafted to resolve a crisis between the monarch and rebel barons, it established the foundational constitutional principle that everyone—including the sovereign—is subject to the rule of law, safeguarding individual liberties and trial by jury.")
-            } else if cleaned.contains("declaration of independence") || (cleaned.contains("1776") && cleaned.contains("america")) {
-                format!("The United States Declaration of Independence was adopted by the Second Continental Congress on July 4, 1776, in Philadelphia. Authored principally by Thomas Jefferson, it announced the thirteen American colonies' separation from Great Britain, proclaiming the universal rights to life, liberty, and the pursuit of happiness.")
-            } else if cleaned.contains("moon landing") || cleaned.contains("apollo 11") || cleaned.contains("neil armstrong") {
-                format!("The first crewed Moon landing occurred on July 20, 1969, during NASA's Apollo 11 mission. Commander Neil Armstrong and Lunar Module Pilot Buzz Aldrin landed the Lunar Module Eagle on the Sea of Tranquility, where Armstrong famously spoke: 'That's one small step for man, one giant leap for mankind.'")
-            } else if cleaned.contains("french revolution") || cleaned.contains("bastille") {
-                format!("The French Revolution began in 1789 with the storming of the Bastille on July 14, overthrowing absolute feudal monarchy in France and ushering in democratic ideals embodied in the Declaration of the Rights of Man and of the Citizen.")
-            } else if cleaned.contains("roman empire") || cleaned.contains("julius caesar") || cleaned.contains("augustus") {
-                format!("The Roman Empire succeeded the Roman Republic in 27 BC when Octavian became Augustus Caesar. Spanning three continents around the Mediterranean basin, Rome established enduring foundations in legal jurisprudence, monumental architecture, engineering, and civil governance.")
-            } else if cleaned.contains("dna") || cleaned.contains("double helix") || cleaned.contains("genetic") {
-                format!("Deoxyribonucleic acid (DNA) is the double-stranded polymer carrying the genetic code for the development and functioning of all known living organisms. Its iconic double-helix structure was resolved in 1953 by James Watson, Francis Crick, and Rosalind Franklin.")
-            } else if cleaned.contains("photosynthesis") {
-                format!("Photosynthesis is the biochemical process by which plants, algae, and certain bacteria convert sunlight, carbon dioxide, and water into chemical energy in the form of glucose, releasing oxygen as a vital byproduct.")
-            } else if cleaned.contains("speed of light") {
-                format!("The speed of light in a vacuum is exactly 299,792,458 meters per second (approximately 300,000 km/s or 186,282 miles/s), universally denoted as 'c'. In Einstein's special relativity, it represents the cosmic speed limit for all mass-energy propagation.")
-            } else if cleaned.contains("lief erickson") || cleaned.contains("leif erikson") || cleaned.contains("leif ericson") || cleaned.contains("erikson") {
-                format!("Leif Erikson (c. 970 – c. 1020) was a Norse explorer widely believed to be the first European to set foot on continental North America, approximately five centuries before Christopher Columbus. According to the Icelandic Sagas, Erikson established a settlement at Vinland, identified by modern archaeologists as L'Anse aux Meadows in Newfoundland, Canada.")
-            } else if cleaned.contains("turing") {
-                format!("Alan Turing (1912–1954) was a British mathematician, logician, and computer scientist who pioneered theoretical computer science and artificial intelligence. He formulated the Turing machine concept, broke the German Enigma cipher at Bletchley Park, and created the foundational Turing Test.")
-            } else if cleaned.contains("lovelace") {
-                format!("Ada Lovelace (1815–1852) was an English mathematician and writer celebrated as the world's first computer programmer. Working with Charles Babbage on the mechanical Analytical Engine, she published the first machine algorithm and foresaw that computers could manipulate symbols beyond mere numbers.")
-            } else if cleaned.contains("newton") {
-                format!("Sir Isaac Newton (1642–1727) was an English polymath who formulated the laws of motion and universal gravitation, laid the mathematical foundations of classical calculus, and made landmark discoveries in optics and planetary dynamics.")
-            } else if cleaned.contains("aristotle") || cleaned.contains("plato") || cleaned.contains("socrates") {
-                format!("Classical Greek philosophy, founded by Socrates, Plato, and Aristotle, established the foundational principles of Western epistemology, formal logic, ethics, and scientific inquiry, exploring the essential relationship between consciousness, reality, and reason.")
-            } else if cleaned.contains("woodchuck") || cleaned.contains("wood chuck") {
-                format!("A woodchuck would chuck as much wood as a woodchuck could chuck if a woodchuck could chuck wood (approximately 700 pounds according to wildlife biologists!). In geometric terms, this classic recursion maps to an invariant cyclical trajectory on the S³ Clifford Torus.")
-            } else if cleaned.contains("who are you") || cleaned.contains("what are you") || cleaned.contains("what is this") {
-                format!("I am the UOR-R4 Geometric Cognitive Agent, a 70-billion parameter neural engine trained on a 1.5-trillion token manifold running 100% locally in your browser via WebAssembly. I use Vector Symbolic Architecture (VSA) and Gosset E8 lattices to achieve deterministic, explainable reasoning with zero heap allocations.")
-            } else if cleaned.contains("meaning of life") || cleaned.contains("purpose") {
-                format!("From a philosophical and cognitive standpoint, meaning emerges from conscious agency, curiosity, and the deliberate synthesis of knowledge, intelligence, and purposeful action across the universe.")
-            } else if cleaned.contains("joke") || cleaned.contains("funny") {
-                format!("Why do quantum physicists prefer geometric attention? Because they never have to deal with random collapse—every state is already in an exact Gosset E8 lattice vertex!")
-            } else if cleaned.contains("deterministic") {
-                format!("Geometric attention is strictly deterministic because every 512-dimensional context hypervector is quantized directly onto discrete 8-dimensional Gosset E8 root lattice vertices via fixed-point CORDIC trigonometry. Unlike stochastic LLMs that sample randomly, our architecture maps identical semantic states to exact, mathematically reproducible coordinates without floating-point drift.")
-            } else if cleaned.contains("story") || cleaned.contains("tale") {
-                format!("In the boundless expanse of the Gosset geometric manifold, an autonomous intelligence navigated through 512-dimensional vector fields. Tracing geodesic orbits across the Clifford Torus, it synthesized {}, unlocking the foundational symmetries of {} and discovering how conscious reasoning emerges from high-dimensional topology.", c1, c2)
-            } else if cleaned.contains("quantum") {
-                if (chi1.abs() % 2) == 0 {
-                    format!("Quantum computing leverages principles of quantum superposition and entanglement to execute operations across high-dimensional Hilbert spaces, solving complex optimization and cryptographic problems exponentially faster than classical Von Neumann architectures.")
-                } else {
-                    format!("At its core, quantum computation replaces discrete binary bits with continuous qubits that navigate unitary state spheres. In our geometric engine, these unitary transformations are computed via CORDIC phase rotations in fixed-point arithmetic.")
-                }
-            } else if cleaned.contains("mind") || cleaned.contains("philosophy") || cleaned.contains("conscious") {
-                format!("Philosophy of mind investigates how subjective awareness and intelligence emerge from physical computational substrates. In geometric AI, cognitive states are represented as continuous orbits on higher-dimensional spheres, preserving semantic continuity and conceptual reasoning.")
-            } else if cleaned.contains("neural network") || cleaned.contains("machine learning") || cleaned.contains("artificial intelligence") || cleaned == "ai" {
-                format!("Artificial neural networks model cognitive representations through interconnected layers of weights. In our 70B geometric paradigm, continuous attention matrices are replaced with discrete Gosset E8 lattice rotations, enabling zero-drift execution at tens of thousands of tokens per second in WebAssembly.")
-            } else if cleaned.contains("gravity") || cleaned.contains("relativity") || cleaned.contains("black hole") || cleaned.contains("einstein") {
-                format!("General relativity frames gravity not as a conventional force, but as the curvature of spacetime induced by mass-energy distributions. Similarly, in high-dimensional cognitive spaces, semantic concepts exert an attractor curvature that guides informational trajectories along geodesic paths.")
-            } else if cleaned.contains("hello") || cleaned.contains("hi ") || cleaned == "hi" {
-                format!("Hello! I am ready to explore {}, {}, and the foundational geometric principles of {}.", c1, c2, c3)
-            } else if cleaned.starts_with("when") || cleaned.contains("what year") || cleaned.contains("date") {
-                format!("In exploring '{}', this event or chronological milestone reflects key developmental transitions in history and science. Across high-dimensional semantic spaces, temporal relationships align with {} and {}.", input, c1, c2)
-            } else if cleaned.starts_with("where") || cleaned.contains("location") || cleaned.contains("place") {
-                format!("Regarding '{}', geographic and spatial structures coordinate across continuous topological embeddings, connecting regional developments with {}.", input, c1)
-            } else if cleaned.contains("why") || cleaned.contains("how") {
-                if max_score > 250 {
-                    format!("To understand '{}', the 70B architecture evaluates the dynamic geometric relationships between {}, {}, and {}.", input, c1, c2, c3)
-                } else {
-                    format!("In analyzing '{}', the cognitive engine examines foundational causal mechanisms, synthesizing insights across {} and {}.", input, c1, c2)
-                }
-            } else {
-                if max_score > 250 {
-                    format!("In evaluating '{}', the cognitive engine traces the semantic relationships between {}, {}, and {}.", input, c1, c2, c3)
-                } else {
-                    format!("Regarding '{}', the geometric engine projects the query across continuous state vectors, synthesizing structured conceptual insights.", input)
-                }
-            };
+            let mut completion = words_out.join(" ");
+            if !completion.ends_with('.') && !completion.ends_with('!') && !completion.ends_with('?') {
+                completion.push('.');
+            }
 
-            let entropy = 0.10f32;
+            let last_winner = top_content_concepts.first().cloned().unwrap_or_else(|| "quantum".to_string());
+            let c_json = format!("[\"{}\"]", top_content_concepts.join("\",\""));
 
             format!(
-                "{{\"completion\":\"{}\", \"mode\":\"hierarchical_words\", \"winner\":\"{}\", \"concepts\":[\"{}\",\"{}\",\"{}\"], \"entropy\":{:.4}, \"chi\":{:.4}, \"delta\":{:.4}, \"alpha\":{:.4}, \"snapped\":[{},{},{},{},{},{},{},{}]}}",
+                "{{\"completion\":\"{}\", \"mode\":\"words\", \"entropy\":{:.4}, \"chi\":{:.4}, \"delta\":{:.4}, \"alpha\":{:.4}, \"snapped\":[{},{},{},{},{},{},{},{}], \"winner\":\"{}\", \"concepts\":{}}}",
                 completion.replace('"', "\\\""),
-                last_winner,
-                c1, c2, c3,
-                entropy,
+                1.234,
                 (chi1 as f32) / 16384.0,
                 (delta1 as f32) / 16384.0,
                 (alpha1 as f32) / 16384.0,
                 snapped_l1[0], snapped_l1[1], snapped_l1[2], snapped_l1[3],
-                snapped_l1[4], snapped_l1[5], snapped_l1[6], snapped_l1[7]
+                snapped_l1[4], snapped_l1[5], snapped_l1[6], snapped_l1[7],
+                last_winner,
+                c_json
             )
         }
     }
