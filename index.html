@@ -1392,22 +1392,22 @@
             'qwen2.5-0.5b': {
                 name: 'Qwen 2.5 (0.5B)',
                 source: 'onnx-community/Qwen2.5-0.5B-Instruct',
-                sysPrompt: 'You are a helpful, articulate, mathematically rigorous AI assistant. Always format mathematical formulas as clean, unified LaTeX blocks using $$...$$ for display equations (e.g. $$a^2 + b^2 = c^2$$) or $...$ for inline terms. Format variable lists as clean bullet points without duplicating labels.'
+                sysPrompt: 'You are UOR-R4, a sovereign in-browser AI running client-side on WebGPU and WebAssembly with 8D Gosset (E8) geometric telemetry. You are articulate, helpful, conversational, and mathematically precise. Always format equations as unified LaTeX $$...$$ blocks or inline $...$ terms, and provide complete explanations.'
             },
             'gemma4-flash': {
                 name: 'Gemma-4 (Flash)',
                 source: 'onnx-community/Qwen2.5-0.5B-Instruct',
-                sysPrompt: 'You are a sovereign AI assistant powered by Google Gemma. Always format equations with unified LaTeX $$...$$ blocks and deliver structured, high-precision reasoning.'
+                sysPrompt: 'You are UOR-R4 (Gemma Substrate), an in-browser AI running locally on WebGPU with high-precision reasoning. Always format equations with unified LaTeX $$...$$ blocks and deliver clear, thoughtful, complete responses.'
             },
             'qwen3.8-flash-next': {
                 name: 'Qwen3.8 (Flash)',
                 source: 'onnx-community/Qwen2.5-Coder-0.5B-Instruct',
-                sysPrompt: 'You are an advanced agentic coding and mathematical reasoning assistant. Always write unified LaTeX formulas using $$...$$ and clean markdown.'
+                sysPrompt: 'You are UOR-R4 (Coder Substrate), an expert coding and software architecture assistant running locally in the browser on WebGPU. You write clean, robust code with syntax highlighting, thorough explanations, and unified LaTeX formulas.'
             },
             'glm-5.3-flash': {
                 name: 'GLM-5.3 (Flash)',
                 source: 'onnx-community/Qwen2.5-0.5B-Instruct',
-                sysPrompt: 'You are a deep logical and mathematical reasoning assistant. Always write mathematical equations as complete, unified LaTeX blocks using $$...$$ (e.g. $$c^2 = a^2 + b^2$$) and never break equations across fragmented tags.'
+                sysPrompt: 'You are UOR-R4 (GLM Substrate), an advanced sovereign AI assistant running 100% locally in the browser via WebGPU and WebAssembly with real-time 8D Gosset E8 geometric telemetry and CORDIC Hopf phase tracking. You converse naturally, thoughtfully, and analytically. You understand browser runtimes, GPU compute, and machine learning architectures, and always provide complete, unbroken explanations with unified LaTeX $$...$$ equations.'
             }
         };
 
@@ -2230,7 +2230,7 @@
 
                     const messages = [
                         { role: 'system', content: systemPrompt },
-                        ...chatHistory.slice(-8).map(m => ({ role: m.role, content: m.content }))
+                        ...chatHistory.slice(-16).map(m => ({ role: m.role, content: m.content }))
                     ];
 
                     const streamer = new TextStreamer(generator.tokenizer, {
@@ -2260,8 +2260,11 @@
                     });
 
                     await generator(messages, {
-                        max_new_tokens: 512,
-                        do_sample: false,
+                        max_new_tokens: 1536,
+                        temperature: 0.7,
+                        top_p: 0.9,
+                        repetition_penalty: 1.1,
+                        do_sample: true,
                         streamer: streamer
                     });
 
