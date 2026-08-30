@@ -204,28 +204,45 @@
             color: var(--text-primary);
         }
 
-        .model-select-dropdown {
+        .engine-mode-toggle {
+            display: flex;
             background: var(--bg-surface);
             border: 1px solid var(--border);
-            color: var(--text-primary);
-            padding: 0.4rem 0.75rem;
             border-radius: var(--radius-md);
-            font-size: 0.82rem;
+            padding: 2px;
+            gap: 2px;
+        }
+
+        .toggle-tab {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 0.78rem;
             font-weight: 500;
-            outline: none;
+            padding: 0.35rem 0.65rem;
+            border-radius: var(--radius-sm);
             cursor: pointer;
+            transition: all 0.15s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
             font-family: 'Inter', sans-serif;
-            transition: border-color 0.15s ease, background 0.15s ease;
         }
 
-        .model-select-dropdown:hover, .model-select-dropdown:focus {
-            border-color: var(--accent-cyan);
-            background: var(--bg-surface-hover);
+        .toggle-tab.active {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+            font-weight: 600;
         }
 
-        .model-select-dropdown option {
-            background: #1f1f1f;
-            color: #ececec;
+        .toggle-tab.active.webgpu {
+            background: rgba(0, 243, 255, 0.15);
+            color: var(--accent-cyan);
+        }
+
+        .toggle-tab.active.cpu {
+            background: rgba(168, 85, 247, 0.18);
+            color: var(--accent-purple);
         }
 
         .model-status-indicator {
@@ -690,7 +707,7 @@
                     <span>UOR-R4 Geometric Core</span>
                     <span id="footerStatus" style="color: var(--accent-amber); font-size: 0.68rem;">● Initializing...</span>
                 </div>
-                <div class="model-pill-detail" id="pillDetail">Qwen 2.5 + 8D Gosset E8 Manifold</div>
+                <div class="model-pill-detail" id="pillDetail">Qwen 2.5 Substrate + 8D Gosset E8</div>
                 <div class="model-pill-detail">100% Private In-Browser AI</div>
             </div>
         </div>
@@ -706,13 +723,15 @@
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg>
                 </button>
                 
-                <select id="engineSelector" class="model-select-dropdown" onchange="switchEngine(this.value)">
-                    <option value="onnx-community/Qwen2.5-0.5B-Instruct" selected>⚡ Qwen 2.5 (0.5B • Fast WebGPU)</option>
-                    <option value="onnx-community/gemma-3-1b-it-ONNX">💎 Google Gemma 3 (1B • High Capability WebGPU)</option>
-                    <option value="onnx-community/gemma-3-270m-it-ONNX">💎 Google Gemma 3 (270M • Ultra-Fast WebGPU)</option>
-                    <option value="onnx-community/Llama-3.2-1B-Instruct">🦙 Meta Llama 3.2 (1B • WebGPU)</option>
-                    <option value="uor-cpu-mod256">🏎️ UOR Mod-256 (Pure CPU • 0ms Compile Instant)</option>
-                </select>
+                <!-- DUAL ENGINE TOGGLE -->
+                <div class="engine-mode-toggle">
+                    <button id="tabWebgpu" class="toggle-tab active webgpu" onclick="setEngineMode('webgpu')">
+                        ⚡ WebGPU Neural (Qwen 2.5)
+                    </button>
+                    <button id="tabCpu" class="toggle-tab" onclick="setEngineMode('cpu')">
+                        🏎️ UOR Mod-256 (0ms CPU SIMD)
+                    </button>
+                </div>
 
                 <div id="modelBadge" class="model-status-indicator">
                     <span id="badgeDot">●</span>
@@ -742,12 +761,12 @@
                             <span id="welcomeMeta">⚡ Loading Engine</span>
                         </div>
                         <div id="welcomeMessageText">
-                            Hello! I am your <b>UOR-R4 Geometric Cognitive Agent</b> powered by the <b>Qwen 2.5 neural model</b> and real-time <b>8D Gosset \(E_8\) lattice attention telemetry</b>. My reasoning executes 100% locally in your browser via WebGPU with zero server dependencies. You can switch between <b>WebGPU Neural Models (Qwen, Gemma 3, Llama)</b> and the <b>Instant CPU Mod-256 Geometric Core</b> at any time via the top dropdown!
+                            Hello! I am your <b>UOR-R4 Geometric Cognitive Agent</b> powered by the <b>Qwen 2.5 neural model</b> and real-time <b>8D Gosset \(E_8\) lattice attention telemetry</b>. My reasoning executes 100% locally in your browser with zero server dependencies. You can switch between <b>WebGPU Neural Mode</b> and the <b>Instant 0ms CPU Mod-256 Geometric Core</b> at any time using the toggle in the top bar!
                         </div>
                         
                         <div id="loaderCard" class="loading-progress-card">
                             <div style="display: flex; justify-content: space-between; font-size: 0.78rem; font-weight: 500;">
-                                <span id="loadTitle">Downloading Neural Weights...</span>
+                                <span id="loadTitle">Downloading Qwen 2.5 Neural Weights...</span>
                                 <span id="loadPercent" style="font-family: 'Fira Code', monospace; color: var(--accent-cyan);">0%</span>
                             </div>
                             <div class="progress-bar-container">
@@ -829,7 +848,7 @@
         env.allowLocalModels = false;
         env.useBrowserCache = true;
 
-        let currentEngineKey = 'onnx-community/Qwen2.5-0.5B-Instruct';
+        let currentMode = 'webgpu'; // 'webgpu' or 'cpu'
         let generator = null;
         let dynamicSession = null;
         let isGenerating = false;
@@ -989,8 +1008,10 @@
             }
         }
 
-        window.switchEngine = async function(modelKey) {
-            currentEngineKey = modelKey;
+        window.setEngineMode = async function(mode) {
+            currentMode = mode;
+            const tabWebgpu = document.getElementById('tabWebgpu');
+            const tabCpu = document.getElementById('tabCpu');
             const badge = document.getElementById('modelBadge');
             const badgeText = document.getElementById('badgeText');
             const footerStatus = document.getElementById('footerStatus');
@@ -1003,10 +1024,11 @@
             const sendBtn = document.getElementById('sendBtn');
             const pillDetail = document.getElementById('pillDetail');
 
-            if(modelKey === 'uor-cpu-mod256') {
-                generator = null;
+            if(mode === 'cpu') {
+                tabWebgpu.className = 'toggle-tab';
+                tabCpu.className = 'toggle-tab active cpu';
                 badge.classList.add('ready');
-                badgeText.innerText = 'CPU MOD-256 ONLINE';
+                badgeText.innerText = 'CPU MOD-256 (0ms JIT)';
                 footerStatus.innerText = '● CPU Ready (0ms)';
                 footerStatus.style.color = 'var(--accent-emerald)';
                 welcomeMeta.innerText = '⚡ CPU Mod-256 Core';
@@ -1020,7 +1042,25 @@
                 return;
             }
 
-            // WebGPU Neural Model Loading
+            // WebGPU Neural Mode
+            tabCpu.className = 'toggle-tab';
+            tabWebgpu.className = 'toggle-tab active webgpu';
+            pillDetail.innerText = 'Qwen 2.5 + 8D Gosset E8 Manifold';
+
+            if(generator) {
+                badge.classList.add('ready');
+                badgeText.innerText = 'WEBGPU 0.5B ONLINE';
+                footerStatus.innerText = '● WebGPU Ready';
+                footerStatus.style.color = 'var(--accent-emerald)';
+                welcomeMeta.innerText = '⚡ WebGPU Online';
+                if(loaderCard) loaderCard.style.display = 'none';
+                chatInput.disabled = false;
+                sendBtn.disabled = false;
+                chatInput.placeholder = 'Message UOR-R4 Geometric AI (Qwen 2.5)...';
+                chatInput.focus();
+                return;
+            }
+
             try {
                 chatInput.disabled = true;
                 sendBtn.disabled = true;
@@ -1028,19 +1068,18 @@
                     loaderCard.style.display = 'flex';
                     loadPercent.innerText = '0%';
                     progressFill.style.width = '0%';
-                    loadTitle.innerText = `Downloading ${modelKey.split('/').pop()}...`;
+                    loadTitle.innerText = 'Downloading Qwen 2.5 Neural Weights...';
                 }
 
                 badge.classList.remove('ready');
-                badgeText.innerText = 'Downloading...';
+                badgeText.innerText = 'Downloading Qwen 2.5...';
                 footerStatus.innerText = '● Loading...';
                 footerStatus.style.color = 'var(--accent-amber)';
 
                 const device = navigator.gpu ? 'webgpu' : 'wasm';
-                const dtype = device === 'webgpu' ? 'q4f16' : 'q4';
 
-                generator = await pipeline('text-generation', modelKey, {
-                    dtype: dtype,
+                generator = await pipeline('text-generation', 'onnx-community/Qwen2.5-0.5B-Instruct', {
+                    dtype: 'q4',
                     device: device,
                     progress_callback: (p) => {
                         if(p.status === 'progress') {
@@ -1057,31 +1096,29 @@
                     }
                 });
 
-                const modelName = modelKey.split('/').pop().replace('-Instruct', '').replace('-ONNX', '');
                 badge.classList.add('ready');
-                badgeText.innerText = `${device.toUpperCase()} ${modelName} ONLINE`;
+                badgeText.innerText = `${device.toUpperCase()} 0.5B ONLINE`;
                 footerStatus.innerText = `● ${device.toUpperCase()} Ready`;
                 footerStatus.style.color = 'var(--accent-emerald)';
                 welcomeMeta.innerText = `⚡ ${device.toUpperCase()} Online`;
-                pillDetail.innerText = `${modelName} + 8D E8 Gosset Manifold`;
                 if(loaderCard) loaderCard.style.display = 'none';
 
                 chatInput.disabled = false;
                 sendBtn.disabled = false;
-                chatInput.placeholder = `Message UOR-R4 (${modelName})...`;
+                chatInput.placeholder = 'Message UOR-R4 Geometric AI (Qwen 2.5)...';
                 chatInput.focus();
 
-                console.log(`${modelKey} loaded successfully on ${device}.`);
+                console.log(`Qwen 2.5 loaded successfully on ${device}.`);
             } catch(err) {
-                console.error(`Load failed for ${modelKey}:`, err);
+                console.error("WebGPU load failed:", err);
                 badgeText.innerText = 'Load Error';
                 footerStatus.innerText = '● Error';
                 footerStatus.style.color = 'var(--accent-amber)';
-                chatInput.placeholder = 'Failed to load model. You can switch to CPU Mod-256 mode.';
+                chatInput.placeholder = 'WebGPU failed. Switch to CPU Mod-256 mode.';
                 if(loaderCard) {
                     loaderCard.style.display = 'flex';
-                    loadTitle.innerText = `Initialization Failed for ${modelKey.split('/').pop()}`;
-                    document.getElementById('loadSubtext').innerText = err ? (err.message || String(err)) : "Could not compile model shaders.";
+                    loadTitle.innerText = 'Initialization Failed for Qwen 2.5';
+                    document.getElementById('loadSubtext').innerText = err ? (err.message || String(err)) : "Could not compile shaders.";
                     document.getElementById('loadSubtext').style.color = '#ef4444';
                 }
             }
@@ -1120,10 +1157,10 @@
             let fullResponse = "";
 
             // MODE 1: Pure CPU Mod-256 Execution
-            if(currentEngineKey === 'uor-cpu-mod256' || !generator) {
+            if(currentMode === 'cpu' || !generator) {
                 if(dynamicSession) {
                     const cpuRes = JSON.parse(dynamicSession.process_input_dynamic(text, 45));
-                    fullResponse = cpuRes.completion || `[UOR-R4 Mod-256 CPU Core]: Geometric attractor state aligned to "${cpuRes.winner}" with phase trajectory (${cpuRes.chi.toFixed(3)}, ${cpuRes.alpha.toFixed(3)}).`;
+                    fullResponse = cpuRes.completion || `[UOR-R4 Mod-256 CPU Core]: Geometric attractor aligned to "${cpuRes.winner}" with phase trajectory (${cpuRes.chi.toFixed(3)}, ${cpuRes.alpha.toFixed(3)}).`;
                     
                     // Simulate fast 0ms token stream animation
                     const words = fullResponse.split(' ');
@@ -1224,7 +1261,7 @@
                     <div class="ai-meta">
                         <span>UOR-R4 Geometric AI</span>
                         <span>•</span>
-                        <span>⚡ ${currentEngineKey === 'uor-cpu-mod256' ? 'CPU Mod-256' : 'WebGPU'}</span>
+                        <span>⚡ ${currentMode === 'cpu' ? 'CPU Mod-256' : 'WebGPU'}</span>
                     </div>
                     <div class="ai-text"></div>
                 </div>
@@ -1470,7 +1507,7 @@
             await initWasmEngine();
             startBrainVisualizer();
             startWaveformVisualizer();
-            switchEngine('onnx-community/Qwen2.5-0.5B-Instruct');
+            setEngineMode('webgpu');
         });
     </script>
 </body>
