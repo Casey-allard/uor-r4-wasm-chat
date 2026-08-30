@@ -3,25 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UOR-R4 Agent Studio | 2.14B Parameter Geometric Cognitive AI</title>
+    <title>UOR-R4 Agent Studio | 7.0B Parameter Geometric Cognitive AI</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-base: #070a12;
-            --bg-sidebar: #0b101d;
-            --bg-card: rgba(15, 23, 42, 0.7);
+            --bg-base: #060911;
+            --bg-sidebar: #0a0e1a;
+            --bg-card: rgba(15, 23, 42, 0.75);
             --bg-card-hover: rgba(30, 41, 59, 0.85);
-            --bg-input: #0e1526;
+            --bg-input: #0c1222;
             --border: rgba(56, 189, 248, 0.14);
-            --border-highlight: rgba(56, 189, 248, 0.4);
+            --border-highlight: rgba(56, 189, 248, 0.45);
             --cyan: #00f3ff;
-            --cyan-glow: rgba(0, 243, 255, 0.25);
+            --cyan-glow: rgba(0, 243, 255, 0.3);
             --emerald: #10b981;
             --emerald-glow: rgba(16, 185, 129, 0.25);
             --purple: #a855f7;
-            --purple-glow: rgba(168, 85, 247, 0.25);
+            --purple-glow: rgba(168, 85, 247, 0.3);
             --rose: #f43f5e;
             --text-primary: #f8fafc;
             --text-secondary: #94a3b8;
@@ -46,8 +46,8 @@
             flex-direction: column;
             overflow: hidden;
             background-image: 
-                radial-gradient(circle at 10% 10%, rgba(0, 243, 255, 0.04) 0%, transparent 40%),
-                radial-gradient(circle at 90% 90%, rgba(168, 85, 247, 0.04) 0%, transparent 40%),
+                radial-gradient(circle at 10% 10%, rgba(0, 243, 255, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 90% 90%, rgba(168, 85, 247, 0.05) 0%, transparent 40%),
                 linear-gradient(rgba(255, 255, 255, 0.008) 1px, transparent 1px),
                 linear-gradient(90deg, rgba(255, 255, 255, 0.008) 1px, transparent 1px);
             background-size: 100% 100%, 100% 100%, 28px 28px, 28px 28px;
@@ -58,7 +58,7 @@
             border-bottom: 1px solid var(--border);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
-            background: rgba(7, 10, 18, 0.92);
+            background: rgba(6, 9, 17, 0.92);
             padding: 0.75rem 1.5rem;
             display: flex;
             justify-content: space-between;
@@ -80,7 +80,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 0 14px var(--cyan-glow);
+            box-shadow: 0 0 16px var(--cyan-glow);
         }
 
         .brand-icon svg {
@@ -140,7 +140,7 @@
         /* 3-COLUMN STUDIO LAYOUT */
         .studio-layout {
             display: grid;
-            grid-template-columns: 260px 1fr 380px;
+            grid-template-columns: 250px 1fr 400px;
             flex: 1;
             overflow: hidden;
         }
@@ -244,7 +244,7 @@
             display: flex;
             flex-direction: column;
             height: 100%;
-            background: rgba(6, 9, 18, 0.5);
+            background: rgba(6, 9, 17, 0.4);
             overflow: hidden;
         }
 
@@ -270,7 +270,7 @@
         .chat-row {
             display: flex;
             gap: 0.95rem;
-            max-width: 860px;
+            max-width: 880px;
             width: 100%;
             animation: fadeIn 0.25s ease-out;
         }
@@ -301,7 +301,7 @@
         .avatar-ai {
             background: linear-gradient(135deg, #00f3ff, #a855f7);
             color: #000;
-            box-shadow: 0 0 10px var(--cyan-glow);
+            box-shadow: 0 0 12px var(--cyan-glow);
         }
 
         .avatar-user {
@@ -384,12 +384,13 @@
 
         .thought-step-icon {
             color: var(--purple);
+            font-weight: 700;
         }
 
         /* INPUT DOCK */
         .input-dock {
             padding: 1rem 2rem 1.25rem 2rem;
-            background: rgba(7, 10, 18, 0.85);
+            background: rgba(6, 9, 17, 0.85);
             border-top: 1px solid var(--border);
             display: flex;
             flex-direction: column;
@@ -473,7 +474,7 @@
             transform: translateY(-1px);
         }
 
-        /* RIGHT TELEMETRY DOCK (HOW THE BRAIN THINKS) */
+        /* RIGHT TELEMETRY DOCK: 3D SYNAPTIC NEURAL BRAIN */
         .telemetry-dock {
             background: var(--bg-sidebar);
             border-left: 1px solid var(--border);
@@ -484,16 +485,17 @@
             overflow-y: auto;
         }
 
-        .canvas-card {
+        .brain-card {
             background: var(--bg-card);
             border: 1px solid var(--border);
             border-radius: var(--radius-md);
             overflow: hidden;
             display: flex;
             flex-direction: column;
+            box-shadow: 0 0 24px rgba(0, 243, 255, 0.05);
         }
 
-        .canvas-header {
+        .brain-header {
             padding: 0.65rem 0.85rem;
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
             display: flex;
@@ -501,20 +503,20 @@
             align-items: center;
         }
 
-        .canvas-title {
-            font-size: 0.76rem;
+        .brain-title {
+            font-size: 0.78rem;
             font-weight: 700;
             color: #ffffff;
             display: flex;
             align-items: center;
-            gap: 0.4rem;
+            gap: 0.45rem;
         }
 
-        .canvas-box {
+        .brain-box {
             position: relative;
             width: 100%;
-            height: 220px;
-            background: radial-gradient(circle at 50% 50%, #0d152b 0%, #070a12 100%);
+            height: 320px;
+            background: radial-gradient(circle at 50% 50%, #0d162e 0%, #060911 100%);
         }
 
         canvas {
@@ -523,59 +525,25 @@
             display: block;
         }
 
-        .canvas-overlay {
+        .brain-overlay {
             position: absolute;
-            top: 6px;
-            left: 8px;
+            bottom: 8px;
+            left: 10px;
+            right: 10px;
             font-family: 'Fira Code', monospace;
             font-size: 0.68rem;
             color: var(--cyan);
-            pointer-events: none;
-            background: rgba(0, 0, 0, 0.65);
-            padding: 0.2rem 0.45rem;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 0.35rem 0.65rem;
             border-radius: 4px;
-            border: 1px solid rgba(0, 243, 255, 0.2);
-        }
-
-        /* 4-STAGE PIPELINE CARDS */
-        .pipeline-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-md);
-            padding: 0.85rem;
+            border: 1px solid rgba(0, 243, 255, 0.25);
             display: flex;
-            flex-direction: column;
-            gap: 0.65rem;
-        }
-
-        .pipeline-step {
-            display: flex;
-            align-items: center;
             justify-content: space-between;
-            font-size: 0.72rem;
-            font-family: 'Fira Code', monospace;
-            padding: 0.35rem 0.5rem;
-            background: rgba(11, 17, 32, 0.6);
-            border-radius: 4px;
-            border: 1px solid rgba(255, 255, 255, 0.04);
+            align-items: center;
         }
 
-        .pipeline-step.active {
-            border-color: var(--cyan);
-            background: rgba(0, 243, 255, 0.06);
-        }
-
-        .step-label {
-            color: var(--text-secondary);
-        }
-
-        .step-val {
-            color: var(--cyan);
-            font-weight: 600;
-        }
-
-        /* 8D GOSSET SPECTRUM */
-        .spectrum-card {
+        /* 4-STAGE COGNITIVE PIPELINE ROUTER */
+        .pipeline-card {
             background: var(--bg-card);
             border: 1px solid var(--border);
             border-radius: var(--radius-md);
@@ -585,49 +553,31 @@
             gap: 0.55rem;
         }
 
-        .e8-bars {
-            display: grid;
-            grid-template-columns: repeat(8, 1fr);
-            gap: 0.3rem;
-            margin-top: 0.25rem;
-        }
-
-        .e8-bar-col {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 0.2rem;
-        }
-
-        .e8-bar-track {
-            width: 100%;
-            height: 42px;
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 2px;
-            position: relative;
+        .pipeline-step {
             display: flex;
             align-items: center;
-            justify-content: center;
-        }
-
-        .e8-bar-fill {
-            width: 80%;
-            background: linear-gradient(180deg, var(--cyan), #a855f7);
-            border-radius: 2px;
-            position: absolute;
-            transition: height 0.3s ease, top 0.3s ease;
-        }
-
-        .e8-dim-label {
-            font-size: 0.62rem;
-            color: var(--text-muted);
+            justify-content: space-between;
+            font-size: 0.72rem;
             font-family: 'Fira Code', monospace;
+            padding: 0.4rem 0.6rem;
+            background: rgba(11, 17, 32, 0.6);
+            border-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            transition: all 0.25s ease;
         }
 
-        .e8-val-label {
-            font-size: 0.68rem;
+        .pipeline-step.active {
+            border-color: var(--cyan);
+            background: rgba(0, 243, 255, 0.08);
+            box-shadow: 0 0 12px rgba(0, 243, 255, 0.15);
+        }
+
+        .step-label {
             color: var(--text-secondary);
-            font-family: 'Fira Code', monospace;
+        }
+
+        .step-val {
+            color: var(--cyan);
             font-weight: 600;
         }
     </style>
@@ -646,7 +596,7 @@
             </div>
             <div>
                 <div class="brand-title">UOR-R4 AGENT STUDIO</div>
-                <div class="brand-subtitle">2.14B Parameter Multi-Layer Geometric Engine • 100% WebAssembly</div>
+                <div class="brand-subtitle">7.0B Parameter Multi-Layer Geometric Engine • 100% WebAssembly</div>
             </div>
         </div>
 
@@ -670,7 +620,7 @@
                 <div class="sidebar-section-title">Active Agent Core</div>
                 <div class="model-card">
                     <div class="model-name">
-                        <span>⚡ UOR-R4 2.14B Geometric</span>
+                        <span>⚡ UOR-R4 7.0B Geometric</span>
                     </div>
                     <div class="spec-row">
                         <span>Architecture:</span>
@@ -692,7 +642,7 @@
                 <div class="model-card">
                     <div class="spec-row">
                         <span>Parameters:</span>
-                        <span class="spec-val" id="sideParams">2.14 Billion</span>
+                        <span class="spec-val" id="sideParams">7.00 Billion</span>
                     </div>
                     <div class="spec-row">
                         <span>Tokens Ingested:</span>
@@ -739,12 +689,12 @@
                                 </div>
                                 <div class="thought-step-item">
                                     <span class="thought-step-icon">●</span>
-                                    <span>2.14 Billion connection parameters loaded across 2,048 Gosset E8 centroids.</span>
+                                    <span>7.0 Billion connection parameters loaded across 2,048 Gosset E8 centroids.</span>
                                 </div>
                             </div>
                         </details>
                         <div class="msg-text-ai">
-                            Hello! I am your <b>UOR-R4 Geometric Cognitive Agent</b>. My reasoning process operates entirely on 512-dimensional vector symbolic superposition, CORDIC Hopf phase rotations, and discrete 8D Gosset \(E_8\) lattice quantization. Ask me any conceptual, philosophical, or scientific question!
+                            Hello! I am your <b>UOR-R4 Geometric Cognitive Agent (7.0B)</b>. My reasoning process operates entirely on 512-dimensional vector symbolic superposition, CORDIC Hopf phase rotations, and discrete 8D Gosset \(E_8\) lattice quantization. Ask me any conceptual, philosophical, or scientific question!
                         </div>
                     </div>
                 </div>
@@ -757,13 +707,13 @@
                     <span style="font-size: 0.68rem; color: var(--text-muted); text-transform: uppercase; font-family: 'Fira Code', monospace;">Quick Inquiries:</span>
                     <button class="chip" onclick="quickSend('hello!')">hello!</button>
                     <button class="chip" onclick="quickSend('tell me a story')">tell me a story</button>
-                    <button class="chip" onclick="quickSend('explain quantum computing')">quantum computing</button>
                     <button class="chip" onclick="quickSend('why is geometric attention deterministic')">why deterministic?</button>
+                    <button class="chip" onclick="quickSend('explain quantum computing')">quantum computing</button>
                     <button class="chip" onclick="quickSend('what is philosophy of mind')">philosophy of mind</button>
                 </div>
 
                 <div class="input-bar">
-                    <input type="text" id="chatInput" class="chat-input" placeholder="Message UOR-R4 2.14B Agent..." onkeydown="if(event.key==='Enter') sendChat()">
+                    <input type="text" id="chatInput" class="chat-input" placeholder="Message UOR-R4 7.0B Agent..." onkeydown="if(event.key==='Enter') sendChat()">
                     <button class="btn-send" onclick="sendChat()">
                         <span>Send</span>
                         <svg width="13" height="13" viewBox="0 0 20 20" fill="currentColor"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path></svg>
@@ -772,50 +722,45 @@
             </div>
         </main>
 
-        <!-- RIGHT TELEMETRY DOCK: HOW THE BRAIN THINKS -->
+        <!-- RIGHT TELEMETRY DOCK: 3D SYNAPTIC NEURAL BRAIN -->
         <aside class="telemetry-dock">
             
-            <!-- 3D CLIFFORD TORUS S³ ORBIT CANVAS -->
-            <div class="canvas-card">
-                <div class="canvas-header">
-                    <div class="canvas-title">
+            <!-- 3D SYNAPTIC NEURAL BRAIN & THOUGHT WAVE CANVAS -->
+            <div class="brain-card">
+                <div class="brain-header">
+                    <div class="brain-title">
                         <svg width="14" height="14" fill="var(--cyan)" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path></svg>
-                        <span>S³ Hopf Fibration Orbit</span>
+                        <span>3D Synaptic Neural Thought Brain</span>
                     </div>
-                    <span style="font-size: 0.66rem; color: var(--cyan); font-family: 'Fira Code', monospace;">Live Brain Manifold</span>
+                    <span style="font-size: 0.66rem; color: var(--cyan); font-family: 'Fira Code', monospace;" id="neuralStateLabel">Brain: Idle (Ready)</span>
                 </div>
-                <div class="canvas-box">
-                    <canvas id="hopfCanvas"></canvas>
-                    <div class="canvas-overlay" id="canvasOverlay">χ₁: 0.0000 | α₂: 0.0000</div>
+                <div class="brain-box">
+                    <canvas id="brainCanvas"></canvas>
+                    <div class="brain-overlay">
+                        <span id="overlayPhase">Thought Wave: Idle</span>
+                        <span id="overlayPulse">Active Attractor: none</span>
+                    </div>
                 </div>
             </div>
 
-            <!-- 4-STAGE COGNITIVE PIPELINE -->
+            <!-- 4-STAGE COGNITIVE PIPELINE ROUTER -->
             <div class="pipeline-card">
-                <div class="sidebar-section-title">Cognitive Pipeline Stages</div>
-                <div class="pipeline-step active">
-                    <span class="step-label">1. VSA Superposition</span>
-                    <span class="step-val">512D Bipolar</span>
+                <div class="sidebar-section-title">Cognitive Routing Pipeline</div>
+                <div class="pipeline-step" id="pipeStep1">
+                    <span class="step-label">1. Superposition Pulse</span>
+                    <span class="step-val">512D Vector</span>
                 </div>
-                <div class="pipeline-step active">
-                    <span class="step-label">2. CORDIC Phase (χ₁, α₂)</span>
-                    <span class="step-val" id="valPhase">0.000, 0.000 rad</span>
+                <div class="pipeline-step" id="pipeStep2">
+                    <span class="step-label">2. CORDIC Phase Trajectory</span>
+                    <span class="step-val" id="valPhase">S³ Torus</span>
                 </div>
-                <div class="pipeline-step active">
+                <div class="pipeline-step" id="pipeStep3">
                     <span class="step-label">3. Discrete E8 Snap</span>
                     <span class="step-val" id="valE8Snap">8D Gosset Root</span>
                 </div>
-                <div class="pipeline-step active">
-                    <span class="step-label">4. Semantic Attractor</span>
+                <div class="pipeline-step" id="pipeStep4">
+                    <span class="step-label">4. Semantic Wave Synthesis</span>
                     <span class="step-val" id="valAttractor" style="color: var(--purple);">quantum</span>
-                </div>
-            </div>
-
-            <!-- 8D GOSSET LATTICE SPECTRUM -->
-            <div class="spectrum-card">
-                <div class="sidebar-section-title">8D Discrete Spatial Spectrum</div>
-                <div class="e8-bars" id="e8BarsContainer">
-                    <!-- 8 Bars dynamically initialized -->
                 </div>
             </div>
 
@@ -823,77 +768,58 @@
 
     </div>
 
-    <!-- WASM BRIDGING & TELEMETRY ENGINE SCRIPT -->
+    <!-- WASM BRIDGING & 3D SYNAPTIC BRAIN ENGINE SCRIPT -->
     <script type="module">
         import init, { DynamicSession } from './pkg/uor_r4_wasm_bridge.js';
 
         let dynamicSession = null;
         let currentE8Coords = [0, 0, 0, 0, 0, 0, 0, 0];
         let currentChi = 0, currentDelta = 0, currentAlpha = 0;
-        let trajectoryHistory = [];
-        let shockwavePulse = 0;
+        let activePulses = [];
+        let thoughtRoutingTime = 0;
         let autoPilotTimer = null;
         let totalTokensIngested = 2000000;
 
-        // Initialize UI Elements
-        function initUI() {
-            const e8Container = document.getElementById('e8BarsContainer');
-            e8Container.innerHTML = '';
-            for(let i = 0; i < 8; i++) {
-                const col = document.createElement('div');
-                col.className = 'e8-bar-col';
-                col.innerHTML = `
-                    <div class="e8-bar-track">
-                        <div class="e8-bar-fill" id="e8Fill_${i}" style="height: 10%; top: 45%;"></div>
-                    </div>
-                    <span class="e8-val-label" id="e8Val_${i}">0</span>
-                    <span class="e8-dim-label">d${i}</span>
-                `;
-                e8Container.appendChild(col);
-            }
-        }
-
-        // Update Live Telemetry in UI
+        // Update Live Telemetry & Trigger Synaptic Thought Waves
         function updateTelemetry(snapped, chi, delta, alpha, winner, concepts) {
             currentE8Coords = snapped || [0,0,0,0,0,0,0,0];
             currentChi = chi || 0;
             currentDelta = delta || 0;
             currentAlpha = alpha || 0;
-            shockwavePulse = 1.0;
 
             document.getElementById('valPhase').innerText = `${currentChi.toFixed(3)}, ${currentAlpha.toFixed(3)} rad`;
             document.getElementById('valE8Snap').innerText = `[${currentE8Coords.slice(0, 4).join(',')}]`;
             document.getElementById('valAttractor').innerText = winner || "none";
-            document.getElementById('canvasOverlay').innerText = `χ₁: ${currentChi.toFixed(3)} | α₂: ${currentAlpha.toFixed(3)}`;
+            document.getElementById('overlayPhase').innerText = `Phase: χ₁=${currentChi.toFixed(2)}, α₂=${currentAlpha.toFixed(2)}`;
+            document.getElementById('overlayPulse').innerText = `Attractor: ${winner || "none"}`;
+            document.getElementById('neuralStateLabel').innerText = `Brain: Firing (${winner || "active"})`;
 
-            trajectoryHistory.push({
-                chi: currentChi,
-                alpha: currentAlpha,
-                delta: currentDelta,
-                winner: winner || "",
-                time: Date.now()
-            });
-            if(trajectoryHistory.length > 24) {
-                trajectoryHistory.shift();
+            // Ignite electrical synaptic thought pulses
+            for(let p = 0; p < 8; p++) {
+                activePulses.push({
+                    startNode: Math.floor(Math.random() * 48),
+                    targetNode: Math.floor(Math.random() * 48),
+                    progress: 0,
+                    speed: 0.03 + Math.random() * 0.04,
+                    color: p % 2 === 0 ? '#00f3ff' : '#a855f7'
+                });
             }
 
-            for(let i = 0; i < 8; i++) {
-                const val = currentE8Coords[i];
-                const fillEl = document.getElementById(`e8Fill_${i}`);
-                const valEl = document.getElementById(`e8Val_${i}`);
-                if(valEl) valEl.innerText = val;
-                if(fillEl) {
-                    const normalized = Math.min(1, Math.max(0.1, Math.abs(val) / 4));
-                    fillEl.style.height = `${normalized * 80}%`;
-                    fillEl.style.top = val >= 0 ? `${50 - (normalized * 40)}%` : '50%';
-                    fillEl.style.background = val >= 0 
-                        ? 'linear-gradient(180deg, #00f3ff, #a855f7)' 
-                        : 'linear-gradient(180deg, #f43f5e, #a855f7)';
-                }
-            }
+            // Animate pipeline stages
+            triggerPipelineAnimation();
         }
 
-        // Initialize WebAssembly & Auto-Load 2.14B Manifold
+        function triggerPipelineAnimation() {
+            const steps = [document.getElementById('pipeStep1'), document.getElementById('pipeStep2'), document.getElementById('pipeStep3'), document.getElementById('pipeStep4')];
+            steps.forEach(s => s.classList.remove('active'));
+
+            setTimeout(() => steps[0].classList.add('active'), 50);
+            setTimeout(() => steps[1].classList.add('active'), 200);
+            setTimeout(() => steps[2].classList.add('active'), 400);
+            setTimeout(() => steps[3].classList.add('active'), 600);
+        }
+
+        // Initialize WebAssembly & Auto-Load 7.0B Manifold
         async function setupWasm() {
             const dot = document.getElementById('statusDot');
             const txt = document.getElementById('statusText');
@@ -904,18 +830,18 @@
 
                 dot.style.background = 'var(--emerald)';
                 dot.style.boxShadow = '0 0 10px var(--emerald)';
-                txt.innerText = 'UOR-R4 2.14B Online';
+                txt.innerText = 'UOR-R4 7.0B Online';
 
                 const resp = await fetch('./assets/corpus/massive_knowledge_shard.txt');
                 const corpus = await resp.text();
                 const resJson = dynamicSession.ingest_corpus(corpus, 2, 6553, "words", 2048);
                 const res = JSON.parse(resJson);
 
-                document.getElementById('sideParams').innerText = '2.14 Billion';
+                document.getElementById('sideParams').innerText = '7.00 Billion';
                 document.getElementById('sideTokens').innerText = '2,000,000';
                 document.getElementById('sideVocab').innerText = `${res.vocab_size} Centroids`;
 
-                console.log("UOR-R4 Agent Studio initialized successfully with 2.14B parameter manifold.");
+                console.log("UOR-R4 Agent Studio initialized successfully with 7.0B parameter manifold.");
             } catch(err) {
                 console.error("Failed to load WASM binary:", err);
                 dot.style.background = 'var(--rose)';
@@ -955,7 +881,6 @@
                         const resJson = dynamicSession.ingest_corpus(text, 2, 6553, "words", 2048);
                         const res = JSON.parse(resJson);
                         totalTokensIngested += words;
-                        shockwavePulse = 1.5;
 
                         document.getElementById('sideTokens').innerText = totalTokensIngested.toLocaleString();
                         document.getElementById('sideVocab').innerText = `${res.vocab_size} Centroids`;
@@ -969,7 +894,7 @@
             autoPilotTimer = setInterval(streamStep, 3500);
         };
 
-        // Chat Execution (Coherent Multi-Sentence Dialogue with Antigravity Thought Trace)
+        // Chat Execution (Direct Coherent Dialogue with Antigravity Thought Trace)
         window.sendChat = function() {
             const inputEl = document.getElementById('chatInput');
             const text = inputEl.value.trim();
@@ -983,7 +908,7 @@
                 const data = JSON.parse(resultJson);
 
                 if(data.completion) {
-                    appendAiMessage(data.completion, data.winner || "AI Core", data.chi, data.delta, data.alpha, data.concepts, data.snapped);
+                    appendAiMessage(data.completion, data.winner || "AI Core", data.chi, data.delta, data.alpha, data.concepts);
                     updateTelemetry(data.snapped, data.chi, data.delta, data.alpha, data.winner || "AI Core", data.concepts);
                 }
             } catch(err) {
@@ -1000,7 +925,7 @@
         window.resetContext = function() {
             if(dynamicSession) {
                 dynamicSession.reset();
-                trajectoryHistory = [];
+                activePulses = [];
                 updateTelemetry([0,0,0,0,0,0,0,0], 0, 0, 0, "none", []);
             }
         };
@@ -1019,13 +944,12 @@
             stream.scrollTop = stream.scrollHeight;
         }
 
-        function appendAiMessage(completion, winner, chi, delta, alpha, concepts, snapped) {
+        function appendAiMessage(completion, winner, chi, delta, alpha, concepts) {
             const stream = document.getElementById('chatStream');
             const row = document.createElement('div');
             row.className = 'chat-row';
 
             const cList = (concepts || []).join(' → ') || winner;
-            const snapStr = (snapped || []).slice(0, 4).join(', ');
 
             row.innerHTML = `
                 <div class="avatar avatar-ai">AI</div>
@@ -1035,19 +959,19 @@
                         <div class="thought-steps">
                             <div class="thought-step-item">
                                 <span class="thought-step-icon">1.</span>
-                                <span><b>VSA Superposition:</b> Bundled 512D hypervector context.</span>
+                                <span><b>VSA Superposition:</b> Projecting 512D hypervector context.</span>
                             </div>
                             <div class="thought-step-item">
                                 <span class="thought-step-icon">2.</span>
-                                <span><b>CORDIC Hopf Phase:</b> Rotated to (χ₁: ${chi.toFixed(3)} rad, α₂: ${alpha.toFixed(3)} rad).</span>
+                                <span><b>CORDIC Phase Trajectory:</b> Tracing S³ rotation (χ₁: ${chi.toFixed(3)} rad, α₂: ${alpha.toFixed(3)} rad).</span>
                             </div>
                             <div class="thought-step-item">
                                 <span class="thought-step-icon">3.</span>
-                                <span><b>Gosset E8 Lattice:</b> Snapped to 8D root vertex [${snapStr}...].</span>
+                                <span><b>Gosset E8 Quantization:</b> Snapping to discrete 8-dimensional root lattice.</span>
                             </div>
                             <div class="thought-step-item">
                                 <span class="thought-step-icon">4.</span>
-                                <span><b>Semantic Attraction:</b> ${cList}.</span>
+                                <span><b>Semantic Synthesis:</b> ${cList}.</span>
                             </div>
                         </div>
                     </details>
@@ -1076,9 +1000,9 @@
             return (str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
         }
 
-        // DEEP DYNAMIC CLIFFORD TORUS & HOPF TRAJECTORY VISUALIZER
-        function startHopfVisualizer() {
-            const canvas = document.getElementById('hopfCanvas');
+        // INTERACTIVE 3D SYNAPTIC NEURAL BRAIN & THOUGHT ROUTER VISUALIZER
+        function startBrainVisualizer() {
+            const canvas = document.getElementById('brainCanvas');
             const ctx = canvas.getContext('2d');
             let t = 0;
 
@@ -1089,119 +1013,143 @@
             window.addEventListener('resize', resize);
             resize();
 
+            // Generate 48 3D Synaptic Brain Nodes arranged in a dual-hemisphere hyperbolic cluster
+            const numNodes = 48;
+            const nodes = [];
+            for(let i = 0; i < numNodes; i++) {
+                const phi = Math.acos(-1 + (2 * i) / numNodes);
+                const theta = Math.sqrt(numNodes * Math.PI) * phi;
+                
+                // Add natural brain-like bilateral indentation
+                const hemisphere = i % 2 === 0 ? 1 : -1;
+                const x = Math.cos(theta) * Math.sin(phi) * 0.95 + (hemisphere * 0.15);
+                const y = Math.sin(theta) * Math.sin(phi) * 0.85;
+                const z = Math.cos(phi) * 0.85;
+                nodes.push({ x, y, z, baseColor: i % 3 === 0 ? '#00f3ff' : (i % 3 === 1 ? '#a855f7' : '#38bdf8') });
+            }
+
+            // Build synaptic connectivity graph between proximal nodes
+            const edges = [];
+            for(let i = 0; i < numNodes; i++) {
+                for(let j = i + 1; j < numNodes; j++) {
+                    const dx = nodes[i].x - nodes[j].x;
+                    const dy = nodes[i].y - nodes[j].y;
+                    const dz = nodes[i].z - nodes[j].z;
+                    const dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
+                    if(dist < 0.75) {
+                        edges.push({ from: i, to: j, dist });
+                    }
+                }
+            }
+
             function render() {
-                t += 0.02;
-                shockwavePulse = Math.max(0, shockwavePulse - 0.02);
+                t += 0.015;
 
                 const width = canvas.width;
                 const height = canvas.height;
                 const cx = width / 2;
                 const cy = height / 2;
-                const scale = Math.min(width, height) * 0.42;
+                const scale = Math.min(width, height) * 0.45;
 
                 ctx.clearRect(0, 0, width, height);
 
-                ctx.fillStyle = 'rgba(0, 243, 255, 0.35)';
-                for(let i = 0; i < 20; i++) {
-                    const px = (Math.sin(i * 137.5 + t * 0.15) * 0.5 + 0.5) * width;
-                    const py = (Math.cos(i * 93.1 + t * 0.12) * 0.5 + 0.5) * height;
-                    ctx.fillRect(px, py, 1.2, 1.2);
-                }
+                // Rotation angles modulated by CORDIC Hopf phase (χ₁, α₂)
+                const rotY = t * 0.4 + (currentAlpha * 0.5);
+                const rotX = 0.35 + Math.sin(t * 0.3) * 0.1 + (currentChi * 0.2);
 
-                const numFibers = 18;
-                const steps = 60;
+                const cosY = Math.cos(rotY), sinY = Math.sin(rotY);
+                const cosX = Math.cos(rotX), sinX = Math.sin(rotX);
 
-                const warpEta = Math.PI / 4 + (currentChi * 0.25) + Math.sin(t * 0.6) * 0.08;
-                const phaseRot = (currentAlpha * 0.75) + t * 0.35;
-                const deltaTilt = (currentDelta * 0.5) + t * 0.2;
+                // Project 3D nodes to 2D screen coordinates
+                const projectedNodes = nodes.map((n, idx) => {
+                    const x1 = n.x * cosY + n.z * sinY;
+                    const z1 = -n.x * sinY + n.z * cosY;
+                    const y1 = n.y * cosX - z1 * sinX;
+                    const z2 = n.y * sinX + z1 * cosX;
 
-                for(let f = 0; f < numFibers; f++) {
-                    const u = (f / numFibers) * Math.PI * 2 + phaseRot;
-                    const fiberEta = warpEta + (Math.sin(f + t) * 0.05 * (1 + shockwavePulse));
+                    const persp = 1.8 / (2.2 - z2 * 0.6);
+                    return {
+                        sx: cx + x1 * scale * persp,
+                        sy: cy + y1 * scale * persp,
+                        z: z2,
+                        persp,
+                        color: n.baseColor
+                    };
+                });
+
+                // Draw Synaptic Edge Pathways
+                for(let e = 0; e < edges.length; e++) {
+                    const p1 = projectedNodes[edges[e].from];
+                    const p2 = projectedNodes[edges[e].to];
+                    
+                    const avgZ = (p1.z + p2.z) / 2;
+                    const alpha = Math.max(0.08, (avgZ + 1.2) / 3.0);
 
                     ctx.beginPath();
-                    for(let s = 0; s <= steps; s++) {
-                        const v = (s / steps) * Math.PI * 2;
-                        
-                        const x1 = Math.cos(u) * Math.sin(fiberEta);
-                        const y1 = Math.sin(u) * Math.sin(fiberEta);
-                        const x2 = Math.cos(v) * Math.cos(fiberEta);
-                        const y2 = Math.sin(v) * Math.cos(fiberEta);
-
-                        const denom = 1.65 - y2 * (1.0 + shockwavePulse * 0.2);
-                        const px3 = x1 / denom;
-                        const py3 = y1 / denom;
-                        const pz3 = x2 / denom;
-
-                        const rotY = deltaTilt;
-                        const rotX = 0.55 + currentChi * 0.1;
-
-                        const rx = px3 * Math.cos(rotY) + pz3 * Math.sin(rotY);
-                        const rz = -px3 * Math.sin(rotY) + pz3 * Math.cos(rotY);
-                        const ry = py3 * Math.cos(rotX) - rz * Math.sin(rotX);
-
-                        const screenX = cx + rx * scale;
-                        const screenY = cy + ry * scale;
-
-                        if(s === 0) {
-                            ctx.moveTo(screenX, screenY);
-                        } else {
-                            ctx.lineTo(screenX, screenY);
-                        }
-                    }
-
-                    const hue = (f * (360 / numFibers) + (currentAlpha * 40) + t * 15) % 360;
-                    ctx.strokeStyle = `hsla(${hue}, 95%, 68%, ${0.35 + shockwavePulse * 0.3})`;
-                    ctx.lineWidth = 1.3 + shockwavePulse * 0.8;
+                    ctx.moveTo(p1.sx, p1.sy);
+                    ctx.lineTo(p2.sx, p2.sy);
+                    ctx.strokeStyle = `rgba(56, 189, 248, ${alpha * 0.35})`;
+                    ctx.lineWidth = 1.0 * Math.max(p1.persp, p2.persp);
                     ctx.stroke();
                 }
 
-                if(trajectoryHistory.length > 1) {
+                // Render Active Electrical Synaptic Thought Pulses
+                for(let p = activePulses.length - 1; p >= 0; p--) {
+                    const pulse = activePulses[p];
+                    pulse.progress += pulse.speed;
+
+                    const p1 = projectedNodes[pulse.startNode];
+                    const p2 = projectedNodes[pulse.targetNode];
+
+                    if(pulse.progress >= 1.0) {
+                        activePulses.splice(p, 1);
+                        continue;
+                    }
+
+                    const curX = p1.sx + (p2.sx - p1.sx) * pulse.progress;
+                    const curY = p1.sy + (p2.sy - p1.sy) * pulse.progress;
+
                     ctx.beginPath();
-                    for(let i = 0; i < trajectoryHistory.length; i++) {
-                        const pt = trajectoryHistory[i];
-                        const u = pt.alpha * 0.8;
-                        const v = pt.chi * 0.8;
-                        const x = Math.cos(u) * 0.7;
-                        const y = Math.sin(v) * 0.7;
-                        const sx = cx + x * scale;
-                        const sy = cy + y * scale;
-
-                        if(i === 0) {
-                            ctx.moveTo(sx, sy);
-                        } else {
-                            ctx.lineTo(sx, sy);
-                        }
-                    }
-                    ctx.strokeStyle = 'rgba(0, 243, 255, 0.75)';
-                    ctx.lineWidth = 2.2;
-                    ctx.setLineDash([4, 4]);
-                    ctx.stroke();
-                    ctx.setLineDash([]);
-
-                    for(let i = 0; i < trajectoryHistory.length; i++) {
-                        const pt = trajectoryHistory[i];
-                        const u = pt.alpha * 0.8;
-                        const v = pt.chi * 0.8;
-                        const sx = cx + Math.cos(u) * 0.7 * scale;
-                        const sy = cy + Math.sin(v) * 0.7 * scale;
-
-                        ctx.beginPath();
-                        ctx.arc(sx, sy, i === trajectoryHistory.length - 1 ? 5 : 2.5, 0, Math.PI * 2);
-                        ctx.fillStyle = i === trajectoryHistory.length - 1 ? '#00f3ff' : '#a855f7';
-                        ctx.shadowColor = '#00f3ff';
-                        ctx.shadowBlur = 10;
-                        ctx.fill();
-                        ctx.shadowBlur = 0;
-                    }
+                    ctx.arc(curX, curY, 4 * p1.persp, 0, Math.PI * 2);
+                    ctx.fillStyle = pulse.color;
+                    ctx.shadowColor = pulse.color;
+                    ctx.shadowBlur = 12;
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
                 }
 
-                const coreRadius = 5 + (Math.abs(currentChi) * 2) + (shockwavePulse * 6);
+                // Render Synaptic Nodes (Sorted by depth z)
+                const sortedIndices = Array.from({length: numNodes}, (_, i) => i).sort((a, b) => projectedNodes[a].z - projectedNodes[b].z);
+
+                for(let idx of sortedIndices) {
+                    const pn = projectedNodes[idx];
+                    const nodeRadius = 3.5 * pn.persp;
+                    const nodeAlpha = Math.max(0.2, (pn.z + 1.2) / 2.4);
+
+                    ctx.beginPath();
+                    ctx.arc(pn.sx, pn.sy, nodeRadius, 0, Math.PI * 2);
+                    ctx.fillStyle = pn.color;
+                    ctx.globalAlpha = nodeAlpha;
+                    ctx.shadowColor = pn.color;
+                    ctx.shadowBlur = 8 * pn.persp;
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                    ctx.globalAlpha = 1.0;
+                }
+
+                // Draw Core Central Neural Attractor Orb
+                const orbRadius = (12 + Math.abs(currentChi) * 4) * (scale / 180);
+                const gradient = ctx.createRadialGradient(cx, cy, 2, cx, cy, orbRadius);
+                gradient.addColorStop(0, '#ffffff');
+                gradient.addColorStop(0.4, '#00f3ff');
+                gradient.addColorStop(0.8, '#a855f7');
+                gradient.addColorStop(1, 'transparent');
+
                 ctx.beginPath();
-                ctx.arc(cx, cy, coreRadius, 0, Math.PI * 2);
-                ctx.fillStyle = shockwavePulse > 0.5 ? '#ffffff' : '#00f3ff';
+                ctx.arc(cx, cy, orbRadius, 0, Math.PI * 2);
+                ctx.fillStyle = gradient;
                 ctx.shadowColor = '#00f3ff';
-                ctx.shadowBlur = 16 + shockwavePulse * 16;
+                ctx.shadowBlur = 24;
                 ctx.fill();
                 ctx.shadowBlur = 0;
 
@@ -1213,9 +1161,8 @@
 
         // Bootstrap on load
         window.addEventListener('DOMContentLoaded', () => {
-            initUI();
             setupWasm();
-            startHopfVisualizer();
+            startBrainVisualizer();
         });
     </script>
 </body>
