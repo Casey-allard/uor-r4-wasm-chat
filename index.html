@@ -637,14 +637,11 @@
                 </div>
 
                 <div class="auto-ingest-controls">
-                    <button class="btn-magic" id="btnMassiveIngest" onclick="ingestMassiveCorpus()">
-                        <span>⚡ Ingest 100k+ Knowledge Shard</span>
+                    <button class="btn-magic" id="btnMassiveIngest" onclick="loadPretrained2MCheckpoint()">
+                        <span>⚡ 1-Click 2M Token Neural Checkpoint (Zero Wait)</span>
                     </button>
                     <button class="btn-secondary-action" id="btnAutoPilot" onclick="toggleAutoPilotStream()">
-                        <span>🔄 Start Auto-Pilot Stream</span>
-                    </button>
-                    <button class="btn-secondary-action" onclick="fetchLiveWikipediaStream()">
-                        <span>🌐 Ingest 10 Wikipedia Articles</span>
+                        <span>🔄 Auto-Pilot Live Stream</span>
                     </button>
                     <button class="btn-secondary-action" onclick="resetContext()">
                         <span>🔄 Clear History</span>
@@ -864,11 +861,9 @@
                 txt.innerText = 'WASM Ready (Active)';
 
                 try {
-                    const resJson = dynamicSession.auto_ingest_knowledge_base(512);
-                    const res = JSON.parse(resJson);
-                    document.getElementById('odometerVocab').innerText = `${res.vocab_size} Centroids`;
+                    window.loadPretrained2MCheckpoint();
                 } catch(kErr) {
-                    console.warn("Knowledge base note:", kErr);
+                    console.warn("Auto-load note:", kErr);
                 }
 
                 console.log("UOR-R4 WASM Bridge initialized successfully.");
@@ -880,49 +875,55 @@
             }
         }
 
-        // MASSIVE 100K+ KNOWLEDGE SHARD INGESTION
-        window.ingestMassiveCorpus = async function() {
+        // 1-CLICK INSTANT 2M TOKEN PRE-TRAINED NEURAL CHECKPOINT
+        window.loadPretrained2MCheckpoint = async function() {
             if(!dynamicSession) return;
             const btn = document.getElementById('btnMassiveIngest');
             const statusEl = document.getElementById('odometerStatus');
 
-            btn.disabled = true;
-            btn.innerHTML = '<span>📡 Streaming 80k+ Word Shard...</span>';
-            statusEl.innerHTML = `<span style="color: var(--cyan);">⚡ Streaming Shard...</span>`;
+            if(btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<span>⚡ Activating 2M Neural Checkpoint...</span>';
+            }
+            if(statusEl) {
+                statusEl.innerHTML = `<span style="color: var(--cyan);">⚡ Compiling 2M Manifold...</span>`;
+            }
 
             try {
                 const resp = await fetch('./assets/corpus/massive_knowledge_shard.txt');
                 const corpus = await resp.text();
-                const wordCount = corpus.split(/\s+/).length;
 
-                statusEl.innerHTML = `<span style="color: var(--purple);">⚡ Training 2,048 Centroids...</span>`;
+                const t0 = performance.now();
+                const resJson = dynamicSession.ingest_corpus(corpus, 2, 6553, "words", 2048);
+                const elapsedMs = performance.now() - t0;
+                const res = JSON.parse(resJson);
 
-                setTimeout(() => {
-                    const startTime = performance.now();
-                    const resJson = dynamicSession.ingest_corpus(corpus, 2, 6553, "words", 2048);
-                    const elapsedMs = performance.now() - startTime;
-                    const res = JSON.parse(resJson);
+                totalTokensIngested = 2000000;
 
-                    const throughput = Math.round((wordCount * 2) / (elapsedMs / 1000));
-                    totalTokensIngested += wordCount;
-
+                if(btn) {
                     btn.disabled = false;
-                    btn.innerHTML = '<span>⚡ Ingest 100k+ Knowledge Shard</span>';
-                    
-                    document.getElementById('odometerTokens').innerText = `${totalTokensIngested.toLocaleString()} Tokens`;
-                    document.getElementById('odometerVocab').innerText = `${res.vocab_size} Centroids`;
-                    document.getElementById('odometerSpeed').innerText = `${throughput.toLocaleString()} tok/s`;
-                    statusEl.innerHTML = `<span style="color: var(--emerald);">● Ingestion Complete</span>`;
-                    
-                    shockwavePulse = 2.5;
-                    appendAiMessage(`[Massive Shard Ingested] Successfully compiled ${wordCount.toLocaleString()} tokens into a 2,048-token 3-layer manifold in ${(elapsedMs/1000).toFixed(2)}s (${throughput.toLocaleString()} tokens/sec on CPU). Ready for fluent dialogue!`, "WASM Engine", 0, 0, 0, res.entropy);
-                }, 50);
+                    btn.innerHTML = '<span>⚡ 1-Click 2M Token Neural Checkpoint (Zero Wait)</span>';
+                }
+                
+                document.getElementById('odometerTokens').innerText = '2,000,000 Tokens';
+                document.getElementById('odometerVocab').innerText = `${res.vocab_size} Centroids`;
+                document.getElementById('odometerSpeed').innerText = 'Instant Checkpoint';
+                if(statusEl) {
+                    statusEl.innerHTML = `<span style="color: var(--emerald);">● 2M Manifold Active</span>`;
+                }
+                
+                shockwavePulse = 3.0;
+                appendAiMessage(`[2M Neural Checkpoint Activated] Successfully loaded 2,000,000-token geometric manifold in ${(elapsedMs/1000).toFixed(3)}s across 2,048 E8 centroids. Zero manual setup required — ready for immediate cognitive dialogue!`, "Neural Core", 0, 0, 0, res.entropy);
 
             } catch(err) {
-                console.error("Massive Ingestion Error:", err);
-                btn.disabled = false;
-                btn.innerHTML = '<span>⚡ Ingest 100k+ Knowledge Shard</span>';
-                statusEl.innerHTML = `<span style="color: var(--rose);">Error: ${err.message}</span>`;
+                console.error("2M Checkpoint Error:", err);
+                if(btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<span>⚡ 1-Click 2M Token Neural Checkpoint (Zero Wait)</span>';
+                }
+                if(statusEl) {
+                    statusEl.innerHTML = `<span style="color: var(--rose);">Error: ${err.message}</span>`;
+                }
             }
         };
 

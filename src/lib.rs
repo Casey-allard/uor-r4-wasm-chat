@@ -936,45 +936,56 @@ impl DynamicGeometricAttention {
             return (Vec::new(), 0, 0.0);
         }
 
-        let prev_was_stopword = match recent_indices.last() {
-            Some(&last_idx) => last_idx < 20,
-            None => false,
+        let prev_word = match prev_token_idx {
+            Some(i) if i < centroids.len() => {
+                if i < 20 { "stopword" } else { "content" }
+            }
+            _ => "none",
         };
+        let prev_was_stopword = prev_word == "stopword";
 
-        // Fetch transition candidates for the previous token
         let trans_candidates: Option<&Vec<(usize, u16)>> = match prev_token_idx {
             Some(prev_idx) => transitions.get(&prev_idx),
             None => None,
         };
 
+        let stopword_count_in_window = recent_indices.iter().filter(|&&i| i < 20).count();
+
         let mut max_logit = i32::MIN;
         let mut raw_logits = Vec::with_capacity(v_len);
 
         for (idx, centroid) in centroids.iter().enumerate() {
+            // Hard repetition suppression: cannot repeat any token from the last 8 steps
+            if recent_indices.contains(&idx) {
+                raw_logits.push(i32::MIN / 4);
+                continue;
+            }
+
+            // Stop-word throttle: avoid consecutive stop-words or flooding
+            if idx < 20 && (prev_was_stopword || stopword_count_in_window >= 2) {
+                raw_logits.push(i32::MIN / 4);
+                continue;
+            }
+
             let mut dot = 0i32;
             for j in 0..8 {
                 dot = dot.saturating_add(query[j] * centroid[j]);
+            }
+
+            // Content word priority: boost substantive nouns, verbs, and scientific concepts
+            if idx >= 20 {
+                dot = dot.saturating_add(2500);
             }
 
             // Syntactic Transition Bonus: reward natural grammatical continuations
             if let Some(cands) = trans_candidates {
                 for &(next_i, count) in cands.iter() {
                     if next_i == idx {
-                        let bonus = ((count as i32) * 450).min(6000);
+                        let bonus = ((count as i32) * 650).min(9000);
                         dot = dot.saturating_add(bonus);
                         break;
                     }
                 }
-            }
-
-            // Strong repetition penalty: suppress recently generated tokens
-            if recent_indices.contains(&idx) {
-                dot = dot.saturating_sub(dot.abs() / 2 + 1500);
-            }
-
-            // Stop-word consecutive suppression
-            if prev_was_stopword && idx < 20 {
-                dot = dot.saturating_sub(dot.abs() / 3 + 1000);
             }
 
             raw_logits.push(dot);
