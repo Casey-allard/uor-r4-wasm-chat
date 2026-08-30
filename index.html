@@ -637,9 +637,6 @@
 
     <!-- WASM BRIDGING & 3D SYNAPTIC BRAIN ENGINE SCRIPT -->
     <script type="module">
-        const CACHE_VERSION = Date.now();
-        import init, { DynamicSession } from './pkg/uor_r4_wasm_bridge.js?v=20260830_0510';
-
         let dynamicSession = null;
         let currentE8Coords = [0, 0, 0, 0, 0, 0, 0, 0];
         let currentChi = 0, currentDelta = 0, currentAlpha = 0;
@@ -728,14 +725,16 @@
 
         async function setupWasm() {
             try {
-                await init('./pkg/uor_r4_wasm_bridge_bg.wasm?v=20260830_0510');
-                dynamicSession = new DynamicSession("words", 2048);
+                const timestamp = Date.now();
+                const wasmModule = await import(`./pkg/uor_r4_wasm_bridge.js?t=${timestamp}`);
+                await wasmModule.default(`./pkg/uor_r4_wasm_bridge_bg.wasm?t=${timestamp}`);
+                dynamicSession = new wasmModule.DynamicSession("words", 2048);
 
-                const resp = await fetch('./assets/corpus/massive_knowledge_shard.txt?v=' + CACHE_VERSION);
+                const resp = await fetch(`./assets/corpus/massive_knowledge_shard.txt?t=${timestamp}`);
                 const corpus = await resp.text();
                 dynamicSession.ingest_corpus(corpus, 2, 6553, "words", 2048);
 
-                console.log("UOR-R4 70B Autoregressive Online.");
+                console.log("UOR-R4 70B Semantic Attractor Core Online.");
             } catch(err) {
                 console.error("WASM setup failed:", err);
             }
