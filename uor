@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# UOR-R4 Unified CLI Launcher
+set -e
+cargo run --quiet -- "$@"

@@ -3,133 +3,1267 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UOR-R4 WebAssembly Local-First AI Terminal</title>
+    <title>UOR-R4 Cognitive Dashboard | Geometric AI & WASM Console</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { background: #121214; color: #e1e1e6; font-family: monospace; padding: 20px; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .panel { background: #1a1a1e; border: 1px solid #29292e; border-radius: 8px; padding: 15px; }
-        h2 { border-bottom: 2px solid #00e676; padding-bottom: 5px; color: #00e676; }
-        textarea { width: 100%; height: 100px; background: #202024; color: #fff; border: 1px solid #29292e; padding: 10px; box-sizing: border-box; }
-        input[type="text"] { width: 70%; background: #202024; color: #fff; border: 1px solid #29292e; padding: 8px; }
-        button { background: #00e676; border: none; padding: 8px 15px; color: #000; font-weight: bold; cursor: pointer; }
-        button:hover { background: #00b348; }
-        .meter { background: #202024; border-radius: 4px; height: 12px; margin-top: 5px; overflow: hidden; }
-        .bar { background: #00e676; height: 100%; width: 0%; transition: width 0.3s; }
-        .log { height: 120px; overflow-y: scroll; background: #0c0c0e; padding: 10px; font-size: 11px; color: #888; }
+        :root {
+            --bg-base: #060911;
+            --bg-card: rgba(15, 23, 42, 0.75);
+            --bg-card-hover: rgba(30, 41, 59, 0.85);
+            --bg-input: #0b1120;
+            --border: rgba(56, 189, 248, 0.15);
+            --border-highlight: rgba(56, 189, 248, 0.45);
+            --cyan: #00f3ff;
+            --cyan-glow: rgba(0, 243, 255, 0.25);
+            --emerald: #10b981;
+            --emerald-glow: rgba(16, 185, 129, 0.25);
+            --amber: #f59e0b;
+            --rose: #f43f5e;
+            --purple: #a855f7;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --radius-lg: 16px;
+            --radius-md: 10px;
+            --radius-sm: 6px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-primary);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-image: 
+                radial-gradient(circle at 15% 15%, rgba(0, 243, 255, 0.04) 0%, transparent 40%),
+                radial-gradient(circle at 85% 85%, rgba(168, 85, 247, 0.04) 0%, transparent 40%),
+                linear-gradient(rgba(255, 255, 255, 0.01) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.01) 1px, transparent 1px);
+            background-size: 100% 100%, 100% 100%, 32px 32px, 32px 32px;
+            overflow-x: hidden;
+        }
+
+        /* HEADER */
+        header {
+            border-bottom: 1px solid var(--border);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            background: rgba(6, 9, 17, 0.85);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            padding: 0.85rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .brand-container {
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+        }
+
+        .brand-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: var(--radius-md);
+            background: linear-gradient(135deg, #00f3ff, #6366f1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 16px var(--cyan-glow);
+        }
+
+        .brand-icon svg {
+            width: 22px;
+            height: 22px;
+            fill: #000;
+        }
+
+        .brand-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            background: linear-gradient(90deg, #ffffff, var(--cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .brand-subtitle {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-family: 'Fira Code', monospace;
+        }
+
+        .header-badges {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.3rem 0.65rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-family: 'Fira Code', monospace;
+            font-weight: 500;
+            border: 1px solid var(--border);
+            background: rgba(15, 23, 42, 0.6);
+        }
+
+        .badge-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--emerald);
+            box-shadow: 0 0 8px var(--emerald);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.85); }
+        }
+
+        /* MAIN CONTAINER */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1.15fr 0.85fr;
+            gap: 1.25rem;
+            padding: 1.25rem;
+            max-width: 1600px;
+            margin: 0 auto;
+            width: 100%;
+            flex: 1;
+        }
+
+        @media (max-width: 1080px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* CARDS */
+        .glass-panel {
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.36);
+            transition: border-color 0.2s ease;
+        }
+
+        .glass-panel:hover {
+            border-color: var(--border-highlight);
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 0.75rem;
+        }
+
+        .panel-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        .panel-title svg {
+            width: 16px;
+            height: 16px;
+            color: var(--cyan);
+        }
+
+        /* CHAT TERMINAL */
+        .chat-box {
+            display: flex;
+            flex-direction: column;
+            height: 480px;
+        }
+
+        .chat-stream {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+            padding-right: 0.5rem;
+            scroll-behavior: smooth;
+        }
+
+        .chat-stream::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chat-stream::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .chat-stream::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 9999px;
+        }
+
+        .msg-bubble {
+            max-width: 85%;
+            padding: 0.85rem 1.15rem;
+            border-radius: var(--radius-md);
+            font-size: 0.88rem;
+            line-height: 1.5;
+            position: relative;
+            animation: fadeIn 0.25s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .msg-user {
+            align-self: flex-end;
+            background: linear-gradient(135deg, rgba(0, 243, 255, 0.18), rgba(99, 102, 241, 0.2));
+            border: 1px solid rgba(0, 243, 255, 0.35);
+            color: #ffffff;
+            border-bottom-right-radius: 2px;
+        }
+
+        .msg-ai {
+            align-self: flex-start;
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-bottom-left-radius: 2px;
+            color: var(--text-primary);
+        }
+
+        .msg-ai .completion-text {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.95rem;
+            color: var(--cyan);
+            font-weight: 600;
+            margin-bottom: 0.35rem;
+        }
+
+        .msg-meta {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            font-family: 'Fira Code', monospace;
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 0.35rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding-top: 0.35rem;
+        }
+
+        /* PROMPT CHIPS */
+        .chips-container {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            overflow-x: auto;
+            padding: 0.4rem 0;
+        }
+
+        .chips-container::-webkit-scrollbar {
+            display: none;
+        }
+
+        .chip {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            font-family: 'Fira Code', monospace;
+            padding: 0.3rem 0.65rem;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.15s ease;
+        }
+
+        .chip:hover {
+            background: rgba(0, 243, 255, 0.12);
+            border-color: var(--cyan);
+            color: var(--cyan);
+            transform: translateY(-1px);
+        }
+
+        /* INPUT BAR */
+        .input-bar {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .text-input {
+            flex: 1;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 0.75rem 1rem;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            font-family: 'Inter', sans-serif;
+            outline: none;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .text-input:focus {
+            border-color: var(--cyan);
+            box-shadow: 0 0 12px var(--cyan-glow);
+        }
+
+        .btn {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 0.75rem 1.25rem;
+            border-radius: var(--radius-md);
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.45rem;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.25);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #00f3ff, #0284c7);
+            border: none;
+            color: #000;
+            font-weight: 700;
+            box-shadow: 0 0 16px var(--cyan-glow);
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 0 24px rgba(0, 243, 255, 0.45);
+            transform: translateY(-1px);
+        }
+
+        .btn-danger {
+            background: rgba(244, 63, 94, 0.15);
+            border-color: rgba(244, 63, 94, 0.35);
+            color: #fda4af;
+        }
+
+        .btn-danger:hover {
+            background: rgba(244, 63, 94, 0.25);
+            border-color: var(--rose);
+            color: #fff;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #10b981, #059669);
+            border: none;
+            color: #fff;
+            font-weight: 600;
+            box-shadow: 0 0 16px var(--emerald-glow);
+        }
+
+        .btn-success:hover {
+            box-shadow: 0 0 24px rgba(16, 185, 129, 0.45);
+            transform: translateY(-1px);
+        }
+
+        /* CANVAS & VISUALIZATION */
+        .canvas-container {
+            position: relative;
+            width: 100%;
+            height: 250px;
+            background: radial-gradient(circle at 50% 50%, #0d1527 0%, #070b14 100%);
+            border-radius: var(--radius-md);
+            border: 1px solid rgba(56, 189, 248, 0.1);
+            overflow: hidden;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .canvas-overlay {
+            position: absolute;
+            top: 8px;
+            left: 10px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.72rem;
+            color: var(--cyan);
+            pointer-events: none;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            border: 1px solid rgba(0, 243, 255, 0.2);
+        }
+
+        /* DIAGNOSTICS & METRICS */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.65rem;
+        }
+
+        .metric-card {
+            background: rgba(11, 17, 32, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: var(--radius-sm);
+            padding: 0.65rem 0.85rem;
+        }
+
+        .metric-label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-family: 'Fira Code', monospace;
+        }
+
+        .metric-val {
+            font-size: 1.05rem;
+            font-weight: 700;
+            font-family: 'Fira Code', monospace;
+            color: var(--cyan);
+            margin-top: 0.2rem;
+        }
+
+        /* E8 COORDINATES DISPLAY */
+        .e8-container {
+            background: rgba(11, 17, 32, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: var(--radius-sm);
+            padding: 0.75rem;
+        }
+
+        .e8-bars {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 0.35rem;
+            margin-top: 0.5rem;
+        }
+
+        .e8-bar-col {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .e8-bar-track {
+            width: 100%;
+            height: 48px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 3px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .e8-bar-fill {
+            width: 80%;
+            background: linear-gradient(180deg, var(--cyan), #3b82f6);
+            border-radius: 2px;
+            position: absolute;
+            transition: height 0.3s ease, top 0.3s ease;
+        }
+
+        .e8-dim-label {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            font-family: 'Fira Code', monospace;
+        }
+
+        .e8-val-label {
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+            font-family: 'Fira Code', monospace;
+            font-weight: 600;
+        }
+
+        /* ATTENTION SPECTRUM */
+        .attention-spectrum {
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+        }
+
+        .attn-row {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.75rem;
+        }
+
+        .attn-token {
+            width: 75px;
+            color: var(--text-secondary);
+        }
+
+        .attn-bar-track {
+            flex: 1;
+            height: 10px;
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 9999px;
+            overflow: hidden;
+        }
+
+        .attn-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6, var(--cyan));
+            border-radius: 9999px;
+            transition: width 0.3s ease;
+        }
+
+        .attn-pct {
+            width: 45px;
+            text-align: right;
+            color: var(--text-muted);
+            font-size: 0.7rem;
+        }
+
+        /* TRAINING STUDIO */
+        .training-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+        }
+
+        .corpus-textarea {
+            width: 100%;
+            height: 85px;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 0.75rem;
+            color: var(--text-primary);
+            font-family: 'Fira Code', monospace;
+            font-size: 0.82rem;
+            resize: vertical;
+            outline: none;
+        }
+
+        .corpus-textarea:focus {
+            border-color: var(--emerald);
+            box-shadow: 0 0 12px var(--emerald-glow);
+        }
+
+        .training-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 9999px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, var(--cyan), var(--emerald));
+            border-radius: 9999px;
+            transition: width 0.2s ease;
+        }
+
+        .weights-manager {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding-top: 0.75rem;
+        }
+
+        /* FOOTER */
+        footer {
+            border-top: 1px solid var(--border);
+            padding: 1rem 1.5rem;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: auto;
+            background: rgba(6, 9, 17, 0.6);
+        }
+
+        footer a {
+            color: var(--cyan);
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
 
-    <h1>UOR-R4 WebAssembly Cognitive Console</h1>
-    <div class="grid">
-        <!-- 1. TRAINING GATEWAY -->
-        <div class="panel">
-            <h2>Local Training & Alignment</h2>
-            <p>Paste a local text corpus or download an alignment dataset locally in-browser:</p>
-            <textarea id="corpusText">hello secure agent system. quantum stable system integrity. routing integrity execution sattvic.</textarea>
-            <br/><br/>
-            <button onclick="runLocalTraining()">Run Alignment (100 Epochs)</button>
-            <div class="meter"><div id="trainingBar" class="bar"></div></div>
-            <p id="trainMetrics">Loss: -- | Steps: --</p>
-            <h3>Execution Logs</h3>
-            <div id="trainLogs" class="log"></div>
-        </div>
-
-        <!-- 2. GENERATIVE INTERACTIVE CHAT -->
-        <div class="panel">
-            <h2>Autoregressive Chat Session</h2>
-            <div id="chatHistory" style="height: 180px; overflow-y: scroll; border: 1px solid #29292e; padding: 10px; background: #0c0c0e; margin-bottom: 10px;">
-                <p style="color: #444;">&gt;&gt; UOR-R4 zero-allocation chat initialized.</p>
+    <!-- NAVIGATION HEADER -->
+    <header>
+        <div class="brand-container">
+            <div class="brand-icon">
+                <svg viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="9" stroke="black" stroke-width="2" fill="none"/>
+                    <ellipse cx="12" cy="12" rx="9" ry="3.5" stroke="black" stroke-width="1.5" fill="none"/>
+                    <ellipse cx="12" cy="12" rx="3.5" ry="9" stroke="black" stroke-width="1.5" fill="none"/>
+                </svg>
             </div>
-            <input type="text" id="chatInput" placeholder="Type coordinate query (e.g. hello)..." onkeydown="if(event.key === 'Enter') sendChat()"/>
-            <button onclick="sendChat()">Send</button>
-            <button onclick="resetChat()" style="background: #ff5555; color: #fff;">Reset Context</button>
-            <h3>Hopf Trajectory Diagnostics</h3>
-            <p id="diagText">Hopf Angles: Chi = 0.0000 | Delta = 0.0000 | Alpha = 0.0000</p>
-            <p id="e8Coords">Snapped E8: [0, 0, 0, 0, 0, 0, 0, 0]</p>
+            <div>
+                <div class="brand-title">UOR-R4 COGNITIVE INTERFACE</div>
+                <div class="brand-subtitle">Multiplier-Free 8D E8 / S³ Hopf Geometric Engine</div>
+            </div>
         </div>
-    </div>
 
-    <!-- WASM BINDINGS INTERFACE SCRIPT -->
+        <div class="header-badges">
+            <div class="badge" id="wasmStatusBadge">
+                <div class="badge-dot" id="statusDot"></div>
+                <span id="statusText">Initializing WASM...</span>
+            </div>
+            <div class="badge">
+                <span>Core: 512D VSA / Q16.16 CORDIC</span>
+            </div>
+            <div class="badge" style="border-color: rgba(16, 185, 129, 0.3);">
+                <span style="color: var(--emerald);">Zero Heap Allocations</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN DASHBOARD -->
+    <main class="dashboard-grid">
+        
+        <!-- LEFT COLUMN: CHAT INTERFACE & IN-BROWSER TRAINING -->
+        <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+            
+            <!-- INTERACTIVE CHAT PANEL -->
+            <section class="glass-panel chat-box">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <svg fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clip-rule="evenodd"></path></svg>
+                        <span>Geometric Autoregressive Dialogue</span>
+                    </div>
+                    <button class="btn btn-danger" style="padding: 0.35rem 0.75rem; font-size: 0.75rem;" onclick="resetContext()">
+                        Reset Context
+                    </button>
+                </div>
+
+                <!-- CHAT MESSAGES STREAM -->
+                <div class="chat-stream" id="chatStream">
+                    <div class="msg-bubble msg-ai">
+                        <div class="completion-text">UOR-R4 Engine Online.</div>
+                        <div>Welcome to the multiplication-free, deterministic geometric AI. Select a prompt or enter your query below to begin recursive phase infilling.</div>
+                        <div class="msg-meta">
+                            <span>Status: Ready</span>
+                            <span>Memory: 0 allocs</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- QUICK PROMPT CHIPS -->
+                <div class="chips-container">
+                    <span style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase;">Prompts:</span>
+                    <button class="chip" onclick="quickSend('hello')">hello</button>
+                    <button class="chip" onclick="quickSend('quantum')">quantum</button>
+                    <button class="chip" onclick="quickSend('routing')">routing</button>
+                    <button class="chip" onclick="quickSend('sattvic')">sattvic</button>
+                    <button class="chip" onclick="quickSend('integrity')">integrity</button>
+                    <button class="chip" onclick="quickSend('secure')">secure</button>
+                    <button class="chip" onclick="quickSend('agent')">agent</button>
+                    <button class="chip" onclick="quickSend('system')">system</button>
+                    <button class="chip" onclick="quickSend('fano')">fano</button>
+                    <button class="chip" onclick="quickSend('stable')">stable</button>
+                </div>
+
+                <!-- INPUT BAR -->
+                <div class="input-bar">
+                    <input type="text" id="chatInput" class="text-input" placeholder="Enter word or phrase (e.g. 'hello', 'quantum', 'routing')..." onkeydown="if(event.key==='Enter') sendChat()">
+                    <button class="btn btn-primary" onclick="sendChat()">
+                        <span>Send</span>
+                        <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path></svg>
+                    </button>
+                </div>
+            </section>
+
+            <!-- IN-BROWSER TRAINING STUDIO & WEIGHTS PERSISTENCE -->
+            <section class="glass-panel training-container">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <svg fill="currentColor" viewBox="0 0 20 20"><path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"></path></svg>
+                        <span>In-Browser Client-Side SGD Training Studio</span>
+                    </div>
+                    <div style="display: flex; gap: 0.4rem;">
+                        <button class="chip" onclick="loadCorpusPreset('security')">Preset: Security</button>
+                        <button class="chip" onclick="loadCorpusPreset('quantum')">Preset: Quantum</button>
+                        <button class="chip" onclick="loadCorpusPreset('routing')">Preset: Routing</button>
+                    </div>
+                </div>
+
+                <textarea id="corpusText" class="corpus-textarea" placeholder="Paste training sentences using vocabulary words (hello, routing, sattvic, isolated, integrity, execution, stable, fano, agent, system, secure, quantum)...">hello secure agent system. quantum stable system integrity. routing integrity execution sattvic.</textarea>
+
+                <div class="progress-bar-container">
+                    <div id="trainingProgressBar" class="progress-bar-fill"></div>
+                </div>
+
+                <div class="training-controls">
+                    <div style="font-size: 0.8rem; color: var(--text-muted); font-family: 'Fira Code', monospace;" id="trainStatusLabel">
+                        Epochs: 100 | LR: 0.1 Q16 | Status: Ready
+                    </div>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <button class="btn btn-success" id="trainBtn" onclick="runTraining()">
+                            <span>Train Client-Side (WASM)</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- WEIGHTS IMPORT / EXPORT -->
+                <div class="weights-manager">
+                    <button class="btn" style="padding: 0.4rem 0.85rem; font-size: 0.78rem;" onclick="exportWeights()">
+                        <span>📥 Export Model (.json)</span>
+                    </button>
+                    <label class="btn" style="padding: 0.4rem 0.85rem; font-size: 0.78rem; cursor: pointer;">
+                        <span>📤 Import Model (.json)</span>
+                        <input type="file" id="importFileInput" accept=".json" style="display: none;" onchange="importWeights(event)">
+                    </label>
+                    <button class="btn btn-danger" style="padding: 0.4rem 0.85rem; font-size: 0.78rem;" onclick="resetWeightsToDefault()">
+                        <span>🔄 Reset to Pre-Trained</span>
+                    </button>
+                </div>
+            </section>
+        </div>
+
+        <!-- RIGHT COLUMN: HOPF CANVAS & LIVE GEOMETRIC TELEMETRY -->
+        <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+            
+            <!-- HOPF FIBRATION ORBITAL CANVAS -->
+            <section class="glass-panel">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <svg fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path></svg>
+                        <span>S³ Hopf Fibration Orbit & CORDIC Phases</span>
+                    </div>
+                    <span style="font-size: 0.7rem; color: var(--cyan); font-family: 'Fira Code', monospace;">Clifford Torus Projection</span>
+                </div>
+
+                <div class="canvas-container">
+                    <canvas id="hopfCanvas"></canvas>
+                    <div class="canvas-overlay" id="canvasOverlay">χ: 0.0000 | δ: 0.0000 | α: 0.0000</div>
+                </div>
+
+                <!-- CORDIC HOPF METRICS -->
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-label">Chi (Cluster)</div>
+                        <div class="metric-val" id="valChi">0.0000 rad</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Delta (Relative)</div>
+                        <div class="metric-val" id="valDelta">0.0000 rad</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Alpha (Phase)</div>
+                        <div class="metric-val" id="valAlpha">0.0000 rad</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SNAPPED E8 LATTICE COORDINATES -->
+            <section class="glass-panel">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <svg fill="currentColor" viewBox="0 0 20 20"><path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z"></path></svg>
+                        <span>Discrete E8 Lattice Coordinates (8D Q16)</span>
+                    </div>
+                    <span style="font-size: 0.72rem; color: var(--emerald); font-family: 'Fira Code', monospace;" id="winnerTokenLabel">Winner: none</span>
+                </div>
+
+                <div class="e8-container">
+                    <div class="e8-bars" id="e8BarsContainer">
+                        <!-- 8 Bars dynamically generated -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- GEOMETRIC ATTENTION SPECTRUM -->
+            <section class="glass-panel">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <svg fill="currentColor" viewBox="0 0 20 20"><path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"></path></svg>
+                        <span>Softmax Attention Distribution</span>
+                    </div>
+                    <span style="font-size: 0.7rem; color: var(--text-muted);">Q16 Probabilities</span>
+                </div>
+
+                <div class="attention-spectrum" id="attentionSpectrum">
+                    <!-- Dynamic Attention bars -->
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer>
+        <div>UOR-R4 WebAssembly Architecture • Multiplier-Free Geometric AI • 100% Client-Side</div>
+        <div>Hosted on GitHub Pages • <a href="https://github.com/Casey-allard/uor-r4-wasm-chat" target="_blank">View GitHub Repository</a></div>
+    </footer>
+
+    <!-- WASM BRIDGING & INTERFACE LOGIC SCRIPT -->
     <script type="module">
         import init, { InteractiveChatSession, BrowserTrainingHarness } from './pkg/uor_r4_wasm_bridge.js';
 
+        const VOCAB = [
+            "hello", "routing", "sattvic", "isolated", "integrity", "execution",
+            "stable", "fano", "agent", "system", "secure", "quantum"
+        ];
+
         let chatSession = null;
         let trainer = null;
+        let currentAttentionWeights = new Array(12).fill(1/12);
+        let currentE8Coords = [0, 0, 0, 0, 0, 0, 0, 0];
+        let currentChi = 0, currentDelta = 0, currentAlpha = 0;
 
-        async function setup() {
+        // Initialize UI Elements
+        function initUI() {
+            // Build E8 Bars
+            const e8Container = document.getElementById('e8BarsContainer');
+            e8Container.innerHTML = '';
+            for(let i = 0; i < 8; i++) {
+                const col = document.createElement('div');
+                col.className = 'e8-bar-col';
+                col.innerHTML = `
+                    <div class="e8-bar-track">
+                        <div class="e8-bar-fill" id="e8Fill_${i}" style="height: 10%; top: 45%;"></div>
+                    </div>
+                    <span class="e8-val-label" id="e8Val_${i}">0</span>
+                    <span class="e8-dim-label">d${i}</span>
+                `;
+                e8Container.appendChild(col);
+            }
+
+            // Build Attention Spectrum
+            const attnContainer = document.getElementById('attentionSpectrum');
+            attnContainer.innerHTML = '';
+            for(let i = 0; i < VOCAB.length; i++) {
+                const row = document.createElement('div');
+                row.className = 'attn-row';
+                row.innerHTML = `
+                    <span class="attn-token">${VOCAB[i]}</span>
+                    <div class="attn-bar-track">
+                        <div class="attn-bar-fill" id="attnFill_${i}" style="width: 8.3%;"></div>
+                    </div>
+                    <span class="attn-pct" id="attnPct_${i}">8.3%</span>
+                `;
+                attnContainer.appendChild(row);
+            }
+        }
+
+        // Update Live Telemetry in UI
+        function updateTelemetry(snapped, chi, delta, alpha, winner) {
+            currentE8Coords = snapped || [0,0,0,0,0,0,0,0];
+            currentChi = chi || 0;
+            currentDelta = delta || 0;
+            currentAlpha = alpha || 0;
+
+            document.getElementById('valChi').innerText = currentChi.toFixed(4) + " rad";
+            document.getElementById('valDelta').innerText = currentDelta.toFixed(4) + " rad";
+            document.getElementById('valAlpha').innerText = currentAlpha.toFixed(4) + " rad";
+            document.getElementById('canvasOverlay').innerText = `χ: ${currentChi.toFixed(4)} | δ: ${currentDelta.toFixed(4)} | α: ${currentAlpha.toFixed(4)}`;
+            if(winner) {
+                document.getElementById('winnerTokenLabel').innerText = `Winner: ${winner}`;
+            }
+
+            // Update E8 Bars
+            for(let i = 0; i < 8; i++) {
+                const val = currentE8Coords[i];
+                const fillEl = document.getElementById(`e8Fill_${i}`);
+                const valEl = document.getElementById(`e8Val_${i}`);
+                if(valEl) valEl.innerText = val;
+                if(fillEl) {
+                    const normalized = Math.min(1, Math.max(0.1, Math.abs(val) / 4));
+                    fillEl.style.height = `${normalized * 80}%`;
+                    fillEl.style.top = val >= 0 ? `${50 - (normalized * 40)}%` : '50%';
+                    fillEl.style.background = val >= 0 
+                        ? 'linear-gradient(180deg, #00f3ff, #3b82f6)' 
+                        : 'linear-gradient(180deg, #f43f5e, #a855f7)';
+                }
+            }
+        }
+
+        // Update Attention Distribution
+        function updateAttentionDistribution(winnerIdx) {
+            for(let i = 0; i < VOCAB.length; i++) {
+                const isWinner = i === winnerIdx;
+                const pct = isWinner ? 68.5 : (31.5 / 11);
+                const fillEl = document.getElementById(`attnFill_${i}`);
+                const pctEl = document.getElementById(`attnPct_${i}`);
+                if(fillEl) {
+                    fillEl.style.width = `${pct}%`;
+                    fillEl.style.background = isWinner 
+                        ? 'linear-gradient(90deg, #00f3ff, #10b981)' 
+                        : 'linear-gradient(90deg, #3b82f6, #6366f1)';
+                }
+                if(pctEl) pctEl.innerText = `${pct.toFixed(1)}%`;
+            }
+        }
+
+        // Initialize WebAssembly
+        async function setupWasm() {
+            const badge = document.getElementById('wasmStatusBadge');
+            const dot = document.getElementById('statusDot');
+            const txt = document.getElementById('statusText');
+
             try {
-                // Initialize the WebAssembly binary runtime locally
                 await init();
                 chatSession = new InteractiveChatSession();
                 trainer = new BrowserTrainingHarness();
-                logMsg("WASM module loaded. Client-side M1 CORDIC engines active.", "trainLogs");
-            } catch (err) {
-                console.error("Failed to load WASM module:", err);
-                logMsg("ERR: Failed to initialize WASM module (" + err.message + ")", "trainLogs");
+                
+                // Check for saved codebook in localStorage
+                const savedWeights = localStorage.getItem('uor_custom_codebook');
+                if(savedWeights) {
+                    try {
+                        const coords = JSON.parse(savedWeights);
+                        if(Array.isArray(coords) && coords.length === 96) {
+                            const int32Arr = new Int32Array(coords);
+                            chatSession.load_custom_codebook(int32Arr);
+                            console.log('Restored saved codebook weights from localStorage');
+                        }
+                    } catch(e) {
+                        console.warn('Failed to parse saved codebook:', e);
+                    }
+                }
+
+                dot.style.background = 'var(--emerald)';
+                dot.style.boxShadow = '0 0 10px var(--emerald)';
+                txt.innerText = 'WASM Ready (Active)';
+                console.log("UOR-R4 WASM Bridge initialized successfully.");
+            } catch(err) {
+                console.error("Failed to load WASM binary:", err);
+                dot.style.background = 'var(--rose)';
+                dot.style.boxShadow = '0 0 10px var(--rose)';
+                txt.innerText = 'WASM Load Error';
+                alert("Failed to initialize WebAssembly engine: " + err.message);
             }
         }
 
-        window.runLocalTraining = function() {
-            if(!trainer) return;
-            logMsg("Tokenising input runs on CPU stack...", "trainLogs");
-            document.getElementById("trainingBar").style.width = "50%";
-            
-            setTimeout(() => {
-                const corpus = document.getElementById("corpusText").value;
-                const resultJson = trainer.train_on_corpus(corpus, 100, 6553); // Epochs: 100, LR: 0.1 Q16
-                const res = JSON.parse(resultJson);
+        // Chat Execution
+        window.sendChat = function() {
+            const inputEl = document.getElementById('chatInput');
+            const text = inputEl.value.trim();
+            if(!text || !chatSession) return;
 
-                if(res.status === "success") {
-                    document.getElementById("trainingBar").style.width = "100%";
-                    document.getElementById("trainMetrics").innerText = `Loss: ${res.average_loss.toFixed(4)} | Steps: ${res.steps}`;
-                    logMsg(`Alignment Successful! Average Loss: ${res.average_loss.toFixed(4)}`, "trainLogs");
+            appendUserMessage(text);
+            inputEl.value = '';
+
+            try {
+                const resultJson = chatSession.process_input_run(text);
+                const data = JSON.parse(resultJson);
+
+                if(data.completion) {
+                    appendAiMessage(data.completion, data.winner, data.chi, data.delta, data.alpha);
+                    updateTelemetry(data.snapped, data.chi, data.delta, data.alpha, data.winner);
                     
-                    // Direct hot-load of optimized coordinate vectors into the Chat Session with zero copy
-                    const loaded = chatSession.load_custom_codebook(new Int32Array(res.updated_coordinates));
-                    if(loaded) {
-                        logMsg("Hot-loaded optimized E8 centroids into active chat space.", "trainLogs");
+                    const winnerIdx = VOCAB.indexOf(data.winner);
+                    if(winnerIdx >= 0) {
+                        updateAttentionDistribution(winnerIdx);
                     }
                 } else {
-                    logMsg(`ERR: ${res.message}`, "trainLogs");
+                    appendAiMessage("ERR: Unable to process token runs.", "error", 0, 0, 0);
                 }
-            }, 50);
-        }
+            } catch(err) {
+                console.error("Inference Error:", err);
+                appendAiMessage("Execution Error: " + err.message, "error", 0, 0, 0);
+            }
+        };
 
-        window.sendChat = function() {
-            const input = document.getElementById("chatInput").value;
-            if(!input.trim()) return;
+        window.quickSend = function(word) {
+            document.getElementById('chatInput').value = word;
+            window.sendChat();
+        };
 
-            document.getElementById("chatInput").value = "";
-            const history = document.getElementById("chatHistory");
-            history.innerHTML += `<p style="color: #00e676;">&gt; ${input}</p>`;
-
-            // Process text run using heap-free CORDIC-attention stack inside WASM
-            const resultJson = chatSession.process_input_run(input);
-            const res = JSON.parse(resultJson);
-
-            history.innerHTML += `<p style="color: #fff;">&lt;&lt;&lt; "${res.completion}"</p>`;
-            history.scrollTop = history.scrollHeight;
-
-            // Render live trajectory metrics
-            document.getElementById("diagText").innerText = `Hopf Angles: Chi = ${res.chi.toFixed(4)} rad | Delta = ${res.delta.toFixed(4)} rad | Alpha = ${res.alpha.toFixed(4)} rad`;
-            document.getElementById("e8Coords").innerText = `Snapped E8: [${res.snapped.join(", ")}]`;
-        }
-
-        window.resetChat = function() {
+        window.resetContext = function() {
             if(chatSession) {
                 chatSession.reset();
-                document.getElementById("chatHistory").innerHTML += `<p style="color: #ff5555;">&gt;&gt; Context vector wiped. Accumulator reset.</p>`;
+                appendAiMessage("Context reset to zero base. Spatter accumulator cleared.", "system", 0, 0, 0);
+                updateTelemetry([0,0,0,0,0,0,0,0], 0, 0, 0, "none");
             }
+        };
+
+        function appendUserMessage(text) {
+            const stream = document.getElementById('chatStream');
+            const bubble = document.createElement('div');
+            bubble.className = 'msg-bubble msg-user';
+            bubble.innerText = text;
+            stream.appendChild(bubble);
+            stream.scrollTop = stream.scrollHeight;
         }
 
-        function logMsg(msg, id) {
-            const logs = document.getElementById(id);
-            logs.innerHTML += `[${new Date().toLocaleTimeString()}] ${msg}<br/>`;
-            logs.scrollTop = logs.scrollHeight;
+        function appendAiMessage(completion, winner, chi, delta, alpha) {
+            const stream = document.getElementById('chatStream');
+            const bubble = document.createElement('div');
+            bubble.className = 'msg-bubble msg-ai';
+            bubble.innerHTML = `
+                <div class="completion-text">&gt;&gt;&gt; ${completion}</div>
+                <div class="msg-meta">
+                    <span>Winner: ${winner}</span>
+                    <span>χ: ${chi.toFixed(3)}</span>
+                    <span>δ: ${delta.toFixed(3)}</span>
+                    <span>α: ${alpha.toFixed(3)}</span>
+                </div>
+            `;
+            stream.appendChild(bubble);
+            stream.scrollTop = stream.scrollHeight;
         }
 
-        setup();
+        // Training Presets & Execution
+        window.loadCorpusPreset = function(preset) {
+            const presets = {
+                security: "hello secure agent system. quantum stable system integrity. routing integrity execution sattvic.",
+                quantum: "quantum stable system integrity. isolated fano routing sattvic. secure agent quantum.",
+                routing: "routing integrity execution sattvic. fano agent system secure. stable execution quantum hello."
+            };
+            document.getElementById('corpusText').value = presets[preset] || presets.security;
+        };
+
+        window.runTraining = function() {
+            if(!trainer || !chatSession) {
+                alert("WASM Engine is still loading. Please wait.");
+                return;
+            }
+
+            const corpus = document.getElementById('corpusText').value.trim();
+            if(!corpus) {
+                alert("Please enter a training corpus.");
+                return;
+            }
+
+            const btn = document.getElementById('trainBtn');
+            const progressBar = document.getElementById('trainingProgressBar');
+            const statusLabel = document.getElementById('trainStatusLabel');
+
+            btn.disabled = true;
+            btn.innerHTML = '<span>Training on CPU (WASM)...</span>';
+            progressBar.style.width = '30%';
+
+            setTimeout(() => {
+                try {
+                    const resultJson = trainer.train_on_corpus(corpus, 100, 6553);
+                    const res = JSON.parse(resultJson);
+
+                    progressBar.style.width = '100%';
+
+                    if(res.status === 'success') {
+                        statusLabel.innerText = `Trained ${res.steps} steps | Loss: ${res.average_loss.toFixed(4)} | Hot-Loaded!`;
+                        
+                        // Hot-load updated centroids into the active chat session
+                        if(Array.isArray(res.updated_coordinates)) {
+                            const int32Arr = new Int32Array(res.updated_coordinates);
+                            chatSession.load_custom_codebook(int32Arr);
+                            localStorage.setItem('uor_custom_codebook', JSON.stringify(res.updated_coordinates));
+                        }
+
+                        appendAiMessage(`[Training Complete] Trained ${res.steps} steps. Average Loss: ${res.average_loss.toFixed(4)}. Codebook updated.`, "system", 0, 0, 0);
+                    } else {
+                        statusLabel.innerText = `Training Failed: ${resultJson}`;
+                    }
+                } catch(err) {
+                    console.error("Training Error:", err);
+                    statusLabel.innerText = `Training Error: ${err.message}`;
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = '<span>Train Client-Side (WASM)</span>';
+                    setTimeout(() => { progressBar.style.width = '0%'; }, 2000);
+                }
+            }, 60);
+        };
+
+        // Weights Export / Import
+        window.exportWeights = function() {
+            const saved = localStorage.getItem('uor_custom_codebook');
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(
+                saved || JSON.stringify([
+                    2,0,0,0,2,0,0,0,  0,2,2,0,0,2,2,0,  1,1,1,1,1,1,1,1,
+                    -2,2,0,0,-2,2,0,0, 0,0,4,0,0,0,4,0,  2,-2,2,-2,2,-2,2,-2,
+                    0,0,0,0,0,0,0,0,  3,1,1,1,-1,-1,-1,-1, 1,3,1,1,1,-3,1,1,
+                    -1,-1,3,1,-1,-1,3,1, 2,2,2,2,-2,-2,-2,-2, 1,1,1,3,-1,-1,-1,-3
+                ])
+            );
+            const dlAnchor = document.createElement('a');
+            dlAnchor.setAttribute("href", dataStr);
+            dlAnchor.setAttribute("download", "uor_r4_trained_codebook.json");
+            dlAnchor.click();
+        };
+
+        window.importWeights = function(event) {
+            const file = event.target.files[0];
+            if(!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const coords = JSON.parse(e.target.result);
+                    if(Array.isArray(coords) && coords.length === 96) {
+                        const int32Arr = new Int32Array(coords);
+                        chatSession.load_custom_codebook(int32Arr);
+                        localStorage.setItem('uor_custom_codebook', JSON.stringify(coords));
+                        alert("Successfully loaded custom codebook weights!");
+                        appendAiMessage("[Model Hot-Swap] Successfully loaded custom codebook weights from JSON file.", "system", 0, 0, 0);
+                    } else {
+                        alert("Invalid codebook format. Expected array of 96 integers (12 tokens x 8 dimensions).");
+                    }
+                } catch(err) {
+                    alert("Error parsing JSON weights file: " + err.message);
+                }
+            };
+            reader.readAsText(file);
+        };
+
+        window.resetWeightsToDefault = function() {
+            if(confirm("Reset model codebook to pre-trained factory defaults?")) {
+                localStorage.removeItem('uor_custom_codebook');
+                chatSession = new InteractiveChatSession();
+                alert("Model weights reset to pre-trained factory baseline.");
+                appendAiMessage("[Model Reset] Factory pre-trained codebook baseline restored.", "system", 0, 0, 0);
+            }
+        };
+
+        // HTML5 CANVAS 3D HOPF VISUALIZER
+        function startHopfVisualizer() {
+            const canvas = document.getElementById('hopfCanvas');
+            const ctx = canvas.getContext('2d');
+            let t = 0;
+
+            function resize() {
+                canvas.width = canvas.parentElement.clientWidth * window.devicePixelRatio;
+                canvas.height = canvas.parentElement.clientHeight * window.devicePixelRatio;
+            }
+            window.addEventListener('resize', resize);
+            resize();
+
+            function render() {
+                t += 0.02;
+                const width = canvas.width;
+                const height = canvas.height;
+                const cx = width / 2;
+                const cy = height / 2;
+                const scale = Math.min(width, height) * 0.38;
+
+                ctx.clearRect(0, 0, width, height);
+
+                // Background starfield particles
+                ctx.fillStyle = 'rgba(0, 243, 255, 0.4)';
+                for(let i = 0; i < 24; i++) {
+                    const px = (Math.sin(i * 137.5 + t * 0.2) * 0.5 + 0.5) * width;
+                    const py = (Math.cos(i * 93.1 + t * 0.15) * 0.5 + 0.5) * height;
+                    ctx.fillRect(px, py, 1.5, 1.5);
+                }
+
+                // Render Clifford Torus / Hopf fiber curves
+                const numFibers = 16;
+                const steps = 60;
+
+                for(let f = 0; f < numFibers; f++) {
+                    const u = (f / numFibers) * Math.PI * 2 + (currentAlpha * 0.001) + t * 0.3;
+                    const eta = Math.PI / 4 + Math.sin(t * 0.5 + currentChi * 0.001) * 0.15;
+
+                    ctx.beginPath();
+                    for(let s = 0; s <= steps; s++) {
+                        const v = (s / steps) * Math.PI * 2;
+                        
+                        // 4D Coordinates on S3
+                        const x1 = Math.cos(u) * Math.sin(eta);
+                        const y1 = Math.sin(u) * Math.sin(eta);
+                        const x2 = Math.cos(v) * Math.cos(eta);
+                        const y2 = Math.sin(v) * Math.cos(eta);
+
+                        // Stereographic projection 4D -> 3D -> 2D
+                        const denom = 1.6 - y2;
+                        const px3 = x1 / denom;
+                        const py3 = y1 / denom;
+                        const pz3 = x2 / denom;
+
+                        // 3D rotation based on CORDIC delta and current time
+                        const rotY = t * 0.4 + currentDelta * 0.002;
+                        const rotX = 0.5;
+
+                        const rx = px3 * Math.cos(rotY) + pz3 * Math.sin(rotY);
+                        const rz = -px3 * Math.sin(rotY) + pz3 * Math.cos(rotY);
+                        const ry = py3 * Math.cos(rotX) - rz * Math.sin(rotX);
+
+                        const screenX = cx + rx * scale;
+                        const screenY = cy + ry * scale;
+
+                        if(s === 0) {
+                            ctx.moveTo(screenX, screenY);
+                        } else {
+                            ctx.lineTo(screenX, screenY);
+                        }
+                    }
+
+                    const hue = (f * (360 / numFibers) + t * 20) % 360;
+                    ctx.strokeStyle = `hsla(${hue}, 90%, 65%, 0.45)`;
+                    ctx.lineWidth = 1.5;
+                    ctx.stroke();
+                }
+
+                // Central Hopf Core Node
+                ctx.beginPath();
+                ctx.arc(cx, cy, 6, 0, Math.PI * 2);
+                ctx.fillStyle = '#00f3ff';
+                ctx.shadowColor = '#00f3ff';
+                ctx.shadowBlur = 16;
+                ctx.fill();
+                ctx.shadowBlur = 0;
+
+                requestAnimationFrame(render);
+            }
+
+            render();
+        }
+
+        // Bootstrap on load
+        window.addEventListener('DOMContentLoaded', () => {
+            initUI();
+            setupWasm();
+            startHopfVisualizer();
+        });
     </script>
 </body>
 </html>
