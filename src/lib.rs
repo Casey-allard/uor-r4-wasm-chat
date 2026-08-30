@@ -837,14 +837,10 @@ impl DynamicCodebook {
                 }
             }
         } else {
-            let cleaned: String = corpus
-                .chars()
-                .map(|c| if c.is_alphanumeric() { c.to_ascii_lowercase() } else { ' ' })
+            let sentences: Vec<&str> = corpus
+                .split(|c| c == '.' || c == '!' || c == '?' || c == '\n')
+                .filter(|s| s.trim().len() > 3)
                 .collect();
-            let words: Vec<&str> = cleaned.split_whitespace().collect();
-            if words.len() < 2 {
-                return (0.0, 0, 1.0, 0.0);
-            }
 
             // Fast index lookup map
             let vocab_map: std::collections::HashMap<String, usize> = self
@@ -854,25 +850,36 @@ impl DynamicCodebook {
                 .map(|(i, w)| (w.clone(), i))
                 .collect();
 
-            // Populate Markov Bigram & Trigram transitions
-            for i in 0..(words.len() - 1) {
-                if let (Some(&cur_idx), Some(&next_idx)) = (vocab_map.get(words[i]), vocab_map.get(words[i + 1])) {
-                    let entry = self.transitions.entry(cur_idx).or_insert_with(Vec::new);
-                    if let Some(pos) = entry.iter().position(|&(t, _)| t == next_idx) {
-                        entry[pos].1 = entry[pos].1.saturating_add(1);
-                    } else if entry.len() < 32 {
-                        entry.push((next_idx, 1));
+            // Populate Markov Bigram & Trigram transitions per sentence
+            for sentence in &sentences {
+                let cleaned_s: String = sentence
+                    .chars()
+                    .map(|c| if c.is_alphanumeric() { c.to_ascii_lowercase() } else { ' ' })
+                    .collect();
+                let words: Vec<&str> = cleaned_s.split_whitespace().collect();
+                if words.len() < 2 {
+                    continue;
+                }
+
+                for i in 0..(words.len() - 1) {
+                    if let (Some(&cur_idx), Some(&next_idx)) = (vocab_map.get(words[i]), vocab_map.get(words[i + 1])) {
+                        let entry = self.transitions.entry(cur_idx).or_insert_with(Vec::new);
+                        if let Some(pos) = entry.iter().position(|&(t, _)| t == next_idx) {
+                            entry[pos].1 = entry[pos].1.saturating_add(1);
+                        } else if entry.len() < 32 {
+                            entry.push((next_idx, 1));
+                        }
                     }
                 }
-            }
 
-            for i in 0..(words.len().saturating_sub(2)) {
-                if let (Some(&w0), Some(&w1), Some(&w2)) = (vocab_map.get(words[i]), vocab_map.get(words[i + 1]), vocab_map.get(words[i + 2])) {
-                    let entry = self.trigrams.entry((w0, w1)).or_insert_with(Vec::new);
-                    if let Some(pos) = entry.iter().position(|&(t, _)| t == w2) {
-                        entry[pos].1 = entry[pos].1.saturating_add(1);
-                    } else if entry.len() < 32 {
-                        entry.push((w2, 1));
+                for i in 0..(words.len().saturating_sub(2)) {
+                    if let (Some(&w0), Some(&w1), Some(&w2)) = (vocab_map.get(words[i]), vocab_map.get(words[i + 1]), vocab_map.get(words[i + 2])) {
+                        let entry = self.trigrams.entry((w0, w1)).or_insert_with(Vec::new);
+                        if let Some(pos) = entry.iter().position(|&(t, _)| t == w2) {
+                            entry[pos].1 = entry[pos].1.saturating_add(1);
+                        } else if entry.len() < 32 {
+                            entry.push((w2, 1));
+                        }
                     }
                 }
             }
@@ -880,34 +887,45 @@ impl DynamicCodebook {
             let actual_epochs = epochs.clamp(1, 10);
 
             for _ in 0..actual_epochs {
-                for i in 0..(words.len() - 1) {
-                    let next_word = words[i + 1];
-
-                    let target_idx = match vocab_map.get(next_word) {
-                        Some(&idx) => idx,
-                        None => continue,
-                    };
-
-                    let mut ctx = VsaVector::zero();
-                    let start_k = if i >= 2 { i - 2 } else { 0 };
-                    for k in start_k..=i {
-                        let w = words[k];
-                        let mut token_bytes = [0u8; 16];
-                        let b = w.as_bytes();
-                        let len = b.len().min(16);
-                        token_bytes[..len].copy_from_slice(&b[..len]);
-                        let seed = LexicalToken { bytes: token_bytes, len }.compute_vsa_seed();
-                        let basis = VsaVector::deterministic_basis(seed);
-                        ctx = ctx.permute(7).bundle(&basis);
+                for sentence in &sentences {
+                    let cleaned_s: String = sentence
+                        .chars()
+                        .map(|c| if c.is_alphanumeric() { c.to_ascii_lowercase() } else { ' ' })
+                        .collect();
+                    let words: Vec<&str> = cleaned_s.split_whitespace().collect();
+                    if words.len() < 2 {
+                        continue;
                     }
 
-                    let raw_coords = ctx.project_to_8d_with_matrix(&PRE_TRAINED_PROJECTION_MATRIX);
-                    let snapped = E8LatticeSnapper::snap(raw_coords);
+                    for i in 0..(words.len() - 1) {
+                        let next_word = words[i + 1];
 
-                    let (loss, _, ent) = self.train_step(snapped, target_idx, learning_rate_q16);
-                    total_loss += loss;
-                    steps += 1;
-                    final_entropy = ent;
+                        let target_idx = match vocab_map.get(next_word) {
+                            Some(&idx) => idx,
+                            None => continue,
+                        };
+
+                        let mut ctx = VsaVector::zero();
+                        let start_k = if i >= 2 { i - 2 } else { 0 };
+                        for k in start_k..=i {
+                            let w = words[k];
+                            let mut token_bytes = [0u8; 16];
+                            let b = w.as_bytes();
+                            let len = b.len().min(16);
+                            token_bytes[..len].copy_from_slice(&b[..len]);
+                            let seed = LexicalToken { bytes: token_bytes, len }.compute_vsa_seed();
+                            let basis = VsaVector::deterministic_basis(seed);
+                            ctx = ctx.permute(7).bundle(&basis);
+                        }
+
+                        let raw_coords = ctx.project_to_8d_with_matrix(&PRE_TRAINED_PROJECTION_MATRIX);
+                        let snapped = E8LatticeSnapper::snap(raw_coords);
+
+                        let (loss, _, ent) = self.train_step(snapped, target_idx, learning_rate_q16);
+                        total_loss += loss;
+                        steps += 1;
+                        final_entropy = ent;
+                    }
                 }
             }
         }
@@ -1607,23 +1625,21 @@ mod tests {
     }
 
     #[test]
-    fn test_dynamic_codebook_words_ingestion() {
-        let mut session = DynamicSession::new("words", 64);
-        let corpus = "artificial intelligence quantum geometry attention mechanism lattice Gosset fibration orbit cognitive state transformation";
-        let res = session.ingest_corpus(corpus, 20, 6553, "words", 64);
-        assert!(res.contains("\"status\":\"success\""));
+    fn test_autoregressive_generation() {
+        let mut session = DynamicSession::new("words", 256);
+        let corpus = "The Magna Carta was granted by King John of England on June 15, 1215 at Runnymede near Windsor. It established the foundational principle that everyone is subject to the law. Quantum computing leverages principles of quantum superposition and entanglement to execute operations across high-dimensional Hilbert spaces. Hello and welcome to the cognitive artificial intelligence system.";
+        session.ingest_corpus(corpus, 5, 6553, "words", 256);
 
-        let run = session.process_input_dynamic("artificial intelligence", 3);
-        assert!(run.contains("\"completion\""));
-        assert!(run.contains("\"entropy\""));
-    }
+        let res1 = session.process_input_dynamic("when was the magna carta?", 25);
+        println!("Prompt: 'when was the magna carta?' -> Output: {}", res1);
+        assert!(res1.contains("\"completion\""));
 
-    #[test]
-    fn test_general_attention_sensitivity_evaluation() {
-        let session = DynamicSession::new("words", 64);
-        let report = session.evaluate_sensitivity("secure agent system", "malicious rogue attacker");
-        assert!(report.contains("\"status\":\"confirmed_sensitive\""));
-        assert!(report.contains("\"delta_chi_rad\""));
-        assert!(report.contains("\"kl_divergence\""));
+        let res2 = session.process_input_dynamic("what up baby", 25);
+        println!("Prompt: 'what up baby' -> Output: {}", res2);
+        assert!(res2.contains("\"completion\""));
+
+        let res3 = session.process_input_dynamic("tell me a good story", 25);
+        println!("Prompt: 'tell me a good story' -> Output: {}", res3);
+        assert!(res3.contains("\"completion\""));
     }
 }

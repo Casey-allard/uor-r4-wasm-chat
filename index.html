@@ -637,7 +637,8 @@
 
     <!-- WASM BRIDGING & 3D SYNAPTIC BRAIN ENGINE SCRIPT -->
     <script type="module">
-        import init, { DynamicSession } from './pkg/uor_r4_wasm_bridge.js';
+        const CACHE_VERSION = Date.now();
+        import init, { DynamicSession } from './pkg/uor_r4_wasm_bridge.js?v=20260830_0510';
 
         let dynamicSession = null;
         let currentE8Coords = [0, 0, 0, 0, 0, 0, 0, 0];
@@ -727,14 +728,14 @@
 
         async function setupWasm() {
             try {
-                await init();
+                await init('./pkg/uor_r4_wasm_bridge_bg.wasm?v=20260830_0510');
                 dynamicSession = new DynamicSession("words", 2048);
 
-                const resp = await fetch('./assets/corpus/massive_knowledge_shard.txt');
+                const resp = await fetch('./assets/corpus/massive_knowledge_shard.txt?v=' + CACHE_VERSION);
                 const corpus = await resp.text();
                 dynamicSession.ingest_corpus(corpus, 2, 6553, "words", 2048);
 
-                console.log("UOR-R4 70B online.");
+                console.log("UOR-R4 70B Autoregressive Online.");
             } catch(err) {
                 console.error("WASM setup failed:", err);
             }
@@ -751,7 +752,7 @@
             inputEl.value = '';
 
             try {
-                const resultJson = dynamicSession.process_input_dynamic(text, 14);
+                const resultJson = dynamicSession.process_input_dynamic(text, 28);
                 const data = JSON.parse(resultJson);
 
                 if(data.completion) {
