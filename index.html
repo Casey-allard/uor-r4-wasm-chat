@@ -1658,8 +1658,19 @@
 
         </div>
 
+        <!-- SLIM NATIVE IN-BROWSER FOLDER MOUNT -->
+        <div id="sidebarFsBox" style="display:flex; align-items:center; justify-content:space-between; padding:0.35rem 0.55rem; margin-top:0.4rem; background:rgba(0, 243, 255, 0.03); border:1px solid rgba(0, 243, 255, 0.2); border-radius:var(--radius-sm);">
+            <div id="fsMountTitle" style="display:flex; align-items:center; gap:0.35rem; font-size:0.72rem; font-family:'Fira Code', monospace; color:var(--text-secondary); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:130px;">
+                <span id="fsMountDot" style="color:var(--text-muted);">○</span>
+                <span id="fsMountLabel">No Folder</span>
+            </div>
+            <button id="btnMountFs" onclick="toggleMountDirectory()" class="compile-btn" style="width:auto; padding:0.18rem 0.45rem; font-size:0.65rem; white-space:nowrap;">
+                📂 Mount
+            </button>
+        </div>
+
         <!-- SLIM MCP STATUS & HUB BUTTON -->
-        <div class="sidebar-mcp-box" onclick="openMcpModal()" title="Click to open Model Context Protocol (MCP) Hub" style="display:flex; align-items:center; justify-content:space-between; padding:0.35rem 0.55rem; margin-top:0.4rem; background:rgba(255,255,255,0.02); border:1px solid var(--border-subtle); border-radius:var(--radius-sm); cursor:pointer;">
+        <div class="sidebar-mcp-box" onclick="openMcpModal()" title="Click to open Model Context Protocol (MCP) Hub" style="display:flex; align-items:center; justify-content:space-between; padding:0.35rem 0.55rem; margin-top:0.3rem; background:rgba(255,255,255,0.02); border:1px solid var(--border-subtle); border-radius:var(--radius-sm); cursor:pointer;">
             <div class="sidebar-mcp-title" style="display:flex; align-items:center; gap:0.35rem; font-size:0.72rem; font-family:'Fira Code', monospace;">
                 <span class="mcp-status-dot" id="sidebarMcpDot">○</span>
                 <span id="sidebarMcpLabel">MCP Offline</span>
@@ -1823,34 +1834,53 @@
             </div>
 
             <div class="modal-body">
-                <!-- SECTION 1: LOCAL PC BRIDGE & 1-CLICK LAUNCH -->
+                <!-- SECTION 1: ZERO-INSTALL NATIVE FOLDER MOUNT -->
+                <div class="mcp-section">
+                    <div class="mcp-section-header">
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <span class="mcp-section-icon">📂</span>
+                            <span style="font-weight: 600; font-size: 0.9rem;">Native In-Browser Folder Mount</span>
+                        </div>
+                        <span class="mcp-conn-pill" id="mcpFsPill">Not Mounted</span>
+                    </div>
+                    <p style="font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 0.5rem;">
+                        <b>Zero installs, zero daemons, zero Gatekeeper prompts:</b> Uses the native Web File System API to give the in-browser AI direct read/write access to your local project files!
+                    </p>
+                    <div>
+                        <button class="compile-btn" id="btnModalMountFs" onclick="toggleMountDirectory()" style="width: auto; padding: 0.45rem 1.2rem; font-size: 0.82rem; background: rgba(0, 243, 255, 0.15); border-color: var(--accent-cyan); color: var(--accent-cyan); font-weight: 600;">
+                            📂 Mount Local Project Folder
+                        </button>
+                    </div>
+                </div>
+
+                <!-- SECTION 2: FULL LOCAL MCP BRIDGE & TERMINAL -->
                 <div class="mcp-section">
                     <div class="mcp-section-header">
                         <div style="display: flex; align-items: center; gap: 0.5rem;">
                             <span class="mcp-section-icon">💻</span>
-                            <span style="font-weight: 600; font-size: 0.9rem;">Local PC Workspace Bridge</span>
+                            <span style="font-weight: 600; font-size: 0.9rem;">Local PC & Terminal MCP Bridge</span>
                         </div>
                         <span class="mcp-conn-pill" id="mcpLocalPill">Disconnected</span>
                     </div>
-                    <p style="font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 0.6rem;">
-                        Allows in-browser AI to read/write local project files, execute terminal commands, and inspect git diffs.
+                    <p style="font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 0.5rem;">
+                        Enables running raw terminal commands, git diffs, and GitHub operations. Auto-kills 60s after tab closes.
                     </p>
                     
-                    <div style="background: rgba(0, 243, 255, 0.05); border: 1px solid rgba(0, 243, 255, 0.2); border-radius: var(--radius-sm); padding: 0.75rem 0.85rem; margin-bottom: 0.6rem; display: flex; flex-direction: column; gap: 0.5rem;">
+                    <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 0.65rem 0.75rem; margin-bottom: 0.6rem; display: flex; flex-direction: column; gap: 0.4rem;">
                         <div style="display: flex; align-items: center; justify-content: space-between;">
-                            <span style="font-size: 0.78rem; font-weight: 600; color: var(--accent-cyan);">⚡ Browser-to-Mac 1-Click Launch</span>
-                            <span style="font-size: 0.68rem; color: var(--accent-emerald);">🛡️ Auto-Kills on Tab Close</span>
+                            <span style="font-size: 0.74rem; font-weight: 600; color: var(--accent-cyan);">⚡ 1-Line Terminal Install (No Gatekeeper Warning)</span>
                         </div>
-                        <div style="font-size: 0.73rem; color: var(--text-secondary); line-height: 1.4;">
-                            Launch the local bridge directly with 1 button! Auto-terminates 60s after you close this browser tab so no background processes remain.
+                        <div style="display: flex; gap: 0.4rem; align-items: center;">
+                            <input type="text" id="curlCmdInput" class="mcp-input" readonly value="curl -fsSL https://casey-allard.github.io/uor-r4-wasm-chat/install_uor_protocol.command | bash" style="font-size: 0.7rem; font-family: 'Fira Code', monospace; color: var(--accent-cyan);">
+                            <button class="compile-btn" id="btnCopyCurl" onclick="copyCurlInstallCommand()" style="width: auto; padding: 0.35rem 0.8rem; font-size: 0.74rem; white-space: nowrap;">
+                                📋 Copy
+                            </button>
                         </div>
-                        <div style="display: flex; gap: 0.5rem; margin-top: 0.2rem; flex-wrap: wrap;">
-                            <button class="compile-btn" onclick="launchLocalBridgeFromBrowser()" style="width: auto; padding: 0.4rem 1rem; font-size: 0.78rem; background: var(--accent-cyan); color: #000; font-weight: 600;">
+                        <div style="display: flex; gap: 0.5rem; margin-top: 0.2rem; align-items: center;">
+                            <button class="compile-btn" onclick="launchLocalBridgeFromBrowser()" style="width: auto; padding: 0.35rem 0.85rem; font-size: 0.74rem; background: var(--accent-cyan); color: #000; font-weight: 600;">
                                 🚀 Launch Local Bridge
                             </button>
-                            <button class="compile-btn" onclick="downloadProtocolInstaller()" style="width: auto; padding: 0.4rem 0.85rem; font-size: 0.78rem; background: rgba(255,255,255,0.06); color: var(--text-secondary);">
-                                📥 1-Time Setup (.command)
-                            </button>
+                            <span style="font-size: 0.68rem; color: var(--text-muted);">Click once installed to start on demand</span>
                         </div>
                     </div>
 
@@ -2055,6 +2085,124 @@
             githubToken: '',
             autoApproveRead: true,
             autoApproveWrite: false
+        };
+
+        // --- NATIVE FILE SYSTEM ACCESS API CONTROLLER ---
+        let localDirectoryHandle = null;
+
+        window.toggleMountDirectory = async function() {
+            if (localDirectoryHandle) {
+                localDirectoryHandle = null;
+                updateFsMountUi();
+                showToast("📂 Local project folder unmounted.");
+                return;
+            }
+
+            try {
+                if (!window.showDirectoryPicker) {
+                    alert("Native File System Access API is not supported in this browser. Please use Chrome, Edge, Brave, or Opera.");
+                    return;
+                }
+                const dirHandle = await window.showDirectoryPicker({
+                    mode: 'readwrite'
+                });
+                localDirectoryHandle = dirHandle;
+                updateFsMountUi();
+                showToast(`📂 Mounted local project: ${dirHandle.name}`);
+            } catch(err) {
+                if (err.name !== 'AbortError') {
+                    console.error("Mount error:", err);
+                    showToast(`Mount failed: ${err.message}`);
+                }
+            }
+        };
+
+        function updateFsMountUi() {
+            const dot = document.getElementById('fsMountDot');
+            const label = document.getElementById('fsMountLabel');
+            const btn = document.getElementById('btnMountFs');
+            const modalPill = document.getElementById('mcpFsPill');
+            const modalBtn = document.getElementById('btnModalMountFs');
+
+            if (localDirectoryHandle) {
+                if (dot) { dot.innerText = '●'; dot.style.color = 'var(--accent-emerald)'; }
+                if (label) { label.innerText = `${localDirectoryHandle.name}`; label.style.color = 'var(--accent-emerald)'; }
+                if (btn) { btn.innerText = '✕ Eject'; btn.style.background = 'rgba(239, 68, 68, 0.15)'; btn.style.color = '#ef4444'; }
+                if (modalPill) { modalPill.innerText = `Mounted: ${localDirectoryHandle.name}`; modalPill.classList.add('connected'); }
+                if (modalBtn) { modalBtn.innerText = '✕ Unmount Folder'; modalBtn.style.background = 'rgba(239, 68, 68, 0.15)'; modalBtn.style.color = '#ef4444'; }
+            } else {
+                if (dot) { dot.innerText = '○'; dot.style.color = 'var(--text-muted)'; }
+                if (label) { label.innerText = 'No Folder'; label.style.color = 'var(--text-secondary)'; }
+                if (btn) { btn.innerText = '📂 Mount'; btn.style.background = ''; btn.style.color = ''; }
+                if (modalPill) { modalPill.innerText = 'Not Mounted'; modalPill.classList.remove('connected'); }
+                if (modalBtn) { modalBtn.innerText = '📂 Mount Local Project Folder'; modalBtn.style.background = ''; modalBtn.style.color = ''; }
+            }
+        }
+
+        async function fsResolveFileHandle(pathStr, create = false) {
+            if (!localDirectoryHandle) throw new Error("No local project mounted in browser.");
+            const cleanPath = pathStr.replace(/^[/\\]+/, '').trim();
+            const parts = cleanPath.split(/[/\\]/);
+            let currentDir = localDirectoryHandle;
+            for (let i = 0; i < parts.length - 1; i++) {
+                currentDir = await currentDir.getDirectoryHandle(parts[i], { create });
+            }
+            const fileName = parts[parts.length - 1];
+            return await currentDir.getFileHandle(fileName, { create });
+        }
+
+        async function fsReadFile(pathStr) {
+            const fileHandle = await fsResolveFileHandle(pathStr, false);
+            const file = await fileHandle.getFile();
+            return await file.text();
+        }
+
+        async function fsWriteFile(pathStr, content) {
+            const fileHandle = await fsResolveFileHandle(pathStr, true);
+            const writable = await fileHandle.createWritable();
+            await writable.write(content);
+            await writable.close();
+            return `Successfully wrote ${content.length} characters to ${pathStr} on local disk.`;
+        }
+
+        async function fsListDirectory(pathStr = '.') {
+            if (!localDirectoryHandle) throw new Error("No local project mounted in browser.");
+            let currentDir = localDirectoryHandle;
+            if (pathStr && pathStr !== '.' && pathStr !== '/') {
+                const cleanPath = pathStr.replace(/^[/\\]+/, '').trim();
+                const parts = cleanPath.split(/[/\\]/);
+                for (const p of parts) {
+                    currentDir = await currentDir.getDirectoryHandle(p, { create: false });
+                }
+            }
+            const entries = [];
+            for await (const [name, handle] of currentDir.entries()) {
+                entries.push({
+                    name,
+                    type: handle.kind === 'directory' ? 'directory' : 'file'
+                });
+            }
+            return JSON.stringify(entries, null, 2);
+        }
+
+        window.copyCurlInstallCommand = function() {
+            const cmd = "curl -fsSL https://casey-allard.github.io/uor-r4-wasm-chat/install_uor_protocol.command | bash";
+            navigator.clipboard.writeText(cmd).then(() => {
+                const btn = document.getElementById('btnCopyCurl');
+                if (btn) {
+                    btn.innerText = '✓ Copied!';
+                    btn.style.background = 'rgba(16, 185, 129, 0.2)';
+                    btn.style.color = 'var(--accent-emerald)';
+                    setTimeout(() => {
+                        btn.innerText = '📋 Copy';
+                        btn.style.background = '';
+                        btn.style.color = '';
+                    }, 2500);
+                }
+                showToast("📋 Copied installer command to clipboard! Paste into Terminal.");
+            }).catch(() => {
+                showToast("Please copy the command from the input field.");
+            });
         };
 
         window.openMcpModal = function() {
@@ -3103,9 +3251,35 @@ echo ""
                     const activeConfig = MODEL_INFO[activeModelId] || MODEL_INFO['qwen2.5-0.5b'];
                     let systemPrompt = activeConfig.sysPrompt;
 
-                    if (mcpConnected && mcpTools.length > 0) {
-                        systemPrompt += `\n\n# MODEL CONTEXT PROTOCOL (MCP) TOOLS AVAILABLE:\nYou have real-time access to tools on the local PC and GitHub:\n` +
-                            mcpTools.map(t => `<tool_def>\n${JSON.stringify(t, null, 2)}\n</tool_def>`).join('\n') +
+                    const hasNativeFs = !!localDirectoryHandle;
+                    const hasMcp = mcpConnected && mcpTools.length > 0;
+
+                    if (hasNativeFs || hasMcp) {
+                        let activeToolDefs = [];
+                        if (hasMcp) {
+                            activeToolDefs = [...mcpTools];
+                        } else if (hasNativeFs) {
+                            activeToolDefs = [
+                                {
+                                    name: 'read_file',
+                                    description: `Read the text contents of a file from the mounted project folder (${localDirectoryHandle.name}).`,
+                                    inputSchema: { type: 'object', properties: { path: { type: 'string', description: 'Relative path to file' } }, required: ['path'] }
+                                },
+                                {
+                                    name: 'write_file',
+                                    description: `Create or overwrite a file in the mounted project folder (${localDirectoryHandle.name}).`,
+                                    inputSchema: { type: 'object', properties: { path: { type: 'string', description: 'Relative path' }, content: { type: 'string', description: 'Content to write' } }, required: ['path', 'content'] }
+                                },
+                                {
+                                    name: 'list_directory',
+                                    description: `List all files and subdirectories in the mounted project folder (${localDirectoryHandle.name}).`,
+                                    inputSchema: { type: 'object', properties: { path: { type: 'string', description: 'Directory path (default: .)' } } }
+                                }
+                            ];
+                        }
+
+                        systemPrompt += `\n\n# LOCAL WORKSPACE & MCP TOOLS AVAILABLE:\nYou have real-time access to tools on the local project disk and tools:\n` +
+                            activeToolDefs.map(t => `<tool_def>\n${JSON.stringify(t, null, 2)}\n</tool_def>`).join('\n') +
                             `\n\nTo invoke a tool, output ONLY a <tool_call> block formatted as valid JSON:\n<tool_call>\n{"name": "tool_name", "arguments": {"param": "value"}}\n</tool_call>\n\nWhen a <tool_response> is provided, analyze the result to answer the user's prompt or continue multi-step execution.`;
                     }
 
@@ -3255,13 +3429,19 @@ echo ""
                             let resultText = '';
                             let isErr = false;
                             try {
-                                const toolRes = await sendMcpJsonRpc('tools/call', { name: toolName, arguments: toolArgs });
-                                if (toolRes && toolRes.content && toolRes.content[0]) {
-                                    resultText = toolRes.content[0].text;
+                                if (localDirectoryHandle && ['read_file', 'write_file', 'list_directory'].includes(toolName)) {
+                                    if (toolName === 'read_file') resultText = await fsReadFile(toolArgs.path);
+                                    else if (toolName === 'write_file') resultText = await fsWriteFile(toolArgs.path, toolArgs.content);
+                                    else if (toolName === 'list_directory') resultText = await fsListDirectory(toolArgs.path || '.');
                                 } else {
-                                    resultText = JSON.stringify(toolRes);
+                                    const toolRes = await sendMcpJsonRpc('tools/call', { name: toolName, arguments: toolArgs });
+                                    if (toolRes && toolRes.content && toolRes.content[0]) {
+                                        resultText = toolRes.content[0].text;
+                                    } else {
+                                        resultText = JSON.stringify(toolRes);
+                                    }
+                                    if (toolRes && toolRes.isError) isErr = true;
                                 }
-                                if (toolRes && toolRes.isError) isErr = true;
                             } catch(err) {
                                 resultText = `Error calling tool ${toolName}: ${err.message}`;
                                 isErr = true;
