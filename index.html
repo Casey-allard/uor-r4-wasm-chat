@@ -2611,7 +2611,6 @@
             loadPersistentState();
             renderConversationsList();
             refreshUiCards();
-            loadMcpSettings();
 
             const lastTps = localStorage.getItem('uor_last_tps');
             if (lastTps) {
@@ -2621,10 +2620,6 @@
             await initWasmEngine();
             startBrainVisualizer();
             startWaveformVisualizer();
-
-            // Silently try connecting to local MCP bridge on boot & keep polling
-            connectMcp(true);
-            startMcpAutoReconnect();
 
             if (activeModelId && compiledModels.has(activeModelId)) {
                 await activateModel(activeModelId);
