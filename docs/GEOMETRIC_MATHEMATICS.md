@@ -1,6 +1,6 @@
-# 📐 Geometric Mathematics in UOR-R4
+# 📐 Geometric Mathematics in UOR-R4 (v1.0.0)
 
-This document outlines the mathematical principles underpinning the geometric state representations, CORDIC rotations, and $E_8$ lattice quantization in UOR-R4.
+This document details the formal mathematical principles, theorems, and algorithmic implementations underpinning the geometric state representations, CORDIC rotations, and $E_8$ lattice quantization in UOR-R4.
 
 ---
 
@@ -9,13 +9,15 @@ This document outlines the mathematical principles underpinning the geometric st
 Concepts and token sequences are represented in a 512-dimensional vector space $\mathcal{H} = \{-1, +1\}^{512}$ or $\mathbb{R}^{512}$.
 
 ### Binding Operation (Circular Convolution / Hadamard Product)
-To bind a role $R$ to a filler $F$:
+To bind a role vector $R$ to a filler concept vector $F$:
 $$B = R \odot F$$
-where $\odot$ denotes element-wise multiplication or circular convolution.
+where $\odot$ denotes element-wise multiplication (Hadamard product) or circular convolution:
+$$(x \circledast y)_k = \sum_{j=0}^{D-1} x_j y_{(k-j) \pmod D}$$
 
 ### Superposition (Bundling)
 Multiple concepts are bundled into composite memory traces via normalized vector summation:
 $$S = \text{sign}\left(\sum_{k=1}^K v_k\right)$$
+This preserves cosine similarity $\langle S, v_k \rangle > 0$ for all constituent concepts with high probability in high dimensions ($D = 512$).
 
 ---
 
@@ -26,10 +28,10 @@ Any unit quaternion $q \in S^3 \subset \mathbb{R}^4$ is parameterized by three H
 $$q = \left(\cos\eta \cos\xi_1, \;\cos\eta \sin\xi_1, \;\sin\eta \cos\xi_2, \;\sin\eta \sin\xi_2\right)$$
 where $\eta \in [0, \pi/2]$ and $\xi_1, \xi_2 \in [0, 2\pi)$.
 
-The Hopf map $\pi: S^3 \to S^2$ projects 4D unit spheres onto the 2-sphere:
+The Hopf fibration $\pi: S^3 \to S^2$ projects the 3-sphere onto the 2-sphere:
 $$\pi(q) = \left(2(q_1 q_3 + q_0 q_2), \;2(q_2 q_3 - q_0 q_1), \;q_0^2 + q_3^2 - q_1^2 - q_2^2\right)$$
 
-### Hardware CORDIC Convergence
+### 64-bit Fixed-Point CORDIC Convergence
 CORDIC computes trigonometric rotations using binary bit-shifts without floating-point multipliers:
 $$\begin{aligned}
 x_{i+1} &= x_i - d_i \cdot y_i \cdot 2^{-i} \\
@@ -42,7 +44,7 @@ where $\theta_i = \arctan(2^{-i})$ and $d_i = \text{sgn}(z_i)$.
 
 ## 3. Discrete Gosset $E_8$ Root Lattice Quantization
 
-The Gosset lattice $E_8$ is the unique even unimodular lattice of dimension 8. Its 240 minimal vectors (roots of norm $\sqrt{2}$) form the vertices of the Gosset 8-polytope $4_{21}$.
+The Gosset lattice $E_8$ is the unique even unimodular lattice of dimension 8. Its 240 minimal root vectors (roots of norm $\sqrt{2}$) form the vertices of the Gosset 8-polytope $4_{21}$.
 
 ### Definition
 $$E_8 = \left\{ x = (x_1, \dots, x_8) \in \mathbb{Z}^8 \cup \left(\mathbb{Z} + \tfrac{1}{2}\right)^8 : \sum_{i=1}^8 x_i \equiv 0 \pmod 2 \right\}$$
@@ -54,3 +56,15 @@ Given an 8D continuous vector $p \in \mathbb{R}^8$:
 3. Select $\text{argmin}_{w \in \{u, v\}} \|p - w\|_2$.
 
 This guarantees deterministic, zero-collision topological quantization of high-dimensional attention states.
+
+---
+
+## 4. References & Mathematical Foundations
+
+1. **Kanerva, P.** (2009). *Hyperdimensional Computing: An Introduction to Computing in Distributed Representation with High-Dimensional Random Vectors*. Cognitive Computation, 1(2), 139–159.
+2. **Plate, T. A.** (2003). *Holographic Reduced Representations: Distributed Representations for Cognitive Structures*. CSLI Publications.
+3. **Gayler, R. W.** (2003). *Vector Symbolic Architectures answer Jackendoff's challenges for cognitive architecture*. ICCS/ASCS International Conference on Cognitive Science.
+4. **Gosset, T.** (1900). *On the regular and semi-regular figures in space of n dimensions*. Messenger of Mathematics, 29, 43–48.
+5. **Conway, J. H., & Sloane, N. J. A.** (1988). *Sphere Packings, Lattices and Groups*. Springer-Verlag.
+6. **Volder, J. E.** (1959). *The CORDIC Trigonometric Computing Technique*. IRE Transactions on Electronic Computers, EC-8(3), 330–334.
+7. **Hopf, H.** (1931). *Über die Abbildungen der dreidimensionalen Sphäre auf die Kugelfläche*. Mathematische Annalen, 104(1), 637–665.
