@@ -965,6 +965,56 @@
             await loadNeuralModel(modelId);
         };
 
+        async function createPipelineWithFallback(modelId, progressCallback) {
+            env.allowLocalModels = false;
+            env.useBrowserCache = true;
+
+            // 1. Try WebGPU with q4f16 or q4
+            if(navigator.gpu) {
+                try {
+                    let hasFp16 = false;
+                    try {
+                        const adapter = await navigator.gpu.requestAdapter();
+                        hasFp16 = adapter?.features?.has('shader-f16') || false;
+                    } catch(e) {}
+
+                    const primaryDtype = hasFp16 ? 'q4f16' : 'q4';
+                    console.log(`Attempting WebGPU (${primaryDtype}) for ${modelId}...`);
+                    
+                    const pipe = await pipeline('text-generation', modelId, {
+                        dtype: primaryDtype,
+                        device: 'webgpu',
+                        progress_callback: progressCallback
+                    });
+                    return { pipe, device: 'webgpu', dtype: primaryDtype };
+                } catch(gpuErr) {
+                    console.warn(`WebGPU primary load failed for ${modelId}:`, gpuErr);
+                    
+                    // Fallback to standard q4 on WebGPU
+                    try {
+                        console.log(`Attempting WebGPU (q4 fallback) for ${modelId}...`);
+                        const pipe = await pipeline('text-generation', modelId, {
+                            dtype: 'q4',
+                            device: 'webgpu',
+                            progress_callback: progressCallback
+                        });
+                        return { pipe, device: 'webgpu', dtype: 'q4' };
+                    } catch(gpuErr2) {
+                        console.warn(`WebGPU fallback failed, falling back to WASM:`, gpuErr2);
+                    }
+                }
+            }
+
+            // 2. CPU / WASM fallback
+            console.log(`Attempting CPU/WASM for ${modelId}...`);
+            const pipe = await pipeline('text-generation', modelId, {
+                dtype: 'q4',
+                device: 'wasm',
+                progress_callback: progressCallback
+            });
+            return { pipe, device: 'wasm', dtype: 'q4' };
+        }
+
         async function loadNeuralModel(modelId) {
             const badge = document.getElementById('modelBadge');
             const badgeText = document.getElementById('badgeText');
@@ -994,35 +1044,29 @@
                 progressFill.style.width = '0%';
             }
 
-            try {
-                env.allowLocalModels = false;
-                env.useBrowserCache = true;
+            const progressCb = (p) => {
+                if(p.status === 'progress') {
+                    const pct = Math.round(p.progress || 0);
+                    if(loadPercent) loadPercent.innerText = `${pct}%`;
+                    if(progressFill) progressFill.style.width = `${pct}%`;
+                    badgeText.innerText = `Downloading: ${pct}%`;
+                    chatInput.placeholder = `Downloading shards: ${pct}%...`;
+                } else if(p.status === 'done') {
+                    if(loadTitle) loadTitle.innerText = 'Compiling Neural GPU Shaders...';
+                    badgeText.innerText = 'Compiling Shaders...';
+                    chatInput.placeholder = 'Compiling WebGPU shaders... please wait...';
+                }
+            };
 
-                const device = navigator.gpu ? 'webgpu' : 'wasm';
-                
-                generator = await pipeline('text-generation', modelId, {
-                    dtype: 'q4',
-                    device: device,
-                    progress_callback: (p) => {
-                        if(p.status === 'progress') {
-                            const pct = Math.round(p.progress || 0);
-                            if(loadPercent) loadPercent.innerText = `${pct}%`;
-                            if(progressFill) progressFill.style.width = `${pct}%`;
-                            badgeText.innerText = `Downloading: ${pct}%`;
-                            chatInput.placeholder = `Downloading model shards: ${pct}%...`;
-                        } else if(p.status === 'done') {
-                            if(loadTitle) loadTitle.innerText = 'Compiling WebGPU Shaders...';
-                            badgeText.innerText = 'Compiling Shaders...';
-                            chatInput.placeholder = 'Compiling WebGPU shaders... please wait...';
-                        }
-                    }
-                });
+            try {
+                const res = await createPipelineWithFallback(modelId, progressCb);
+                generator = res.pipe;
 
                 badge.classList.add('ready');
-                badgeText.innerText = `${device.toUpperCase()} Online`;
-                footerStatus.innerText = `● ${device.toUpperCase()} Ready`;
+                badgeText.innerText = `${res.device.toUpperCase()} Online`;
+                footerStatus.innerText = `● ${res.device.toUpperCase()} Ready`;
                 footerStatus.style.color = 'var(--accent-emerald)';
-                if(welcomeMeta) welcomeMeta.innerText = `⚡ ${device.toUpperCase()} Online`;
+                if(welcomeMeta) welcomeMeta.innerText = `⚡ ${res.device.toUpperCase()} Online`;
                 if(footerModelName) footerModelName.innerText = `UOR-R4 (${(modelId.split('/')[1] || modelId).replace('-Instruct', '')})`;
                 if(loaderCard) loaderCard.style.display = 'none';
 
@@ -1031,19 +1075,13 @@
                 chatInput.placeholder = 'Message UOR-R4 Geometric AI...';
                 chatInput.focus();
 
-                console.log(`${modelId} loaded successfully on ${device}.`);
+                console.log(`${modelId} successfully initialized on ${res.device} (${res.dtype}).`);
             } catch(err) {
-                console.error(`Error loading ${modelId}:`, err);
-                if(modelId !== 'onnx-community/Qwen2.5-0.5B-Instruct') {
-                    console.log("Falling back to ultra-stable Qwen2.5-0.5B substrate...");
-                    document.getElementById('modelSelectorDropdown').value = 'onnx-community/Qwen2.5-0.5B-Instruct';
-                    await loadNeuralModel('onnx-community/Qwen2.5-0.5B-Instruct');
-                } else {
-                    badgeText.innerText = 'Load Error';
-                    footerStatus.innerText = '● Error';
-                    footerStatus.style.color = 'var(--accent-amber)';
-                    chatInput.placeholder = 'Failed to load model. Please refresh.';
-                }
+                console.error(`Final initialization error for ${modelId}:`, err);
+                badgeText.innerText = 'Load Error';
+                footerStatus.innerText = '● Error';
+                footerStatus.style.color = 'var(--accent-amber)';
+                chatInput.placeholder = 'Failed to load model. Please refresh the page.';
             }
         }
 
@@ -1075,7 +1113,7 @@
             if(!text) return;
 
             if(!generator) {
-                inputEl.placeholder = 'Please wait for the model to finish loading...';
+                inputEl.placeholder = 'Please wait for the model to finish compiling...';
                 return;
             }
 
@@ -1104,29 +1142,29 @@
 
             let fullResponse = "";
 
-            try {
-                const messages = [
-                    { role: 'system', content: 'You are UOR-R4, a geometric cognitive AI reasoning assistant. Answer questions directly, intelligently, accurately, and naturally. If asked conceptual, riddle, historical, or philosophical questions, provide direct, thoughtful answers. Only write code if explicitly requested.' },
-                    ...chatHistory.slice(-6)
-                ];
+            const messages = [
+                { role: 'system', content: 'You are UOR-R4, a geometric cognitive AI reasoning assistant. Answer questions directly, intelligently, accurately, and naturally. If asked conceptual, riddle, historical, or philosophical questions, provide direct, thoughtful answers. Only write code if explicitly requested.' },
+                ...chatHistory.slice(-6)
+            ];
 
-                const streamer = new TextStreamer(generator.tokenizer, {
-                    skip_prompt: true,
-                    callback_function: (chunk) => {
-                        fullResponse += chunk;
-                        contentDiv.innerHTML = renderMarkdown(fullResponse);
-                        scrollDown();
+            const streamer = new TextStreamer(generator.tokenizer, {
+                skip_prompt: true,
+                callback_function: (chunk) => {
+                    fullResponse += chunk;
+                    contentDiv.innerHTML = renderMarkdown(fullResponse);
+                    scrollDown();
 
-                        // Dynamically rotate geometric coordinates on token arrival
-                        if(dynamicSession && chunk.trim().length > 1) {
-                            try {
-                                const tRes = JSON.parse(dynamicSession.process_input_dynamic(chunk, 1));
-                                updateTelemetry(tRes.snapped, tRes.chi, tRes.delta, tRes.alpha, tRes.winner);
-                            } catch(e){}
-                        }
+                    // Dynamically rotate geometric coordinates on token arrival
+                    if(dynamicSession && chunk.trim().length > 1) {
+                        try {
+                            const tRes = JSON.parse(dynamicSession.process_input_dynamic(chunk, 1));
+                            updateTelemetry(tRes.snapped, tRes.chi, tRes.delta, tRes.alpha, tRes.winner);
+                        } catch(e){}
                     }
-                });
+                }
+            });
 
+            try {
                 await generator(messages, {
                     max_new_tokens: 1024,
                     temperature: 0.5,
@@ -1135,23 +1173,10 @@
                     do_sample: true,
                     streamer: streamer
                 });
-
             } catch(err) {
-                console.error("Generation error with messages array, attempting string template fallback:", err);
+                console.warn("Direct messages generation failed, trying chat_template string:", err);
                 try {
-                    const messages = [
-                        { role: 'system', content: 'You are UOR-R4, a geometric cognitive AI reasoning assistant. Answer questions directly, intelligently, accurately, and naturally. If asked conceptual, riddle, historical, or philosophical questions, provide direct, thoughtful answers. Only write code if explicitly requested.' },
-                        ...chatHistory.slice(-6)
-                    ];
                     const promptStr = generator.tokenizer.apply_chat_template(messages, { tokenize: false, add_generation_prompt: true });
-                    const streamer = new TextStreamer(generator.tokenizer, {
-                        skip_prompt: true,
-                        callback_function: (chunk) => {
-                            fullResponse += chunk;
-                            contentDiv.innerHTML = renderMarkdown(fullResponse);
-                            scrollDown();
-                        }
-                    });
                     await generator(promptStr, {
                         max_new_tokens: 1024,
                         temperature: 0.5,
@@ -1160,9 +1185,9 @@
                         do_sample: true,
                         streamer: streamer
                     });
-                } catch(fallbackErr) {
-                    console.error("Fallback generation error:", fallbackErr);
-                    contentDiv.innerText = "Generation encountered an issue. Please try your prompt again.";
+                } catch(err2) {
+                    console.error("Inference failure:", err2);
+                    contentDiv.innerText = "Error during inference. Please refresh or try again.";
                 }
             }
 
