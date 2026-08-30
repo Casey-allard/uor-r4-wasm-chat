@@ -65,6 +65,7 @@ jobs:
         run: |
           mkdir -p dist
           cp index.html dist/
+          cp coi-serviceworker.js dist/ 2>/dev/null || true
           cp -r pkg dist/
           cp -r assets dist/ 2>/dev/null || true
 

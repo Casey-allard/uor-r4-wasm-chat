@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UOR-R4 Geometric Cognitive AI</title>
+    <script src="coi-serviceworker.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -812,6 +813,15 @@
     <script type="module">
         import { pipeline, env, TextStreamer } from 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.3.3';
 
+        // Configure ONNX Runtime Web backend flags
+        env.allowLocalModels = false;
+        env.useBrowserCache = true;
+        if(env.backends?.onnx?.wasm) {
+            env.backends.onnx.wasm.numThreads = 1;
+            env.backends.onnx.wasm.simd = true;
+            env.backends.onnx.wasm.proxy = false;
+        }
+
         let generator = null;
         let dynamicSession = null;
         let isGenerating = false;
@@ -1013,9 +1023,6 @@
                 }
             };
 
-            env.allowLocalModels = false;
-            env.useBrowserCache = true;
-
             let loadedPipe = null;
             let activeDevice = 'webgpu';
             let lastError = null;
@@ -1036,7 +1043,7 @@
                 }
             }
 
-            // 2. Attempt WebGPU with q4 (Standard WebGPU 4-bit)
+            // 2. Attempt WebGPU with q4
             if(navigator.gpu && !loadedPipe) {
                 try {
                     console.log(`[Tier 2] Loading ${modelId} on WebGPU with q4...`);
@@ -1052,26 +1059,10 @@
                 }
             }
 
-            // 3. Attempt WebGPU with fp16
-            if(navigator.gpu && !loadedPipe) {
-                try {
-                    console.log(`[Tier 3] Loading ${modelId} on WebGPU with fp16...`);
-                    loadedPipe = await pipeline('text-generation', modelId, {
-                        dtype: 'fp16',
-                        device: 'webgpu',
-                        progress_callback: progressCb
-                    });
-                    activeDevice = 'webgpu';
-                } catch(err3) {
-                    console.warn(`[Tier 3 Failed] WebGPU fp16 failed for ${modelId}:`, err3);
-                    lastError = err3;
-                }
-            }
-
-            // 4. Fallback to CPU / WASM for the EXACT SAME model
+            // 3. Fallback to CPU / WASM for the EXACT SAME model
             if(!loadedPipe) {
                 try {
-                    console.log(`[Tier 4] Loading ${modelId} on WASM/CPU with q4...`);
+                    console.log(`[Tier 3] Loading ${modelId} on WASM/CPU with q4...`);
                     if(loadTitle) loadTitle.innerText = 'Compiling WASM Engine...';
                     loadedPipe = await pipeline('text-generation', modelId, {
                         dtype: 'q4',
@@ -1079,9 +1070,9 @@
                         progress_callback: progressCb
                     });
                     activeDevice = 'wasm';
-                } catch(err4) {
-                    console.error(`[Tier 4 Failed] WASM failed for ${modelId}:`, err4);
-                    lastError = err4;
+                } catch(err3) {
+                    console.error(`[Tier 3 Failed] WASM failed for ${modelId}:`, err3);
+                    lastError = err3;
                 }
             }
 
@@ -1179,10 +1170,15 @@
             ];
 
             try {
-                const promptStr = generator.tokenizer.apply_chat_template(messages, {
-                    tokenize: false,
-                    add_generation_prompt: true,
-                });
+                let promptStr = '';
+                try {
+                    promptStr = generator.tokenizer.apply_chat_template(messages, {
+                        tokenize: false,
+                        add_generation_prompt: true,
+                    });
+                } catch(e) {
+                    promptStr = messages.map(m => `<|im_start|>${m.role}\n${m.content}<|im_end|>`).join('\n') + '\n<|im_start|>assistant\n';
+                }
 
                 const streamer = new TextStreamer(generator.tokenizer, {
                     skip_prompt: true,
