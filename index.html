@@ -7,7 +7,16 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- MARKED.JS & KATEX FOR RICH MARKDOWN & LATEX MATH RENDERING -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    
+    <!-- PDF.JS FOR IN-BROWSER PDF TEXT EXTRACTION -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
     <style>
         :root {
             --bg-main: #212121;
@@ -439,7 +448,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 2rem 1rem 9.5rem 1rem;
+            padding: 2rem 1rem 10.5rem 1rem;
             scroll-behavior: smooth;
         }
 
@@ -511,6 +520,23 @@
             line-height: 1.55;
             max-width: 80%;
             word-break: break-word;
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+        }
+
+        .attached-file-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            background: rgba(0, 243, 255, 0.1);
+            border: 1px solid rgba(0, 243, 255, 0.3);
+            color: var(--accent-cyan);
+            font-size: 0.72rem;
+            font-family: 'Fira Code', monospace;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            width: fit-content;
         }
 
         .ai-avatar {
@@ -551,6 +577,17 @@
             margin-bottom: 0;
         }
 
+        .ai-text h1, .ai-text h2, .ai-text h3, .ai-text h4 {
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        .ai-text h1 { font-size: 1.35rem; }
+        .ai-text h2 { font-size: 1.15rem; }
+        .ai-text h3 { font-size: 1.02rem; }
+
         .ai-text ul, .ai-text ol {
             margin-left: 1.25rem;
             margin-bottom: 0.75rem;
@@ -558,6 +595,42 @@
 
         .ai-text li {
             margin-bottom: 0.35rem;
+        }
+
+        .ai-text blockquote {
+            border-left: 3px solid var(--accent-cyan);
+            background: rgba(0, 243, 255, 0.05);
+            padding: 0.6rem 0.9rem;
+            margin: 0.75rem 0;
+            border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+            color: var(--text-secondary);
+        }
+
+        .ai-text table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 0.85rem 0;
+            font-size: 0.88rem;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        .ai-text th, .ai-text td {
+            padding: 0.55rem 0.85rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .ai-text th {
+            background: rgba(255, 255, 255, 0.06);
+            font-weight: 600;
+            color: #ffffff;
+        }
+
+        .ai-text tr:hover {
+            background: rgba(255, 255, 255, 0.03);
         }
 
         .ai-text code:not(pre code) {
@@ -640,6 +713,56 @@
             font-family: 'Fira Code', monospace;
         }
 
+        /* ATTACHMENT CHIPS BAR */
+        .attachment-chips-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.45rem;
+            width: 100%;
+            max-width: 768px;
+            margin-bottom: 0.4rem;
+            pointer-events: auto;
+        }
+
+        .attachment-chip {
+            background: #2a2a2a;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: var(--radius-sm);
+            padding: 0.3rem 0.6rem;
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+            font-size: 0.74rem;
+            color: var(--text-primary);
+            animation: fadeIn 0.15s ease;
+        }
+
+        .attachment-chip-name {
+            max-width: 180px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-family: 'Fira Code', monospace;
+        }
+
+        .attachment-remove-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 0.85rem;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.1rem;
+            transition: color 0.15s ease;
+        }
+
+        .attachment-remove-btn:hover {
+            color: #ef4444;
+        }
+
         /* FLOATING INPUT CAPSULE */
         .input-floating-wrapper {
             position: absolute;
@@ -661,10 +784,10 @@
             background: var(--bg-input);
             border: 1px solid var(--border);
             border-radius: var(--radius-xl);
-            padding: 0.5rem 0.6rem 0.5rem 1.25rem;
+            padding: 0.45rem 0.6rem 0.45rem 0.75rem;
             display: flex;
             align-items: center;
-            gap: 0.75rem;
+            gap: 0.6rem;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
             pointer-events: auto;
             transition: border-color 0.15s ease, box-shadow 0.15s ease;
@@ -673,6 +796,27 @@
         .input-capsule:focus-within {
             border-color: rgba(255, 255, 255, 0.25);
             box-shadow: 0 8px 36px rgba(0, 0, 0, 0.65);
+        }
+
+        .attach-btn-circle {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            flex-shrink: 0;
+        }
+
+        .attach-btn-circle:hover {
+            background: rgba(0, 243, 255, 0.15);
+            color: var(--accent-cyan);
+            border-color: var(--accent-cyan);
         }
 
         .chat-input {
@@ -850,6 +994,9 @@
         <span id="toastText">Neural Substrate compiled in background!</span>
     </div>
 
+    <!-- HIDDEN FILE INPUT -->
+    <input type="file" id="fileUploadInput" multiple accept=".txt,.md,.markdown,.pdf,.json,.csv,.rs,.js,.ts,.py,.html,.css,.yaml,.yml,.toml" style="display:none" onchange="handleFileUpload(event)">
+
     <!-- LEFT SIDEBAR -->
     <aside class="sidebar" id="sidebar">
         <button class="new-chat-btn" onclick="startNewChat()">
@@ -1000,9 +1147,9 @@
                     <div class="empty-state-icon">✦</div>
                     <h2 style="font-size: 1.15rem; font-weight: 600;">Welcome to UOR-R4 Geometric AI</h2>
                     <p style="font-size: 0.88rem; color: var(--text-secondary); max-width: 480px; line-height: 1.6;">
-                        To protect your bandwidth and device memory, no models are downloaded automatically on startup.
+                        100% Local Sovereign Intelligence. Supports <b>document uploads</b> (PDF, TXT, MD, Code), <b>rich Markdown & LaTeX math</b>, and persistent offline storage.
                         <br><br>
-                        Select your preferred intelligence tier in the <b>left sidebar</b> and click <b>"Download & Compile"</b> to initialize. Your weights and conversation history persist across page refreshes.
+                        Select a model in the <b>left sidebar</b> and click <b>"Download & Compile"</b> to initialize.
                     </p>
                     <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
                         <button class="compile-btn" onclick="requestCompileModel('qwen2.5-0.5b')" style="width: auto; padding: 0.45rem 1.15rem;">
@@ -1016,14 +1163,24 @@
 
         <!-- FLOATING INPUT CAPSULE -->
         <div class="input-floating-wrapper">
+            
+            <!-- ATTACHMENT CHIPS CONTAINER -->
+            <div id="attachmentChips" class="attachment-chips-row"></div>
+
             <div class="input-capsule">
-                <input type="text" id="chatInput" class="chat-input" placeholder="Message UOR-R4 Geometric AI..." onkeydown="if(event.key==='Enter') sendChat()">
+                <!-- PLUS ATTACH BUTTON -->
+                <button class="attach-btn-circle" onclick="document.getElementById('fileUploadInput').click()" title="Attach Document, PDF, MD, or Code (+)">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                </button>
+
+                <input type="text" id="chatInput" class="chat-input" placeholder="Ask a question or upload a document..." onkeydown="if(event.key==='Enter') sendChat()">
+                
                 <button id="sendBtn" class="send-btn-circle" onclick="sendChat()" title="Send Message">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
                 </button>
             </div>
             <div class="input-disclaimer" id="footerDisclaimer">
-                UOR-R4 Geometric Cognitive Engine running 100% locally. Grounded in 512D Vector Symbolic hypervectors.
+                UOR-R4 Sovereign AI running locally. Attach files with (+) for instantaneous in-browser analysis.
             </div>
         </div>
 
@@ -1079,21 +1236,25 @@
         env.allowLocalModels = false;
         env.useBrowserCache = true;
 
+        if (window.pdfjsLib) {
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        }
+
         const MODEL_INFO = {
             'qwen2.5-0.5b': {
                 name: 'Qwen 2.5 (0.5B)',
                 source: 'onnx-community/Qwen2.5-0.5B-Instruct',
-                sysPrompt: 'You are a helpful, conversational, thoughtful AI assistant. Answer the user prompt directly, politely, and intelligently. Do not output repetitive tokens.'
+                sysPrompt: 'You are a helpful, brilliant AI assistant. Respond with clear formatting, markdown, and accurate answers. When analyzing provided documents or answering technical questions, be concise and structured.'
             },
             'qwen3.8-flash-next': {
                 name: 'Qwen3.8 (Flash-Next)',
                 source: 'onnx-community/Qwen2.5-Coder-0.5B-Instruct',
-                sysPrompt: 'You are an advanced agentic coding and reasoning assistant. Answer directly and precisely.'
+                sysPrompt: 'You are an advanced agentic coding and technical reasoning assistant. Provide clean code and structured markdown.'
             },
             'glm-5.3-flash': {
                 name: 'GLM-5.3 (Flash)',
                 source: 'onnx-community/Qwen2.5-0.5B-Instruct',
-                sysPrompt: 'You are a deep logical and mathematical reasoning assistant. Provide structured, accurate responses.'
+                sysPrompt: 'You are a deep logical and mathematical reasoning assistant. Provide structured, accurate responses with LaTeX equations when appropriate.'
             }
         };
 
@@ -1107,6 +1268,7 @@
         let conversations = [];
         let currentConvId = null;
         let chatHistory = [];
+        let attachedFiles = [];
 
         let currentE8Coords = [0, 0, 0, 0, 0, 0, 0, 0];
         let currentChi = 0, currentDelta = 0, currentAlpha = 0;
@@ -1192,9 +1354,86 @@
             });
         }
 
+        /* FILE UPLOAD & ATTACHMENT HANDLERS */
+        window.handleFileUpload = async function(event) {
+            const files = event.target.files;
+            if(!files || files.length === 0) return;
+
+            for(let i = 0; i < files.length; i++) {
+                const file = files[i];
+                showToast(`📄 Reading ${file.name}...`);
+                
+                try {
+                    let content = '';
+                    if (file.name.toLowerCase().endsWith('.pdf')) {
+                        const buffer = await file.arrayBuffer();
+                        content = await extractPdfText(buffer);
+                    } else {
+                        content = await file.text();
+                    }
+
+                    attachedFiles.push({
+                        name: file.name,
+                        size: formatFileSize(file.size),
+                        content: content
+                    });
+                } catch(err) {
+                    console.error("File read error:", err);
+                    showToast(`❌ Error reading ${file.name}`);
+                }
+            }
+
+            renderAttachmentChips();
+            event.target.value = '';
+            document.getElementById('chatInput').focus();
+        };
+
+        async function extractPdfText(arrayBuffer) {
+            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+            let fullText = '';
+            for(let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const textContent = await page.getTextContent();
+                const pageText = textContent.items.map(item => item.str).join(' ');
+                fullText += `[Page ${i}]\n` + pageText + '\n\n';
+            }
+            return fullText;
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+        }
+
+        function renderAttachmentChips() {
+            const container = document.getElementById('attachmentChips');
+            container.innerHTML = '';
+
+            attachedFiles.forEach((file, idx) => {
+                const chip = document.createElement('div');
+                chip.className = 'attachment-chip';
+                chip.innerHTML = `
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                    <span class="attachment-chip-name">${escapeHtml(file.name)}</span>
+                    <span style="font-size: 0.65rem; color: var(--text-muted); font-family: 'Fira Code', monospace;">(${file.size})</span>
+                    <button class="attachment-remove-btn" onclick="removeAttachedFile(${idx})" title="Remove attachment">×</button>
+                `;
+                container.appendChild(chip);
+            });
+        }
+
+        window.removeAttachedFile = function(index) {
+            attachedFiles.splice(index, 1);
+            renderAttachmentChips();
+        };
+
         window.startNewChat = function() {
             currentConvId = null;
             chatHistory = [];
+            attachedFiles = [];
+            renderAttachmentChips();
+
             const stream = document.getElementById('chatStream');
             stream.innerHTML = activeModelId ? `
                 <div class="message-row">
@@ -1206,7 +1445,7 @@
                             <span>⚡ ${MODEL_INFO[activeModelId].name}</span>
                         </div>
                         <div>
-                            New conversation started. <b>${MODEL_INFO[activeModelId].name}</b> is active and ready for your prompts!
+                            New conversation started. <b>${MODEL_INFO[activeModelId].name}</b> is active and ready for your prompts or document attachments!
                         </div>
                     </div>
                 </div>
@@ -1235,17 +1474,19 @@
 
             currentConvId = convId;
             chatHistory = [...conv.messages];
+            attachedFiles = [];
+            renderAttachmentChips();
 
             const stream = document.getElementById('chatStream');
             stream.innerHTML = '';
 
             chatHistory.forEach(msg => {
                 if (msg.role === 'user') {
-                    appendUserMessage(msg.content);
+                    appendUserMessage(msg.displayContent || msg.content, msg.fileBadges || []);
                 } else if (msg.role === 'assistant') {
                     const row = createAiMessageElement();
                     const contentDiv = row.querySelector('.ai-text');
-                    contentDiv.innerHTML = renderMarkdown(msg.content);
+                    renderRichMarkdown(contentDiv, msg.content);
                 }
             });
 
@@ -1333,13 +1574,19 @@
             });
         };
 
-        function renderMarkdown(rawText) {
+        /* RICH MARKDOWN & KATEX LATEX RENDERING */
+        function renderRichMarkdown(targetElement, rawText) {
             try {
-                const parsed = marked.parse(rawText || '');
-                const div = document.createElement('div');
-                div.innerHTML = parsed;
+                marked.setOptions({
+                    gfm: true,
+                    breaks: true
+                });
 
-                div.querySelectorAll('pre code').forEach((codeBlock) => {
+                const parsed = marked.parse(rawText || '');
+                targetElement.innerHTML = parsed;
+
+                // Code block windows with copy buttons
+                targetElement.querySelectorAll('pre code').forEach((codeBlock) => {
                     const pre = codeBlock.parentElement;
                     const className = codeBlock.className || '';
                     const langMatch = className.match(/language-(\w+)/);
@@ -1363,9 +1610,20 @@
                     wrapper.appendChild(pre);
                 });
 
-                return div.innerHTML;
+                // KaTeX LaTeX math auto-renderer
+                if (window.renderMathInElement) {
+                    renderMathInElement(targetElement, {
+                        delimiters: [
+                            {left: '$$', right: '$$', display: true},
+                            {left: '$', right: '$', display: false},
+                            {left: '\\(', right: '\\)', display: false},
+                            {left: '\\[', right: '\\]', display: true}
+                        ],
+                        throwOnError: false
+                    });
+                }
             } catch(e) {
-                return rawText;
+                targetElement.innerText = rawText;
             }
         }
 
@@ -1546,8 +1804,9 @@
             if(isGenerating) return;
             const inputEl = document.getElementById('chatInput');
             const sendBtn = document.getElementById('sendBtn');
-            const text = inputEl.value.trim();
-            if(!text) return;
+            const userPrompt = inputEl.value.trim();
+            
+            if(!userPrompt && attachedFiles.length === 0) return;
 
             if(!generator) {
                 showToast("⚠️ Please click 'Download & Compile' on a model in the left sidebar first!");
@@ -1559,7 +1818,8 @@
 
             if(!currentConvId) {
                 currentConvId = 'conv_' + Date.now();
-                const title = text.length > 28 ? text.slice(0, 28) + '...' : text;
+                const displayTitle = userPrompt || (attachedFiles[0] ? attachedFiles[0].name : 'Document Analysis');
+                const title = displayTitle.length > 28 ? displayTitle.slice(0, 28) + '...' : displayTitle;
                 conversations.unshift({
                     id: currentConvId,
                     title: title,
@@ -1570,7 +1830,26 @@
                 renderConversationsList();
             }
 
-            appendUserMessage(text);
+            // Build payload combining attached documents and user question
+            const currentAttachments = [...attachedFiles];
+            attachedFiles = [];
+            renderAttachmentChips();
+
+            let fullPromptWithContext = '';
+            if (currentAttachments.length > 0) {
+                fullPromptWithContext += '--- Context from attached documents ---\n';
+                currentAttachments.forEach(doc => {
+                    const truncatedDoc = doc.content.length > 12000 ? doc.content.slice(0, 12000) + '\n...[truncated]' : doc.content;
+                    fullPromptWithContext += `\n[File: ${doc.name}]\n\`\`\`\n${truncatedDoc}\n\`\`\`\n`;
+                });
+                fullPromptWithContext += '\n--- User Question ---\n' + (userPrompt || 'Please summarize and explain the key findings of the attached document.');
+            } else {
+                fullPromptWithContext = userPrompt;
+            }
+
+            const fileBadges = currentAttachments.map(d => d.name);
+            appendUserMessage(userPrompt || `Analyzed ${currentAttachments.map(d=>d.name).join(', ')}`, fileBadges);
+            
             inputEl.value = '';
             isGenerating = true;
             sendBtn.disabled = true;
@@ -1579,7 +1858,12 @@
             const contentDiv = aiRow.querySelector('.ai-text');
             contentDiv.classList.add('typing-cursor');
 
-            const userMsg = { role: 'user', content: text };
+            const userMsg = { 
+                role: 'user', 
+                content: fullPromptWithContext,
+                displayContent: userPrompt || `Analyzed ${currentAttachments.map(d=>d.name).join(', ')}`,
+                fileBadges: fileBadges
+            };
             chatHistory.push(userMsg);
 
             const curConv = conversations.find(c => c.id === currentConvId);
@@ -1591,7 +1875,7 @@
 
             if(dynamicSession) {
                 try {
-                    const geomRes = JSON.parse(dynamicSession.process_input_dynamic(text, 10));
+                    const geomRes = JSON.parse(dynamicSession.process_input_dynamic(userPrompt || fullPromptWithContext, 10));
                     updateTelemetry(geomRes.snapped, geomRes.chi, geomRes.delta, geomRes.alpha, geomRes.winner);
                 } catch(e) {
                     console.warn(e);
@@ -1604,14 +1888,14 @@
                 const activeConfig = MODEL_INFO[activeModelId] || MODEL_INFO['qwen2.5-0.5b'];
                 const messages = [
                     { role: 'system', content: activeConfig.sysPrompt },
-                    ...chatHistory.slice(-6)
+                    ...chatHistory.slice(-4).map(m => ({ role: m.role, content: m.content }))
                 ];
 
                 const streamer = new TextStreamer(generator.tokenizer, {
                     skip_prompt: true,
                     callback_function: (chunk) => {
                         fullResponse += chunk;
-                        contentDiv.innerHTML = renderMarkdown(fullResponse);
+                        renderRichMarkdown(contentDiv, fullResponse);
                         scrollDown();
 
                         if(dynamicSession && chunk.trim().length > 1) {
@@ -1636,9 +1920,9 @@
 
             contentDiv.classList.remove('typing-cursor');
             if(!fullResponse || fullResponse.trim().length === 0) {
-                contentDiv.innerHTML = renderMarkdown(fullResponse || "Thinking completed.");
+                renderRichMarkdown(contentDiv, fullResponse || "Thinking completed.");
             } else {
-                contentDiv.innerHTML = renderMarkdown(fullResponse);
+                renderRichMarkdown(contentDiv, fullResponse);
             }
 
             const aiMsg = { role: 'assistant', content: fullResponse };
@@ -1653,12 +1937,27 @@
             inputEl.focus();
         };
 
-        function appendUserMessage(text) {
+        function appendUserMessage(text, fileBadges = []) {
             const stream = document.getElementById('chatStream');
             const row = document.createElement('div');
             row.className = 'message-row user-row';
+
+            let badgesHtml = '';
+            if (fileBadges && fileBadges.length > 0) {
+                badgesHtml = '<div style="display:flex; flex-wrap:wrap; gap:0.35rem; margin-bottom:0.35rem;">' + 
+                    fileBadges.map(name => `
+                        <div class="attached-file-badge">
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                            <span>${escapeHtml(name)}</span>
+                        </div>
+                    `).join('') + '</div>';
+            }
+
             row.innerHTML = `
-                <div class="user-bubble">${escapeHtml(text)}</div>
+                <div class="user-bubble">
+                    ${badgesHtml}
+                    <div>${escapeHtml(text)}</div>
+                </div>
             `;
             stream.appendChild(row);
             scrollDown();
