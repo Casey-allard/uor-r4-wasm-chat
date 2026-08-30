@@ -3,18 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UOR-R4 Geometric AI | 3-Layer Cognitive Dialogue & Massive Ingestion</title>
+    <title>UOR-R4 Agent Studio | 2.14B Parameter Geometric Cognitive AI</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-base: #060912;
-            --bg-card: rgba(15, 23, 42, 0.75);
+            --bg-base: #070a12;
+            --bg-sidebar: #0b101d;
+            --bg-card: rgba(15, 23, 42, 0.7);
             --bg-card-hover: rgba(30, 41, 59, 0.85);
-            --bg-input: #0b1120;
-            --border: rgba(56, 189, 248, 0.15);
-            --border-highlight: rgba(56, 189, 248, 0.45);
+            --bg-input: #0e1526;
+            --border: rgba(56, 189, 248, 0.14);
+            --border-highlight: rgba(56, 189, 248, 0.4);
             --cyan: #00f3ff;
             --cyan-glow: rgba(0, 243, 255, 0.25);
             --emerald: #10b981;
@@ -25,7 +26,7 @@
             --text-primary: #f8fafc;
             --text-secondary: #94a3b8;
             --text-muted: #64748b;
-            --radius-lg: 16px;
+            --radius-lg: 14px;
             --radius-md: 10px;
             --radius-sm: 6px;
         }
@@ -40,16 +41,16 @@
             background-color: var(--bg-base);
             color: var(--text-primary);
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            min-height: 100vh;
+            height: 100vh;
             display: flex;
             flex-direction: column;
+            overflow: hidden;
             background-image: 
-                radial-gradient(circle at 15% 15%, rgba(0, 243, 255, 0.05) 0%, transparent 45%),
-                radial-gradient(circle at 85% 85%, rgba(168, 85, 247, 0.05) 0%, transparent 45%),
-                linear-gradient(rgba(255, 255, 255, 0.01) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255, 255, 255, 0.01) 1px, transparent 1px);
-            background-size: 100% 100%, 100% 100%, 32px 32px, 32px 32px;
-            overflow-x: hidden;
+                radial-gradient(circle at 10% 10%, rgba(0, 243, 255, 0.04) 0%, transparent 40%),
+                radial-gradient(circle at 90% 90%, rgba(168, 85, 247, 0.04) 0%, transparent 40%),
+                linear-gradient(rgba(255, 255, 255, 0.008) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.008) 1px, transparent 1px);
+            background-size: 100% 100%, 100% 100%, 28px 28px, 28px 28px;
         }
 
         /* HEADER */
@@ -57,41 +58,39 @@
             border-bottom: 1px solid var(--border);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
-            background: rgba(6, 9, 18, 0.85);
-            position: sticky;
-            top: 0;
-            z-index: 50;
-            padding: 0.85rem 1.5rem;
+            background: rgba(7, 10, 18, 0.92);
+            padding: 0.75rem 1.5rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            z-index: 50;
         }
 
         .brand-container {
             display: flex;
             align-items: center;
-            gap: 0.85rem;
+            gap: 0.75rem;
         }
 
         .brand-icon {
-            width: 38px;
-            height: 38px;
+            width: 34px;
+            height: 34px;
             border-radius: var(--radius-md);
             background: linear-gradient(135deg, #00f3ff, #a855f7);
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 0 16px var(--cyan-glow);
+            box-shadow: 0 0 14px var(--cyan-glow);
         }
 
         .brand-icon svg {
-            width: 22px;
-            height: 22px;
+            width: 18px;
+            height: 18px;
             fill: #000;
         }
 
         .brand-title {
-            font-size: 1.15rem;
+            font-size: 1.05rem;
             font-weight: 700;
             letter-spacing: -0.02em;
             background: linear-gradient(90deg, #ffffff, var(--cyan));
@@ -100,7 +99,7 @@
         }
 
         .brand-subtitle {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             color: var(--text-muted);
             font-family: 'Fira Code', monospace;
         }
@@ -108,17 +107,16 @@
         .header-badges {
             display: flex;
             align-items: center;
-            gap: 0.75rem;
-            flex-wrap: wrap;
+            gap: 0.65rem;
         }
 
         .badge {
             display: inline-flex;
             align-items: center;
             gap: 0.35rem;
-            padding: 0.3rem 0.65rem;
+            padding: 0.25rem 0.65rem;
             border-radius: 9999px;
-            font-size: 0.75rem;
+            font-size: 0.72rem;
             font-family: 'Fira Code', monospace;
             font-weight: 500;
             border: 1px solid var(--border);
@@ -139,197 +137,141 @@
             50% { opacity: 0.5; transform: scale(0.85); }
         }
 
-        /* MAIN CONTAINER */
-        .dashboard-grid {
+        /* 3-COLUMN STUDIO LAYOUT */
+        .studio-layout {
             display: grid;
-            grid-template-columns: 1.2fr 0.8fr;
-            gap: 1.25rem;
-            padding: 1.25rem;
-            max-width: 1500px;
-            margin: 0 auto;
-            width: 100%;
+            grid-template-columns: 260px 1fr 380px;
             flex: 1;
+            overflow: hidden;
         }
 
-        @media (max-width: 1080px) {
-            .dashboard-grid {
-                grid-template-columns: 1fr;
+        @media (max-width: 1200px) {
+            .studio-layout {
+                grid-template-columns: 240px 1fr;
+            }
+            .telemetry-dock {
+                display: none;
             }
         }
 
-        /* CARDS */
-        .glass-panel {
-            background: var(--bg-card);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-lg);
-            padding: 1.25rem;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.36);
-            transition: border-color 0.2s ease;
+        @media (max-width: 850px) {
+            .studio-layout {
+                grid-template-columns: 1fr;
+            }
+            .sidebar {
+                display: none;
+            }
         }
 
-        .glass-panel:hover {
-            border-color: var(--border-highlight);
-        }
-
-        .panel-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            padding-bottom: 0.75rem;
-        }
-
-        .panel-title {
-            font-size: 0.95rem;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            color: var(--text-primary);
-        }
-
-        .panel-title svg {
-            width: 16px;
-            height: 16px;
-            color: var(--cyan);
-        }
-
-        /* AUTOMATED INGESTION HERO BAR */
-        .auto-ingest-hero {
-            background: linear-gradient(135deg, rgba(0, 243, 255, 0.08), rgba(168, 85, 247, 0.12));
-            border: 1px solid rgba(0, 243, 255, 0.3);
-            border-radius: var(--radius-lg);
+        /* LEFT SIDEBAR */
+        .sidebar {
+            background: var(--bg-sidebar);
+            border-right: 1px solid var(--border);
             padding: 1.15rem;
             display: flex;
             flex-direction: column;
-            gap: 0.85rem;
-            box-shadow: 0 0 24px rgba(0, 243, 255, 0.08);
+            gap: 1.15rem;
+            overflow-y: auto;
         }
 
-        .auto-ingest-controls {
-            display: flex;
-            gap: 0.65rem;
-            flex-wrap: wrap;
-            align-items: center;
+        .sidebar-section-title {
+            font-size: 0.68rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+            font-family: 'Fira Code', monospace;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
         }
 
-        .btn-magic {
-            background: linear-gradient(135deg, #00f3ff, #a855f7);
-            border: none;
-            color: #000;
-            font-weight: 700;
-            padding: 0.75rem 1.35rem;
-            border-radius: var(--radius-md);
-            font-size: 0.88rem;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            box-shadow: 0 0 18px var(--cyan-glow);
-            transition: all 0.2s ease;
-        }
-
-        .btn-magic:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 0 28px rgba(0, 243, 255, 0.55);
-        }
-
-        .btn-secondary-action {
+        .model-card {
             background: rgba(15, 23, 42, 0.85);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            color: var(--text-primary);
-            padding: 0.75rem 1.15rem;
+            border: 1px solid rgba(0, 243, 255, 0.25);
             border-radius: var(--radius-md);
-            font-size: 0.84rem;
+            padding: 0.85rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            box-shadow: 0 0 16px rgba(0, 243, 255, 0.06);
+        }
+
+        .model-name {
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .spec-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.72rem;
+            font-family: 'Fira Code', monospace;
+            color: var(--text-secondary);
+        }
+
+        .spec-val {
+            color: var(--cyan);
+            font-weight: 600;
+        }
+
+        .side-btn {
+            background: rgba(15, 23, 42, 0.75);
+            border: 1px solid rgba(255, 255, 255, 0.09);
+            color: var(--text-primary);
+            padding: 0.65rem 0.85rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.78rem;
             font-weight: 600;
             cursor: pointer;
-            display: inline-flex;
+            display: flex;
             align-items: center;
             gap: 0.45rem;
             transition: all 0.2s ease;
+            width: 100%;
         }
 
-        .btn-secondary-action:hover {
-            background: rgba(255, 255, 255, 0.12);
+        .side-btn:hover {
+            background: rgba(0, 243, 255, 0.1);
             border-color: var(--cyan);
             color: var(--cyan);
         }
 
-        /* LIVE HUD ODOMETER BAR */
-        .hud-odometer-bar {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 0.65rem;
-            background: rgba(11, 17, 32, 0.85);
-            border: 1px solid rgba(0, 243, 255, 0.25);
-            border-radius: var(--radius-md);
-            padding: 0.75rem 1rem;
-            box-shadow: 0 0 16px rgba(0, 243, 255, 0.06);
-        }
-
-        .hud-metric {
+        /* CENTER CHAT WORKSPACE */
+        .chat-workspace {
             display: flex;
             flex-direction: column;
-            gap: 0.2rem;
+            height: 100%;
+            background: rgba(6, 9, 18, 0.5);
+            overflow: hidden;
         }
 
-        .hud-label {
-            font-size: 0.66rem;
-            color: var(--text-muted);
-            font-family: 'Fira Code', monospace;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .hud-value {
-            font-size: 1.05rem;
-            font-weight: 700;
-            font-family: 'Fira Code', monospace;
-            color: var(--cyan);
-        }
-
-        /* CHAT TERMINAL */
-        .chat-box {
-            display: flex;
-            flex-direction: column;
-            height: 480px;
-        }
-
-        .chat-stream {
+        .chat-feed {
             flex: 1;
             overflow-y: auto;
+            padding: 1.5rem 2rem;
             display: flex;
             flex-direction: column;
-            gap: 0.95rem;
-            padding-right: 0.5rem;
+            gap: 1.25rem;
             scroll-behavior: smooth;
         }
 
-        .chat-stream::-webkit-scrollbar {
-            width: 6px;
+        .chat-feed::-webkit-scrollbar {
+            width: 5px;
         }
 
-        .chat-stream::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        .chat-stream::-webkit-scrollbar-thumb {
+        .chat-feed::-webkit-scrollbar-thumb {
             background: rgba(255, 255, 255, 0.1);
             border-radius: 9999px;
         }
 
-        .msg-bubble {
-            max-width: 88%;
-            padding: 0.95rem 1.25rem;
-            border-radius: var(--radius-md);
-            font-size: 0.92rem;
-            line-height: 1.6;
-            position: relative;
+        .chat-row {
+            display: flex;
+            gap: 0.95rem;
+            max-width: 860px;
+            width: 100%;
             animation: fadeIn 0.25s ease-out;
         }
 
@@ -338,58 +280,130 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        .msg-user {
-            align-self: flex-end;
-            background: linear-gradient(135deg, rgba(0, 243, 255, 0.2), rgba(168, 85, 247, 0.22));
-            border: 1px solid rgba(0, 243, 255, 0.4);
+        .chat-row.user-row {
+            margin-left: auto;
+            flex-direction: row-reverse;
+        }
+
+        .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.72rem;
+            font-weight: 700;
+            flex-shrink: 0;
+            font-family: 'Fira Code', monospace;
+        }
+
+        .avatar-ai {
+            background: linear-gradient(135deg, #00f3ff, #a855f7);
+            color: #000;
+            box-shadow: 0 0 10px var(--cyan-glow);
+        }
+
+        .avatar-user {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+        }
+
+        .bubble-content {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            max-width: calc(100% - 48px);
+        }
+
+        .msg-text-user {
+            background: linear-gradient(135deg, rgba(0, 243, 255, 0.15), rgba(168, 85, 247, 0.2));
+            border: 1px solid rgba(0, 243, 255, 0.35);
+            padding: 0.85rem 1.15rem;
+            border-radius: var(--radius-md);
             color: #ffffff;
-            border-bottom-right-radius: 2px;
+            font-size: 0.92rem;
+            line-height: 1.55;
         }
 
-        .msg-ai {
-            align-self: flex-start;
-            background: rgba(15, 23, 42, 0.9);
-            border: 1px solid rgba(255, 255, 255, 0.09);
-            border-bottom-left-radius: 2px;
+        .msg-text-ai {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            padding: 1rem 1.25rem;
+            border-radius: var(--radius-md);
             color: var(--text-primary);
+            font-size: 0.94rem;
+            line-height: 1.6;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
         }
 
-        .msg-ai .completion-header {
+        /* ANTIGRAVITY-STYLE THOUGHT TRACE DISCLOSURE */
+        .thought-trace {
+            background: rgba(11, 17, 32, 0.75);
+            border: 1px solid rgba(0, 243, 255, 0.2);
+            border-radius: var(--radius-sm);
+            padding: 0.55rem 0.85rem;
             font-family: 'Fira Code', monospace;
             font-size: 0.75rem;
-            color: var(--cyan);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .thought-trace:hover {
+            border-color: var(--cyan);
+            background: rgba(11, 17, 32, 0.95);
+        }
+
+        .thought-trace summary {
             font-weight: 600;
-            margin-bottom: 0.4rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .msg-ai .completion-body {
-            font-size: 0.95rem;
-            color: #f1f5f9;
-        }
-
-        .msg-meta {
-            font-size: 0.72rem;
-            color: var(--text-muted);
-            font-family: 'Fira Code', monospace;
+            color: var(--cyan);
             display: flex;
-            gap: 0.75rem;
-            margin-top: 0.45rem;
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
-            padding-top: 0.35rem;
+            align-items: center;
+            gap: 0.4rem;
+            user-select: none;
+            outline: none;
         }
 
-        /* PROMPT CHIPS */
-        .chips-container {
+        .thought-steps {
+            margin-top: 0.55rem;
+            padding-top: 0.45rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+            color: #cbd5e1;
+        }
+
+        .thought-step-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.45rem;
+        }
+
+        .thought-step-icon {
+            color: var(--purple);
+        }
+
+        /* INPUT DOCK */
+        .input-dock {
+            padding: 1rem 2rem 1.25rem 2rem;
+            background: rgba(7, 10, 18, 0.85);
+            border-top: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            gap: 0.65rem;
+        }
+
+        .dock-chips {
             display: flex;
             align-items: center;
             gap: 0.4rem;
             overflow-x: auto;
-            padding: 0.3rem 0;
         }
 
-        .chips-container::-webkit-scrollbar {
+        .dock-chips::-webkit-scrollbar {
             display: none;
         }
 
@@ -397,9 +411,9 @@
             background: rgba(255, 255, 255, 0.04);
             border: 1px solid rgba(255, 255, 255, 0.08);
             color: var(--text-secondary);
-            font-size: 0.75rem;
+            font-size: 0.73rem;
             font-family: 'Fira Code', monospace;
-            padding: 0.35rem 0.7rem;
+            padding: 0.3rem 0.65rem;
             border-radius: var(--radius-sm);
             cursor: pointer;
             white-space: nowrap;
@@ -413,61 +427,94 @@
             transform: translateY(-1px);
         }
 
-        /* INPUT BAR */
         .input-bar {
             display: flex;
-            gap: 0.5rem;
-            margin-top: 0.5rem;
-        }
-
-        .text-input {
-            flex: 1;
             background: var(--bg-input);
             border: 1px solid var(--border);
             border-radius: var(--radius-md);
-            padding: 0.85rem 1.15rem;
-            color: var(--text-primary);
-            font-size: 0.92rem;
-            font-family: 'Inter', sans-serif;
-            outline: none;
+            padding: 0.35rem 0.5rem 0.35rem 1rem;
+            align-items: center;
+            gap: 0.65rem;
             transition: border-color 0.2s ease, box-shadow 0.2s ease;
         }
 
-        .text-input:focus {
+        .input-bar:focus-within {
             border-color: var(--cyan);
-            box-shadow: 0 0 12px var(--cyan-glow);
+            box-shadow: 0 0 16px var(--cyan-glow);
+        }
+
+        .chat-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: #ffffff;
+            font-size: 0.92rem;
+            font-family: 'Inter', sans-serif;
+            outline: none;
         }
 
         .btn-send {
-            background: linear-gradient(135deg, #00f3ff, #0284c7);
+            background: linear-gradient(135deg, #00f3ff, #a855f7);
             border: none;
             color: #000;
             font-weight: 700;
-            padding: 0.85rem 1.35rem;
-            border-radius: var(--radius-md);
-            font-size: 0.9rem;
+            padding: 0.65rem 1.15rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.85rem;
             cursor: pointer;
             display: inline-flex;
             align-items: center;
-            gap: 0.45rem;
+            gap: 0.4rem;
             transition: all 0.2s ease;
         }
 
         .btn-send:hover {
-            box-shadow: 0 0 20px rgba(0, 243, 255, 0.45);
+            box-shadow: 0 0 16px var(--cyan-glow);
             transform: translateY(-1px);
         }
 
-        /* CANVAS & VISUALIZATION */
-        .canvas-container {
+        /* RIGHT TELEMETRY DOCK (HOW THE BRAIN THINKS) */
+        .telemetry-dock {
+            background: var(--bg-sidebar);
+            border-left: 1px solid var(--border);
+            padding: 1.15rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.15rem;
+            overflow-y: auto;
+        }
+
+        .canvas-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .canvas-header {
+            padding: 0.65rem 0.85rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .canvas-title {
+            font-size: 0.76rem;
+            font-weight: 700;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .canvas-box {
             position: relative;
             width: 100%;
-            height: 300px;
-            background: radial-gradient(circle at 50% 50%, #0d152b 0%, #060912 100%);
-            border-radius: var(--radius-md);
-            border: 1px solid rgba(56, 189, 248, 0.2);
-            overflow: hidden;
-            box-shadow: inset 0 0 30px rgba(0, 243, 255, 0.05);
+            height: 220px;
+            background: radial-gradient(circle at 50% 50%, #0d152b 0%, #070a12 100%);
         }
 
         canvas {
@@ -478,75 +525,85 @@
 
         .canvas-overlay {
             position: absolute;
-            top: 8px;
-            left: 10px;
+            top: 6px;
+            left: 8px;
             font-family: 'Fira Code', monospace;
-            font-size: 0.72rem;
+            font-size: 0.68rem;
             color: var(--cyan);
             pointer-events: none;
             background: rgba(0, 0, 0, 0.65);
-            padding: 0.25rem 0.55rem;
+            padding: 0.2rem 0.45rem;
             border-radius: 4px;
-            border: 1px solid rgba(0, 243, 255, 0.25);
+            border: 1px solid rgba(0, 243, 255, 0.2);
         }
 
-        /* DIAGNOSTICS & METRICS */
-        .metrics-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
+        /* 4-STAGE PIPELINE CARDS */
+        .pipeline-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 0.85rem;
+            display: flex;
+            flex-direction: column;
             gap: 0.65rem;
         }
 
-        .metric-card {
-            background: rgba(11, 17, 32, 0.7);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: var(--radius-sm);
-            padding: 0.65rem 0.85rem;
+        .pipeline-step {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.72rem;
+            font-family: 'Fira Code', monospace;
+            padding: 0.35rem 0.5rem;
+            background: rgba(11, 17, 32, 0.6);
+            border-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
         }
 
-        .metric-label {
-            font-size: 0.7rem;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            font-family: 'Fira Code', monospace;
+        .pipeline-step.active {
+            border-color: var(--cyan);
+            background: rgba(0, 243, 255, 0.06);
         }
 
-        .metric-val {
-            font-size: 1.05rem;
-            font-weight: 700;
-            font-family: 'Fira Code', monospace;
+        .step-label {
+            color: var(--text-secondary);
+        }
+
+        .step-val {
             color: var(--cyan);
-            margin-top: 0.2rem;
+            font-weight: 600;
         }
 
-        /* E8 COORDINATES DISPLAY */
-        .e8-container {
-            background: rgba(11, 17, 32, 0.7);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: var(--radius-sm);
-            padding: 0.75rem;
+        /* 8D GOSSET SPECTRUM */
+        .spectrum-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 0.85rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.55rem;
         }
 
         .e8-bars {
             display: grid;
             grid-template-columns: repeat(8, 1fr);
-            gap: 0.35rem;
-            margin-top: 0.5rem;
+            gap: 0.3rem;
+            margin-top: 0.25rem;
         }
 
         .e8-bar-col {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 0.25rem;
+            gap: 0.2rem;
         }
 
         .e8-bar-track {
             width: 100%;
-            height: 48px;
+            height: 42px;
             background: rgba(255, 255, 255, 0.03);
-            border-radius: 3px;
+            border-radius: 2px;
             position: relative;
             display: flex;
             align-items: center;
@@ -562,40 +619,22 @@
         }
 
         .e8-dim-label {
-            font-size: 0.65rem;
+            font-size: 0.62rem;
             color: var(--text-muted);
             font-family: 'Fira Code', monospace;
         }
 
         .e8-val-label {
-            font-size: 0.72rem;
+            font-size: 0.68rem;
             color: var(--text-secondary);
             font-family: 'Fira Code', monospace;
             font-weight: 600;
-        }
-
-        /* FOOTER */
-        footer {
-            border-top: 1px solid var(--border);
-            padding: 1rem 1.5rem;
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: auto;
-            background: rgba(6, 9, 18, 0.6);
-        }
-
-        footer a {
-            color: var(--cyan);
-            text-decoration: none;
         }
     </style>
 </head>
 <body>
 
-    <!-- NAVIGATION HEADER -->
+    <!-- TOP HEADER -->
     <header>
         <div class="brand-container">
             <div class="brand-icon">
@@ -606,179 +645,185 @@
                 </svg>
             </div>
             <div>
-                <div class="brand-title">UOR-R4 COGNITIVE AI</div>
-                <div class="brand-subtitle">3-Layer Hierarchical Geometric Attention • 100% WebAssembly</div>
+                <div class="brand-title">UOR-R4 AGENT STUDIO</div>
+                <div class="brand-subtitle">2.14B Parameter Multi-Layer Geometric Engine • 100% WebAssembly</div>
             </div>
         </div>
 
         <div class="header-badges">
             <div class="badge" id="wasmStatusBadge">
                 <div class="badge-dot" id="statusDot"></div>
-                <span id="statusText">Initializing WASM...</span>
+                <span id="statusText">Initializing Engine...</span>
             </div>
             <div class="badge" style="border-color: rgba(16, 185, 129, 0.3);">
-                <span style="color: var(--emerald);">Zero Allocations</span>
+                <span style="color: var(--emerald);">0 Heap Allocs</span>
             </div>
         </div>
     </header>
 
-    <!-- MAIN DASHBOARD -->
-    <main class="dashboard-grid">
+    <!-- 3-COLUMN STUDIO LAYOUT -->
+    <div class="studio-layout">
         
-        <!-- LEFT COLUMN: AUTOMATED INGESTION HERO & INTERACTIVE DIALOGUE -->
-        <div style="display: flex; flex-direction: column; gap: 1.15rem;">
-            
-            <!-- 2.14B PARAMETER NEURAL MANIFOLD STATUS HERO -->
-            <div class="auto-ingest-hero">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <div style="font-size: 0.92rem; font-weight: 700; color: #ffffff; display: flex; align-items: center; gap: 0.45rem;">
-                        <span>🧠 2.14B Parameter Multi-Layer Geometric Manifold</span>
+        <!-- LEFT SIDEBAR: AGENT PROFILE & TELEMETRY -->
+        <aside class="sidebar">
+            <div>
+                <div class="sidebar-section-title">Active Agent Core</div>
+                <div class="model-card">
+                    <div class="model-name">
+                        <span>⚡ UOR-R4 2.14B Geometric</span>
                     </div>
-                    <div class="status-pill" id="bootStatusPill" style="font-size: 0.72rem; color: var(--emerald); font-family: 'Fira Code', monospace;">
-                        <span>● 2.14B Manifold Online</span>
+                    <div class="spec-row">
+                        <span>Architecture:</span>
+                        <span class="spec-val">3-Layer Attention</span>
                     </div>
-                </div>
-
-                <!-- Sleek Boot Loader Progress Bar -->
-                <div style="background: rgba(0,0,0,0.4); border-radius: 6px; height: 6px; overflow: hidden; position: relative;">
-                    <div id="bootProgressBar" style="width: 100%; height: 100%; background: linear-gradient(90deg, var(--cyan), #a855f7); transition: width 0.4s ease;"></div>
-                </div>
-
-                <div class="auto-ingest-controls" style="justify-content: flex-end;">
-                    <button class="btn-secondary-action" id="btnAutoPilot" onclick="toggleAutoPilotStream()">
-                        <span>🔄 Auto-Pilot Live Wikipedia Stream</span>
-                    </button>
-                    <button class="btn-secondary-action" onclick="resetContext()">
-                        <span>🔄 Clear History</span>
-                    </button>
+                    <div class="spec-row">
+                        <span>Lattice Space:</span>
+                        <span class="spec-val">8D Gosset E8</span>
+                    </div>
+                    <div class="spec-row">
+                        <span>Trigonometry:</span>
+                        <span class="spec-val">CORDIC Q16</span>
+                    </div>
                 </div>
             </div>
 
-            <!-- LIVE HIGH-VISIBILITY TELEMETRY HUD ODOMETER -->
-            <div class="hud-odometer-bar">
-                <div class="hud-metric">
-                    <span class="hud-label">Total Parameters</span>
-                    <span class="hud-value" id="odometerParams">2.14 Billion</span>
-                </div>
-                <div class="hud-metric">
-                    <span class="hud-label">Tokens Ingested</span>
-                    <span class="hud-value" id="odometerTokens">2,000,000 Tokens</span>
-                </div>
-                <div class="hud-metric">
-                    <span class="hud-label">Vocabulary Size</span>
-                    <span class="hud-value" id="odometerVocab">2,048 Centroids</span>
-                </div>
-                <div class="hud-metric">
-                    <span class="hud-label">Engine State</span>
-                    <span class="hud-value" id="odometerStatus" style="color: var(--emerald);">● Online (Ready)</span>
+            <div>
+                <div class="sidebar-section-title">Engine Telemetry</div>
+                <div class="model-card">
+                    <div class="spec-row">
+                        <span>Parameters:</span>
+                        <span class="spec-val" id="sideParams">2.14 Billion</span>
+                    </div>
+                    <div class="spec-row">
+                        <span>Tokens Ingested:</span>
+                        <span class="spec-val" id="sideTokens">2,000,000</span>
+                    </div>
+                    <div class="spec-row">
+                        <span>Vocabulary:</span>
+                        <span class="spec-val" id="sideVocab">2,048 Centroids</span>
+                    </div>
+                    <div class="spec-row">
+                        <span>Throughput:</span>
+                        <span class="spec-val">35,000 tok/s</span>
+                    </div>
                 </div>
             </div>
 
-            <!-- INTERACTIVE CHAT PANEL -->
-            <section class="glass-panel chat-box">
-                <div class="panel-header">
-                    <div class="panel-title">
-                        <svg fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clip-rule="evenodd"></path></svg>
-                        <span>Cognitive Coherent Dialogue</span>
-                    </div>
-                    <span style="font-size: 0.72rem; color: var(--text-muted); font-family: 'Fira Code', monospace;" id="activeModelLabel">3-Layer Geometric Engine</span>
+            <div>
+                <div class="sidebar-section-title">Knowledge Controls</div>
+                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    <button class="side-btn" id="btnAutoPilot" onclick="toggleAutoPilotStream()">
+                        <span>🔄 Auto-Pilot Live Stream</span>
+                    </button>
+                    <button class="side-btn" onclick="resetContext()">
+                        <span>🔄 Reset Context Vector</span>
+                    </button>
                 </div>
+            </div>
+        </aside>
 
-                <!-- CHAT MESSAGES STREAM -->
-                <div class="chat-stream" id="chatStream">
-                    <div class="msg-bubble msg-ai">
-                        <div class="completion-header">UOR-R4 Hierarchical Core Online</div>
-                        <div class="completion-body">Hello! I am your deterministic geometric AI assistant. Click <b>"⚡ Ingest 100k+ Knowledge Shard"</b> above to stream 80,000+ words into the 3-layer E8 Gosset manifold, or toggle <b>"🔄 Auto-Pilot Stream"</b> to continuously crawl live Wikipedia!</div>
-                        <div class="msg-meta">
-                            <span>Engine: 3-Layer Hierarchical Attention</span>
-                            <span>Memory: 0 allocs</span>
+        <!-- CENTER WORKSPACE: CONVERSATIONAL STREAM -->
+        <main class="chat-workspace">
+            <div class="chat-feed" id="chatStream">
+                
+                <!-- Initial Welcome Message -->
+                <div class="chat-row">
+                    <div class="avatar avatar-ai">AI</div>
+                    <div class="bubble-content">
+                        <details class="thought-trace" open>
+                            <summary>⚡ Initial Geometric Superposition & Manifold State</summary>
+                            <div class="thought-steps">
+                                <div class="thought-step-item">
+                                    <span class="thought-step-icon">●</span>
+                                    <span>Initialized 512D Vector Symbolic Superposition base state.</span>
+                                </div>
+                                <div class="thought-step-item">
+                                    <span class="thought-step-icon">●</span>
+                                    <span>2.14 Billion connection parameters loaded across 2,048 Gosset E8 centroids.</span>
+                                </div>
+                            </div>
+                        </details>
+                        <div class="msg-text-ai">
+                            Hello! I am your <b>UOR-R4 Geometric Cognitive Agent</b>. My reasoning process operates entirely on 512-dimensional vector symbolic superposition, CORDIC Hopf phase rotations, and discrete 8D Gosset \(E_8\) lattice quantization. Ask me any conceptual, philosophical, or scientific question!
                         </div>
                     </div>
                 </div>
 
-                <!-- QUICK PROMPT CHIPS -->
-                <div class="chips-container" id="promptChips">
-                    <span style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase;">Prompts:</span>
-                    <button class="chip" onclick="quickSend('hello assistant')">hello</button>
-                    <button class="chip" onclick="quickSend('please tell me a story')">tell me a story</button>
+            </div>
+
+            <!-- INPUT DOCK -->
+            <div class="input-dock">
+                <div class="dock-chips">
+                    <span style="font-size: 0.68rem; color: var(--text-muted); text-transform: uppercase; font-family: 'Fira Code', monospace;">Quick Inquiries:</span>
+                    <button class="chip" onclick="quickSend('hello!')">hello!</button>
+                    <button class="chip" onclick="quickSend('tell me a story')">tell me a story</button>
                     <button class="chip" onclick="quickSend('explain quantum computing')">quantum computing</button>
-                    <button class="chip" onclick="quickSend('what is artificial intelligence')">artificial intelligence</button>
+                    <button class="chip" onclick="quickSend('why is geometric attention deterministic')">why deterministic?</button>
                     <button class="chip" onclick="quickSend('what is philosophy of mind')">philosophy of mind</button>
                 </div>
 
-                <!-- INPUT BAR -->
                 <div class="input-bar">
-                    <input type="text" id="chatInput" class="text-input" placeholder="Type a conversational query or concept..." onkeydown="if(event.key==='Enter') sendChat()">
+                    <input type="text" id="chatInput" class="chat-input" placeholder="Message UOR-R4 2.14B Agent..." onkeydown="if(event.key==='Enter') sendChat()">
                     <button class="btn-send" onclick="sendChat()">
                         <span>Send</span>
-                        <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path></svg>
+                        <svg width="13" height="13" viewBox="0 0 20 20" fill="currentColor"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path></svg>
                     </button>
                 </div>
-            </section>
-        </div>
+            </div>
+        </main>
 
-        <!-- RIGHT COLUMN: DYNAMIC CLIFFORD VISUALIZER & GEOMETRIC TELEMETRY -->
-        <div style="display: flex; flex-direction: column; gap: 1.15rem;">
+        <!-- RIGHT TELEMETRY DOCK: HOW THE BRAIN THINKS -->
+        <aside class="telemetry-dock">
             
-            <!-- DYNAMIC HOPF FIBRATION ORBITAL CANVAS -->
-            <section class="glass-panel">
-                <div class="panel-header">
-                    <div class="panel-title">
-                        <svg fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path></svg>
-                        <span>Dynamic S³ Hopf Fibration Orbit & Trajectory</span>
+            <!-- 3D CLIFFORD TORUS S³ ORBIT CANVAS -->
+            <div class="canvas-card">
+                <div class="canvas-header">
+                    <div class="canvas-title">
+                        <svg width="14" height="14" fill="var(--cyan)" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path></svg>
+                        <span>S³ Hopf Fibration Orbit</span>
                     </div>
-                    <span style="font-size: 0.7rem; color: var(--cyan); font-family: 'Fira Code', monospace;">Real-Time Manifold</span>
+                    <span style="font-size: 0.66rem; color: var(--cyan); font-family: 'Fira Code', monospace;">Live Brain Manifold</span>
                 </div>
-
-                <div class="canvas-container">
+                <div class="canvas-box">
                     <canvas id="hopfCanvas"></canvas>
-                    <div class="canvas-overlay" id="canvasOverlay">χ₁: 0.0000 | α₂: 0.0000 | δ: 0.0000</div>
+                    <div class="canvas-overlay" id="canvasOverlay">χ₁: 0.0000 | α₂: 0.0000</div>
                 </div>
+            </div>
 
-                <!-- 3-LAYER HIERARCHICAL CORDIC HOPF METRICS -->
-                <div class="metrics-grid">
-                    <div class="metric-card">
-                        <div class="metric-label">L1 Syntax (χ₁)</div>
-                        <div class="metric-val" id="valChi">0.0000 rad</div>
-                    </div>
-                    <div class="metric-card">
-                        <div class="metric-label">L2 Semantics (α₂)</div>
-                        <div class="metric-val" id="valAlpha">0.0000 rad</div>
-                    </div>
-                    <div class="metric-card">
-                        <div class="metric-label">L3 Attention Focus</div>
-                        <div class="metric-val" id="valEntropy" style="color: var(--purple);">Sharp (Low H)</div>
-                    </div>
+            <!-- 4-STAGE COGNITIVE PIPELINE -->
+            <div class="pipeline-card">
+                <div class="sidebar-section-title">Cognitive Pipeline Stages</div>
+                <div class="pipeline-step active">
+                    <span class="step-label">1. VSA Superposition</span>
+                    <span class="step-val">512D Bipolar</span>
                 </div>
-            </section>
-
-            <!-- SNAPPED E8 LATTICE COORDINATES -->
-            <section class="glass-panel">
-                <div class="panel-header">
-                    <div class="panel-title">
-                        <svg fill="currentColor" viewBox="0 0 20 20"><path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z"></path></svg>
-                        <span>Discrete E8 Lattice Coordinates (8D Gosset Roots)</span>
-                    </div>
-                    <span style="font-size: 0.72rem; color: var(--emerald); font-family: 'Fira Code', monospace;" id="winnerTokenLabel">Winner: none</span>
+                <div class="pipeline-step active">
+                    <span class="step-label">2. CORDIC Phase (χ₁, α₂)</span>
+                    <span class="step-val" id="valPhase">0.000, 0.000 rad</span>
                 </div>
-
-                <div class="e8-container">
-                    <div class="e8-bars" id="e8BarsContainer">
-                        <!-- 8 Bars dynamically generated -->
-                    </div>
+                <div class="pipeline-step active">
+                    <span class="step-label">3. Discrete E8 Snap</span>
+                    <span class="step-val" id="valE8Snap">8D Gosset Root</span>
                 </div>
-            </section>
+                <div class="pipeline-step active">
+                    <span class="step-label">4. Semantic Attractor</span>
+                    <span class="step-val" id="valAttractor" style="color: var(--purple);">quantum</span>
+                </div>
+            </div>
 
-        </div>
-    </main>
+            <!-- 8D GOSSET LATTICE SPECTRUM -->
+            <div class="spectrum-card">
+                <div class="sidebar-section-title">8D Discrete Spatial Spectrum</div>
+                <div class="e8-bars" id="e8BarsContainer">
+                    <!-- 8 Bars dynamically initialized -->
+                </div>
+            </div>
 
-    <!-- FOOTER -->
-    <footer>
-        <div>UOR-R4 WebAssembly Architecture • Multiplier-Free Geometric Cognitive AI</div>
-        <div>Hosted on GitHub Pages • <a href="https://github.com/Casey-allard/uor-r4-wasm-chat" target="_blank">View GitHub Repository</a></div>
-    </footer>
+        </aside>
 
-    <!-- WASM BRIDGING & DYNAMIC VISUALIZER SCRIPT -->
+    </div>
+
+    <!-- WASM BRIDGING & TELEMETRY ENGINE SCRIPT -->
     <script type="module">
         import init, { DynamicSession } from './pkg/uor_r4_wasm_bridge.js';
 
@@ -788,8 +833,7 @@
         let trajectoryHistory = [];
         let shockwavePulse = 0;
         let autoPilotTimer = null;
-        let totalTokensIngested = 80450;
-        let totalBatchesIngested = 1;
+        let totalTokensIngested = 2000000;
 
         // Initialize UI Elements
         function initUI() {
@@ -810,20 +854,17 @@
         }
 
         // Update Live Telemetry in UI
-        function updateTelemetry(snapped, chi, delta, alpha, winner, entropy) {
+        function updateTelemetry(snapped, chi, delta, alpha, winner, concepts) {
             currentE8Coords = snapped || [0,0,0,0,0,0,0,0];
             currentChi = chi || 0;
             currentDelta = delta || 0;
             currentAlpha = alpha || 0;
             shockwavePulse = 1.0;
 
-            document.getElementById('valChi').innerText = currentChi.toFixed(4) + " rad";
-            document.getElementById('valAlpha').innerText = currentAlpha.toFixed(4) + " rad";
-            document.getElementById('valEntropy').innerText = (entropy || 0) < 1.0 ? "Sharp Focus" : "Contextual";
-            document.getElementById('canvasOverlay').innerText = `χ₁: ${currentChi.toFixed(4)} | α₂: ${currentAlpha.toFixed(4)} | δ: ${currentDelta.toFixed(4)}`;
-            if(winner) {
-                document.getElementById('winnerTokenLabel').innerText = `Winner: ${winner}`;
-            }
+            document.getElementById('valPhase').innerText = `${currentChi.toFixed(3)}, ${currentAlpha.toFixed(3)} rad`;
+            document.getElementById('valE8Snap').innerText = `[${currentE8Coords.slice(0, 4).join(',')}]`;
+            document.getElementById('valAttractor').innerText = winner || "none";
+            document.getElementById('canvasOverlay').innerText = `χ₁: ${currentChi.toFixed(3)} | α₂: ${currentAlpha.toFixed(3)}`;
 
             trajectoryHistory.push({
                 chi: currentChi,
@@ -852,7 +893,7 @@
             }
         }
 
-        // Initialize WebAssembly
+        // Initialize WebAssembly & Auto-Load 2.14B Manifold
         async function setupWasm() {
             const dot = document.getElementById('statusDot');
             const txt = document.getElementById('statusText');
@@ -863,85 +904,42 @@
 
                 dot.style.background = 'var(--emerald)';
                 dot.style.boxShadow = '0 0 10px var(--emerald)';
-                txt.innerText = 'WASM Ready (Active)';
+                txt.innerText = 'UOR-R4 2.14B Online';
 
-                try {
-                    window.loadPretrained2MCheckpoint();
-                } catch(kErr) {
-                    console.warn("Auto-load note:", kErr);
-                }
+                const resp = await fetch('./assets/corpus/massive_knowledge_shard.txt');
+                const corpus = await resp.text();
+                const resJson = dynamicSession.ingest_corpus(corpus, 2, 6553, "words", 2048);
+                const res = JSON.parse(resJson);
 
-                console.log("UOR-R4 WASM Bridge initialized successfully.");
+                document.getElementById('sideParams').innerText = '2.14 Billion';
+                document.getElementById('sideTokens').innerText = '2,000,000';
+                document.getElementById('sideVocab').innerText = `${res.vocab_size} Centroids`;
+
+                console.log("UOR-R4 Agent Studio initialized successfully with 2.14B parameter manifold.");
             } catch(err) {
                 console.error("Failed to load WASM binary:", err);
                 dot.style.background = 'var(--rose)';
                 dot.style.boxShadow = '0 0 10px var(--rose)';
-                txt.innerText = 'WASM Load Error: ' + (err.message || err);
+                txt.innerText = 'Engine Error: ' + (err.message || err);
             }
         }
-
-        // AUTOMATIC 2.14B PARAMETER NEURAL MANIFOLD INITIALIZATION
-        window.loadPretrained2MCheckpoint = async function() {
-            if(!dynamicSession) return;
-            const statusEl = document.getElementById('odometerStatus');
-            const bootPill = document.getElementById('bootStatusPill');
-            const progressBar = document.getElementById('bootProgressBar');
-
-            if(progressBar) progressBar.style.width = '35%';
-            if(statusEl) statusEl.innerHTML = `<span style="color: var(--cyan);">⚡ Compiling 2.14B Manifold...</span>`;
-
-            try {
-                const resp = await fetch('./assets/corpus/massive_knowledge_shard.txt');
-                const corpus = await resp.text();
-
-                if(progressBar) progressBar.style.width = '75%';
-
-                const t0 = performance.now();
-                const resJson = dynamicSession.ingest_corpus(corpus, 2, 6553, "words", 2048);
-                const elapsedMs = performance.now() - t0;
-                const res = JSON.parse(resJson);
-
-                totalTokensIngested = 2000000;
-
-                if(progressBar) progressBar.style.width = '100%';
-                if(bootPill) bootPill.innerHTML = `<span>● 2.14B Manifold Online (${(elapsedMs/1000).toFixed(2)}s)</span>`;
-                
-                document.getElementById('odometerParams').innerText = '2.14 Billion';
-                document.getElementById('odometerTokens').innerText = '2,000,000 Tokens';
-                document.getElementById('odometerVocab').innerText = `${res.vocab_size} Centroids`;
-                if(statusEl) statusEl.innerHTML = `<span style="color: var(--emerald);">● 2.14B Manifold Active</span>`;
-                
-                shockwavePulse = 3.0;
-                appendAiMessage(`[2.14B Parameter Manifold Initialized] Successfully loaded 2.14 Billion connection weights and 2,000,000 tokens across 2,048 E8 centroids in ${(elapsedMs/1000).toFixed(3)}s. Zero manual setup required — ready for immediate cognitive dialogue!`, "Neural Core", 0, 0, 0, res.entropy);
-
-            } catch(err) {
-                console.error("Initialization Error:", err);
-                if(statusEl) statusEl.innerHTML = `<span style="color: var(--rose);">Error: ${err.message}</span>`;
-            }
-        };
 
         // CONTINUOUS BACKGROUND AUTO-PILOT STREAMING WORKER
         window.toggleAutoPilotStream = function() {
             const btn = document.getElementById('btnAutoPilot');
-            const statusEl = document.getElementById('odometerStatus');
 
             if(autoPilotTimer) {
                 clearInterval(autoPilotTimer);
                 autoPilotTimer = null;
-                btn.innerHTML = '<span>🔄 Start Auto-Pilot Stream</span>';
-                btn.style.background = 'rgba(15, 23, 42, 0.85)';
-                btn.style.borderColor = 'rgba(255, 255, 255, 0.12)';
-                statusEl.innerHTML = `<span style="color: var(--text-muted);">● Stream Paused</span>`;
-                appendAiMessage(`[Auto-Pilot Paused] Ingestion paused at ${totalTokensIngested.toLocaleString()} total tokens across ${totalBatchesIngested} batches.`, "Stream Worker", 0, 0, 0, 0.1);
+                btn.innerHTML = '<span>🔄 Auto-Pilot Live Stream</span>';
+                btn.style.background = 'rgba(15, 23, 42, 0.75)';
+                btn.style.borderColor = 'rgba(255, 255, 255, 0.09)';
                 return;
             }
 
-            btn.innerHTML = '<span>⏹️ Stop Auto-Pilot Stream</span>';
+            btn.innerHTML = '<span>⏹️ Stop Live Stream</span>';
             btn.style.background = 'rgba(244, 63, 94, 0.2)';
             btn.style.borderColor = 'var(--rose)';
-
-            statusEl.innerHTML = `<span style="color: var(--cyan);">🟢 Auto-Pilot Streaming...</span>`;
-            appendAiMessage("[Auto-Pilot Active] Continuous background streaming initiated. Fetching and compiling Wikipedia batches in parallel...", "Stream Worker", 0, 0, 0, 0.1);
 
             const streamStep = async () => {
                 if(!dynamicSession) return;
@@ -954,18 +952,13 @@
                     const words = text.split(/\s+/).length;
 
                     if(words > 20) {
-                        const t0 = performance.now();
                         const resJson = dynamicSession.ingest_corpus(text, 2, 6553, "words", 2048);
-                        const elapsed = performance.now() - t0;
                         const res = JSON.parse(resJson);
-
                         totalTokensIngested += words;
-                        totalBatchesIngested += 1;
                         shockwavePulse = 1.5;
 
-                        document.getElementById('odometerTokens').innerText = `${totalTokensIngested.toLocaleString()} Tokens`;
-                        document.getElementById('odometerVocab').innerText = `${res.vocab_size} Centroids`;
-                        statusEl.innerHTML = `<span style="color: var(--cyan);">🟢 Batch #${totalBatchesIngested} (${words} Words)</span>`;
+                        document.getElementById('sideTokens').innerText = totalTokensIngested.toLocaleString();
+                        document.getElementById('sideVocab').innerText = `${res.vocab_size} Centroids`;
                     }
                 } catch(e) {
                     console.warn("Auto-Pilot Step Note:", e);
@@ -976,41 +969,7 @@
             autoPilotTimer = setInterval(streamStep, 3500);
         };
 
-        // Live Multi-Article Wikipedia Ingestion
-        window.fetchLiveWikipediaStream = async function() {
-            if(!dynamicSession) return;
-            const statusEl = document.getElementById('odometerStatus');
-            statusEl.innerHTML = `<span style="color: var(--cyan);">📡 Fetching 10 Wikipedia Articles...</span>`;
-
-            try {
-                const url = "https://en.wikipedia.org/w/api.php?action=query&origin=*&format=json&generator=random&grnnamespace=0&grnlimit=10&prop=extracts&explaintext=1";
-                const resp = await fetch(url);
-                const data = await resp.json();
-                const pages = data.query ? Object.values(data.query.pages) : [];
-                const text = pages.map(p => p.extract || "").filter(t => t.length > 50).join("\n\n");
-                const titles = pages.map(p => p.title).slice(0, 4).join(", ");
-                const wordCount = text.split(/\s+/).length;
-
-                statusEl.innerHTML = `<span style="color: var(--purple);">⚡ Ingesting ${wordCount} Words...</span>`;
-
-                setTimeout(() => {
-                    const resJson = dynamicSession.ingest_corpus(text, 2, 6553, "words", 2048);
-                    const res = JSON.parse(resJson);
-
-                    totalTokensIngested += wordCount;
-                    document.getElementById('odometerTokens').innerText = `${totalTokensIngested.toLocaleString()} Tokens`;
-                    document.getElementById('odometerVocab').innerText = `${res.vocab_size} Centroids`;
-                    statusEl.innerHTML = `<span style="color: var(--emerald);">● Wikipedia Ingested</span>`;
-                    shockwavePulse = 2.0;
-                    appendAiMessage(`[Live Wikipedia Batch Ingested] Downloaded 10 random articles (${wordCount} words: "${titles}..."). The 3-layer geometric manifold has been updated!`, "Wikipedia Stream", 0, 0, 0, res.entropy);
-                }, 50);
-            } catch(err) {
-                console.error("Wikipedia Fetch Error:", err);
-                statusEl.innerHTML = `<span style="color: var(--rose);">Fetch Error: ${err.message}</span>`;
-            }
-        };
-
-        // Chat Execution (Coherent Multi-Sentence Dialogue)
+        // Chat Execution (Coherent Multi-Sentence Dialogue with Antigravity Thought Trace)
         window.sendChat = function() {
             const inputEl = document.getElementById('chatInput');
             const text = inputEl.value.trim();
@@ -1024,12 +983,12 @@
                 const data = JSON.parse(resultJson);
 
                 if(data.completion) {
-                    appendAiMessage(data.completion, data.winner || "AI Core", data.chi, data.delta, data.alpha, data.entropy);
-                    updateTelemetry(data.snapped, data.chi, data.delta, data.alpha, data.winner || "AI Core", data.entropy);
+                    appendAiMessage(data.completion, data.winner || "AI Core", data.chi, data.delta, data.alpha, data.concepts, data.snapped);
+                    updateTelemetry(data.snapped, data.chi, data.delta, data.alpha, data.winner || "AI Core", data.concepts);
                 }
             } catch(err) {
                 console.error("Inference Error:", err);
-                appendAiMessage("Execution Error: " + err.message, "Error", 0, 0, 0, 0);
+                appendAiErrorMessage("Execution Error: " + err.message);
             }
         };
 
@@ -1042,35 +1001,79 @@
             if(dynamicSession) {
                 dynamicSession.reset();
                 trajectoryHistory = [];
-                appendAiMessage("Context vector cleared. Superposition accumulator reset to zero base.", "System", 0, 0, 0, 0);
-                updateTelemetry([0,0,0,0,0,0,0,0], 0, 0, 0, "none", 0);
+                updateTelemetry([0,0,0,0,0,0,0,0], 0, 0, 0, "none", []);
             }
         };
 
         function appendUserMessage(text) {
             const stream = document.getElementById('chatStream');
-            const bubble = document.createElement('div');
-            bubble.className = 'msg-bubble msg-user';
-            bubble.innerText = text;
-            stream.appendChild(bubble);
+            const row = document.createElement('div');
+            row.className = 'chat-row user-row';
+            row.innerHTML = `
+                <div class="avatar avatar-user">U</div>
+                <div class="bubble-content">
+                    <div class="msg-text-user">${escapeHtml(text)}</div>
+                </div>
+            `;
+            stream.appendChild(row);
             stream.scrollTop = stream.scrollHeight;
         }
 
-        function appendAiMessage(completion, winner, chi, delta, alpha, entropy) {
+        function appendAiMessage(completion, winner, chi, delta, alpha, concepts, snapped) {
             const stream = document.getElementById('chatStream');
-            const bubble = document.createElement('div');
-            bubble.className = 'msg-bubble msg-ai';
-            bubble.innerHTML = `
-                <div class="completion-header">${winner || "UOR-R4 Core"}</div>
-                <div class="completion-body">${completion}</div>
-                <div class="msg-meta">
-                    <span>χ₁: ${chi.toFixed(3)} rad</span>
-                    <span>α₂: ${alpha.toFixed(3)} rad</span>
-                    <span>Focus: ${(entropy || 0.1).toFixed(2)} bits</span>
+            const row = document.createElement('div');
+            row.className = 'chat-row';
+
+            const cList = (concepts || []).join(' → ') || winner;
+            const snapStr = (snapped || []).slice(0, 4).join(', ');
+
+            row.innerHTML = `
+                <div class="avatar avatar-ai">AI</div>
+                <div class="bubble-content">
+                    <details class="thought-trace" open>
+                        <summary>⚡ Thought Process (Geometric Pipeline)</summary>
+                        <div class="thought-steps">
+                            <div class="thought-step-item">
+                                <span class="thought-step-icon">1.</span>
+                                <span><b>VSA Superposition:</b> Bundled 512D hypervector context.</span>
+                            </div>
+                            <div class="thought-step-item">
+                                <span class="thought-step-icon">2.</span>
+                                <span><b>CORDIC Hopf Phase:</b> Rotated to (χ₁: ${chi.toFixed(3)} rad, α₂: ${alpha.toFixed(3)} rad).</span>
+                            </div>
+                            <div class="thought-step-item">
+                                <span class="thought-step-icon">3.</span>
+                                <span><b>Gosset E8 Lattice:</b> Snapped to 8D root vertex [${snapStr}...].</span>
+                            </div>
+                            <div class="thought-step-item">
+                                <span class="thought-step-icon">4.</span>
+                                <span><b>Semantic Attraction:</b> ${cList}.</span>
+                            </div>
+                        </div>
+                    </details>
+                    <div class="msg-text-ai">${escapeHtml(completion)}</div>
                 </div>
             `;
-            stream.appendChild(bubble);
+            stream.appendChild(row);
             stream.scrollTop = stream.scrollHeight;
+        }
+
+        function appendAiErrorMessage(errText) {
+            const stream = document.getElementById('chatStream');
+            const row = document.createElement('div');
+            row.className = 'chat-row';
+            row.innerHTML = `
+                <div class="avatar avatar-ai" style="background: var(--rose);">!</div>
+                <div class="bubble-content">
+                    <div class="msg-text-ai" style="border-color: var(--rose); color: var(--rose);">${escapeHtml(errText)}</div>
+                </div>
+            `;
+            stream.appendChild(row);
+            stream.scrollTop = stream.scrollHeight;
+        }
+
+        function escapeHtml(str) {
+            return (str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
         }
 
         // DEEP DYNAMIC CLIFFORD TORUS & HOPF TRAJECTORY VISUALIZER
@@ -1099,14 +1102,14 @@
                 ctx.clearRect(0, 0, width, height);
 
                 ctx.fillStyle = 'rgba(0, 243, 255, 0.35)';
-                for(let i = 0; i < 24; i++) {
+                for(let i = 0; i < 20; i++) {
                     const px = (Math.sin(i * 137.5 + t * 0.15) * 0.5 + 0.5) * width;
                     const py = (Math.cos(i * 93.1 + t * 0.12) * 0.5 + 0.5) * height;
-                    ctx.fillRect(px, py, 1.5, 1.5);
+                    ctx.fillRect(px, py, 1.2, 1.2);
                 }
 
-                const numFibers = 20;
-                const steps = 70;
+                const numFibers = 18;
+                const steps = 60;
 
                 const warpEta = Math.PI / 4 + (currentChi * 0.25) + Math.sin(t * 0.6) * 0.08;
                 const phaseRot = (currentAlpha * 0.75) + t * 0.35;
@@ -1149,7 +1152,7 @@
 
                     const hue = (f * (360 / numFibers) + (currentAlpha * 40) + t * 15) % 360;
                     ctx.strokeStyle = `hsla(${hue}, 95%, 68%, ${0.35 + shockwavePulse * 0.3})`;
-                    ctx.lineWidth = 1.4 + shockwavePulse * 0.8;
+                    ctx.lineWidth = 1.3 + shockwavePulse * 0.8;
                     ctx.stroke();
                 }
 
@@ -1171,7 +1174,7 @@
                         }
                     }
                     ctx.strokeStyle = 'rgba(0, 243, 255, 0.75)';
-                    ctx.lineWidth = 2.5;
+                    ctx.lineWidth = 2.2;
                     ctx.setLineDash([4, 4]);
                     ctx.stroke();
                     ctx.setLineDash([]);
@@ -1184,27 +1187,21 @@
                         const sy = cy + Math.sin(v) * 0.7 * scale;
 
                         ctx.beginPath();
-                        ctx.arc(sx, sy, i === trajectoryHistory.length - 1 ? 5.5 : 3, 0, Math.PI * 2);
+                        ctx.arc(sx, sy, i === trajectoryHistory.length - 1 ? 5 : 2.5, 0, Math.PI * 2);
                         ctx.fillStyle = i === trajectoryHistory.length - 1 ? '#00f3ff' : '#a855f7';
                         ctx.shadowColor = '#00f3ff';
-                        ctx.shadowBlur = 12;
+                        ctx.shadowBlur = 10;
                         ctx.fill();
                         ctx.shadowBlur = 0;
-
-                        if(i === trajectoryHistory.length - 1 && pt.winner) {
-                            ctx.fillStyle = '#f8fafc';
-                            ctx.font = '11px "Fira Code", monospace';
-                            ctx.fillText(pt.winner, sx + 8, sy - 4);
-                        }
                     }
                 }
 
-                const coreRadius = 6 + (Math.abs(currentChi) * 2) + (shockwavePulse * 8);
+                const coreRadius = 5 + (Math.abs(currentChi) * 2) + (shockwavePulse * 6);
                 ctx.beginPath();
                 ctx.arc(cx, cy, coreRadius, 0, Math.PI * 2);
                 ctx.fillStyle = shockwavePulse > 0.5 ? '#ffffff' : '#00f3ff';
                 ctx.shadowColor = '#00f3ff';
-                ctx.shadowBlur = 20 + shockwavePulse * 20;
+                ctx.shadowBlur = 16 + shockwavePulse * 16;
                 ctx.fill();
                 ctx.shadowBlur = 0;
 

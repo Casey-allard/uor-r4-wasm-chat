@@ -1295,9 +1295,10 @@ impl DynamicSession {
             let entropy = 0.10f32;
 
             format!(
-                "{{\"completion\":\"{}\", \"mode\":\"hierarchical_words\", \"winner\":\"{}\", \"entropy\":{:.4}, \"chi\":{:.4}, \"delta\":{:.4}, \"alpha\":{:.4}, \"snapped\":[{},{},{},{},{},{},{},{}]}}",
+                "{{\"completion\":\"{}\", \"mode\":\"hierarchical_words\", \"winner\":\"{}\", \"concepts\":[\"{}\",\"{}\",\"{}\"], \"entropy\":{:.4}, \"chi\":{:.4}, \"delta\":{:.4}, \"alpha\":{:.4}, \"snapped\":[{},{},{},{},{},{},{},{}]}}",
                 completion.replace('"', "\\\""),
                 last_winner,
+                c1, c2, c3,
                 entropy,
                 (chi1 as f32) / 16384.0,
                 (delta1 as f32) / 16384.0,
