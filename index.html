@@ -441,55 +441,86 @@
             color: var(--accent-cyan);
         }
 
-        .tps-speed-meter {
-            display: flex;
-            align-items: center;
-            gap: 0.35rem;
-            background: rgba(255, 255, 255, 0.04);
+        .tps-speed-card {
+            background: rgba(255, 255, 255, 0.03);
             border: 1px solid var(--border-subtle);
             border-radius: var(--radius-md);
-            padding: 0.35rem 0.65rem;
-            font-family: 'Fira Code', monospace;
-            font-size: 0.76rem;
-            color: var(--text-secondary);
+            padding: 0.75rem 0.85rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
             transition: all 0.2s ease;
-            white-space: nowrap;
         }
 
-        .tps-speed-meter.generating {
-            background: rgba(0, 243, 255, 0.08);
-            border-color: rgba(0, 243, 255, 0.35);
+        .tps-speed-card.generating {
+            background: rgba(0, 243, 255, 0.06);
+            border-color: rgba(0, 243, 255, 0.3);
+            box-shadow: 0 0 16px rgba(0, 243, 255, 0.15);
+        }
+
+        .tps-speed-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .tps-live-badge {
+            font-size: 0.65rem;
+            font-family: 'Fira Code', monospace;
+            padding: 0.15rem 0.45rem;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.06);
+            color: var(--text-muted);
+        }
+
+        .tps-speed-card.generating .tps-live-badge {
+            background: rgba(0, 243, 255, 0.15);
             color: var(--accent-cyan);
-            box-shadow: 0 0 14px rgba(0, 243, 255, 0.2);
+            border: 1px solid rgba(0, 243, 255, 0.3);
         }
 
-        .tps-speed-meter .tps-icon {
+        .tps-speed-display {
+            display: flex;
+            align-items: baseline;
+            gap: 0.4rem;
+        }
+
+        .tps-speed-display .tps-value {
+            font-size: 1.55rem;
+            font-weight: 700;
+            font-family: 'Fira Code', monospace;
+            color: var(--text-primary);
+            line-height: 1;
+        }
+
+        .tps-speed-card.generating .tps-value {
+            color: var(--accent-cyan);
+        }
+
+        .tps-speed-display .tps-unit {
+            font-size: 0.78rem;
+            font-family: 'Fira Code', monospace;
+            color: var(--text-muted);
+        }
+
+        .tps-icon {
             color: #fbbf24;
             font-size: 0.8rem;
             transition: transform 0.2s ease;
         }
 
-        .tps-speed-meter.generating .tps-icon {
+        .tps-speed-card.generating .tps-icon {
             animation: pulse-speed 0.8s infinite alternate;
         }
 
         @keyframes pulse-speed {
             0% { transform: scale(0.9); opacity: 0.7; }
             100% { transform: scale(1.25); opacity: 1; filter: drop-shadow(0 0 4px #fbbf24); }
-        }
-
-        .tps-speed-meter .tps-value {
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-
-        .tps-speed-meter.generating .tps-value {
-            color: var(--accent-cyan);
-        }
-
-        .tps-speed-meter .tps-unit {
-            color: var(--text-muted);
-            font-size: 0.7rem;
         }
 
         /* CONVERSATION STREAM */
@@ -1206,12 +1237,6 @@
             </div>
 
             <div class="nav-right">
-                <div class="tps-speed-meter" id="tpsSpeedMeter" title="Tokens Per Second (Processing Speed)">
-                    <span class="tps-icon">⚡</span>
-                    <span class="tps-value" id="tpsValue">--</span>
-                    <span class="tps-unit">tok/s</span>
-                </div>
-
                 <button class="telemetry-toggle-btn active" id="btnTelemetrySidecar" onclick="toggleSidecar()">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path><path d="M2 12h20"></path></svg>
                     <span>3D Brain Manifold</span>
@@ -1288,7 +1313,21 @@
         </div>
 
         <div class="sidecar-body">
-            <div style="font-size: 0.72rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Live Synaptic Waveform</div>
+            <div class="tps-speed-card" id="tpsSpeedMeter" title="Tokens Per Second (Processing Speed)">
+                <div class="tps-speed-header">
+                    <span style="display:flex; align-items:center; gap:0.35rem;">
+                        <span class="tps-icon">⚡</span>
+                        <span>Inference Speed</span>
+                    </span>
+                    <span class="tps-live-badge" id="tpsLiveBadge">IDLE</span>
+                </div>
+                <div class="tps-speed-display">
+                    <span class="tps-value" id="tpsValue">--</span>
+                    <span class="tps-unit">tok/sec</span>
+                </div>
+            </div>
+
+            <div style="font-size: 0.72rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 0.85rem;">Live Synaptic Waveform</div>
             <div class="wave-box">
                 <canvas id="waveCanvas"></canvas>
             </div>
@@ -2234,14 +2273,17 @@
         function updateSpeedMeter(val, isLive = false) {
             const meter = document.getElementById('tpsSpeedMeter');
             const valEl = document.getElementById('tpsValue');
+            const badgeEl = document.getElementById('tpsLiveBadge');
             if (!meter || !valEl) return;
             if (val !== null && val !== undefined) {
                 valEl.innerText = val;
             }
             if (isLive) {
                 meter.classList.add('generating');
+                if (badgeEl) badgeEl.innerText = 'STREAMING';
             } else {
                 meter.classList.remove('generating');
+                if (badgeEl) badgeEl.innerText = 'LAST RUN';
             }
         }
 
