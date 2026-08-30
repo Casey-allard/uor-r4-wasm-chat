@@ -215,7 +215,7 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0.65rem 1.15rem;
+            padding: 0.75rem 1.25rem;
             border-bottom: 1px solid var(--border-subtle);
             background: var(--bg-main);
             z-index: 30;
@@ -225,7 +225,7 @@
         .nav-left {
             display: flex;
             align-items: center;
-            gap: 0.65rem;
+            gap: 0.75rem;
             flex-wrap: wrap;
         }
 
@@ -247,57 +247,29 @@
             color: var(--text-primary);
         }
 
-        .engine-mode-toggle {
-            display: flex;
+        .brand-badge {
             background: var(--bg-surface);
             border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 0.35rem 0.75rem;
             border-radius: var(--radius-md);
-            padding: 2px;
-            gap: 2px;
-        }
-
-        .toggle-tab {
-            background: transparent;
-            border: none;
-            color: var(--text-secondary);
-            font-size: 0.78rem;
-            font-weight: 500;
-            padding: 0.35rem 0.65rem;
-            border-radius: var(--radius-sm);
-            cursor: pointer;
-            transition: all 0.15s ease;
+            font-size: 0.85rem;
+            font-weight: 600;
             display: flex;
             align-items: center;
-            gap: 0.35rem;
-            font-family: 'Inter', sans-serif;
-        }
-
-        .toggle-tab.active {
-            background: rgba(255, 255, 255, 0.1);
-            color: var(--text-primary);
-            font-weight: 600;
-        }
-
-        .toggle-tab.active.webgpu {
-            background: rgba(0, 243, 255, 0.15);
-            color: var(--accent-cyan);
-        }
-
-        .toggle-tab.active.cpu {
-            background: rgba(168, 85, 247, 0.18);
-            color: var(--accent-purple);
+            gap: 0.5rem;
         }
 
         .model-status-indicator {
-            font-size: 0.72rem;
-            padding: 0.25rem 0.6rem;
+            font-size: 0.74rem;
+            padding: 0.3rem 0.75rem;
             border-radius: 12px;
             background: rgba(16, 185, 129, 0.12);
             color: var(--accent-emerald);
             border: 1px solid rgba(16, 185, 129, 0.25);
             display: flex;
             align-items: center;
-            gap: 0.35rem;
+            gap: 0.45rem;
             font-family: 'Fira Code', monospace;
             transition: all 0.2s ease;
             white-space: nowrap;
@@ -760,7 +732,7 @@
                     <span>UOR-R4 Geometric Core</span>
                     <span id="footerStatus" style="color: var(--accent-emerald); font-size: 0.68rem;">● Online</span>
                 </div>
-                <div class="model-pill-detail" id="pillDetail">Adaptive CPU / WebGPU Sovereign AI</div>
+                <div class="model-pill-detail" id="pillDetail">Auto-Adaptive Sovereign Engine</div>
                 <div class="model-pill-detail">100% Private In-Browser AI</div>
             </div>
         </div>
@@ -775,20 +747,15 @@
                 <button class="icon-btn" onclick="toggleSidebar()" title="Toggle Sidebar">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg>
                 </button>
-                
-                <!-- DUAL ENGINE TOGGLE -->
-                <div class="engine-mode-toggle">
-                    <button id="tabWebgpu" class="toggle-tab active webgpu" onclick="setEngineMode('webgpu')">
-                        ⚡ WebGPU Neural
-                    </button>
-                    <button id="tabCpu" class="toggle-tab" onclick="setEngineMode('cpu')">
-                        🏎️ CPU WASM SIMD
-                    </button>
+
+                <div class="brand-badge">
+                    <svg width="14" height="14" fill="var(--accent-cyan)" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle></svg>
+                    <span>UOR-R4 Sovereign AI</span>
                 </div>
 
                 <div id="modelBadge" class="model-status-indicator">
                     <span id="badgeDot">●</span>
-                    <span id="badgeText">Ready</span>
+                    <span id="badgeText">Detecting Hardware...</span>
                 </div>
             </div>
 
@@ -811,12 +778,12 @@
                         <div class="ai-meta">
                             <span>UOR-R4 Geometric AI</span>
                             <span>•</span>
-                            <span id="welcomeMeta">⚡ Online</span>
+                            <span id="welcomeMeta">⚡ Auto-Configured</span>
                         </div>
                         <div id="welcomeMessageText">
                             Hello! I am your <b>UOR-R4 Geometric Cognitive Agent</b> powered by the <b>Qwen 2.5 neural model</b> and real-time <b>8D Gosset \(E_8\) lattice attention telemetry</b>. My reasoning executes 100% locally in your browser with zero server dependencies.
                             <br><br>
-                            Whether you are on a high-end GPU or a basic CPU-only device, execution adapts automatically using <b>WebGPU Hardware Acceleration</b> or <b>WASM SIMD CPU Inference</b>!
+                            Your hardware has been natively recognized. Execution is running at maximum possible speed with zero GPU configuration required.
                         </div>
                     </div>
                 </div>
@@ -833,7 +800,7 @@
                 </button>
             </div>
             <div class="input-disclaimer" id="footerDisclaimer">
-                UOR-R4 Geometric Cognitive Engine running 100% locally on CPU/WebGPU. Grounded in 512D Vector Symbolic hypervectors.
+                UOR-R4 Geometric Cognitive Engine running 100% locally. Auto-adapted to your device hardware.
             </div>
         </div>
 
@@ -889,8 +856,7 @@
         env.allowLocalModels = false;
         env.useBrowserCache = true;
 
-        let hasGpu = !!navigator.gpu;
-        let currentMode = hasGpu ? 'webgpu' : 'cpu';
+        let activeDevice = 'wasm';
         let generator = null;
         let dynamicSession = null;
         let isGenerating = false;
@@ -1092,49 +1058,52 @@
             }
         }
 
-        async function initNeuralPipeline(targetDevice) {
-            try {
-                const device = targetDevice || (navigator.gpu ? 'webgpu' : 'wasm');
-                const dtype = device === 'webgpu' ? 'q4f16' : 'q4';
-                
-                generator = await pipeline('text-generation', 'onnx-community/Qwen2.5-0.5B-Instruct', {
-                    dtype: dtype,
-                    device: device
-                });
-                console.log(`Neural generator ready on ${device}.`);
-            } catch(err) {
-                console.warn("Neural pipeline load error:", err);
-                if(targetDevice === 'webgpu') {
-                    // Fallback to CPU WASM
-                    initNeuralPipeline('wasm');
-                }
-            }
-        }
-
-        window.setEngineMode = async function(mode) {
-            currentMode = mode;
-            const tabWebgpu = document.getElementById('tabWebgpu');
-            const tabCpu = document.getElementById('tabCpu');
+        async function autoDetectAndInitPipeline() {
             const badgeText = document.getElementById('badgeText');
             const welcomeMeta = document.getElementById('welcomeMeta');
             const pillDetail = document.getElementById('pillDetail');
 
-            if(mode === 'cpu') {
-                tabWebgpu.className = 'toggle-tab';
-                tabCpu.className = 'toggle-tab active cpu';
-                badgeText.innerText = 'CPU WASM SIMD (0ms)';
-                welcomeMeta.innerText = '⚡ CPU WASM Engine';
-                pillDetail.innerText = 'Neural SIMD + 8D Gosset E8 Engine';
-                initNeuralPipeline('wasm');
-            } else {
-                tabCpu.className = 'toggle-tab';
-                tabWebgpu.className = 'toggle-tab active webgpu';
-                badgeText.innerText = 'WEBGPU 0.5B ONLINE';
-                welcomeMeta.innerText = '⚡ WebGPU Online';
-                pillDetail.innerText = 'Qwen 2.5 + 8D Gosset E8 Manifold';
-                initNeuralPipeline('webgpu');
+            let device = 'wasm';
+            let label = 'CPU SIMD Native';
+
+            if (navigator.gpu) {
+                try {
+                    const adapter = await navigator.gpu.requestAdapter();
+                    if (adapter) {
+                        device = 'webgpu';
+                        label = 'WebGPU Hardware Accelerated';
+                    }
+                } catch(e) {
+                    console.warn("WebGPU adapter request fallback to CPU:", e);
+                }
             }
-        };
+
+            activeDevice = device;
+            badgeText.innerText = label;
+            welcomeMeta.innerText = `⚡ ${label}`;
+            pillDetail.innerText = `${label} + 8D Gosset E8`;
+
+            try {
+                const dtype = device === 'webgpu' ? 'q4f16' : 'q4';
+                generator = await pipeline('text-generation', 'onnx-community/Qwen2.5-0.5B-Instruct', {
+                    dtype: dtype,
+                    device: device
+                });
+                console.log(`Auto-detected pipeline initialized on ${device}.`);
+            } catch(err) {
+                console.warn("Pipeline init error on", device, err);
+                if (device === 'webgpu') {
+                    // Auto fallback to CPU WASM
+                    activeDevice = 'wasm';
+                    badgeText.innerText = 'CPU SIMD Native';
+                    welcomeMeta.innerText = '⚡ CPU SIMD Native';
+                    generator = await pipeline('text-generation', 'onnx-community/Qwen2.5-0.5B-Instruct', {
+                        dtype: 'q4',
+                        device: 'wasm'
+                    });
+                }
+            }
+        }
 
         window.sendChat = async function() {
             if(isGenerating) return;
@@ -1215,7 +1184,7 @@
                     contentDiv.innerText = "Generation error: " + (err.message || String(err));
                 }
             } else if (dynamicSession) {
-                // Fallback while neural weights download
+                // Fallback while neural weights initialize
                 const cpuRes = JSON.parse(dynamicSession.process_input_dynamic(text, 25));
                 fullResponse = `[UOR-R4 Geometric Core]: Conceptual attractor aligned to "${cpuRes.winner}". Neural weights are initializing in the background.`;
                 contentDiv.innerHTML = renderMarkdown(fullResponse);
@@ -1256,7 +1225,7 @@
                     <div class="ai-meta">
                         <span>UOR-R4 Geometric AI</span>
                         <span>•</span>
-                        <span>⚡ ${currentMode === 'cpu' ? 'CPU WASM' : 'WebGPU'}</span>
+                        <span>⚡ ${activeDevice === 'webgpu' ? 'WebGPU' : 'CPU SIMD'}</span>
                     </div>
                     <div class="ai-text"></div>
                 </div>
@@ -1503,7 +1472,7 @@
             startBrainVisualizer();
             startWaveformVisualizer();
             startBackgroundWorker('onnx-community/Qwen2.5-0.5B-Instruct');
-            initNeuralPipeline(currentMode === 'cpu' ? 'wasm' : 'webgpu');
+            await autoDetectAndInitPipeline();
         });
     </script>
 </body>
