@@ -237,7 +237,8 @@ impl Drop for MmappedPackedCodebook {
 
 fn main() {
     println!("======================================================================");
-    println!("         UOR-R4 HIGH-RATIO NON-ASSOCIATIVE CODEBOOK COMPRESSOR        ");\n    println!("======================================================================");
+    println!("         UOR-R4 HIGH-RATIO NON-ASSOCIATIVE CODEBOOK COMPRESSOR        ");
+    println!("======================================================================");
 
     let source_path = "/workspace/scratch/uor_codebook_50k.bin";
     let packed_path = "/workspace/scratch/uor_codebook_50k.packed";

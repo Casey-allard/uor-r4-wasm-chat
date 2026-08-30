@@ -105,7 +105,7 @@ impl ChatSession {
 /// Invariant 1: Physical Warp Factor Bounded Linearity.
 /// Proves that when `last_phase_alpha` is restricted to standard CORDIC output angles
 /// (within [-PI, PI] in Q1.15, i.e., [-102943, 102943]), the warp factor calculation
-//! `(alpha as i64 * 4) as i32` is 100% linear, never truncates, and cannot overflow.
+/// `(alpha as i64 * 4) as i32` is 100% linear, never truncates, and cannot overflow.
 #[kani::proof]
 pub fn proof_warp_factor_linearity_invariant() {
     let alpha: i32 = kani::any();

@@ -23,6 +23,26 @@ const COLOR_RED: &str = "\x1B[38;5;196m";
 const COLOR_RESET: &str = "\x1B[0m";
 const BOLD: &str = "\x1B[1m";
 
+fn format_with_commas(mut value: u64) -> String {
+    if value < 1_000 {
+        return value.to_string();
+    }
+
+    let mut groups = Vec::new();
+    while value >= 1_000 {
+        groups.push(format!("{:03}", value % 1_000));
+        value /= 1_000;
+    }
+
+    let mut formatted = value.to_string();
+    for group in groups.iter().rev() {
+        formatted.push(',');
+        formatted.push_str(group);
+    }
+
+    formatted
+}
+
 /// Simulates a single frame of the live M1 system load monitor.
 fn draw_dashboard(frame: u64, total_lookups: &mut u64) {
     let throughput = if frame < 15 {
@@ -80,13 +100,15 @@ fn draw_dashboard(frame: u64, total_lookups: &mut u64) {
 
     // 3. Real-Time Performance Counter Slices
     println!("{}  REAL-TIME DECODER METRICS:{}", BOLD, COLOR_RESET);
+    let throughput_display = format_with_commas(throughput);
+    let total_lookups_display = format_with_commas(*total_lookups);
     println!(
-        "    ├─ Active Throughput Rate: {}{:,}{} Lookups / Sec (Peak Target Approved)",
-        COLOR_YELLOW, throughput, COLOR_RESET
+        "    ├─ Active Throughput Rate: {}{}{} Lookups / Sec (Peak Target Approved)",
+        COLOR_YELLOW, throughput_display, COLOR_RESET
     );
     println!(
-        "    ├─ Total Queried Tokens  : {}{:,}{} Matches",
-        COLOR_YELLOW, *total_lookups, COLOR_RESET
+        "    ├─ Total Queried Tokens  : {}{}{} Matches",
+        COLOR_YELLOW, total_lookups_display, COLOR_RESET
     );
     println!(
         "    ├─ Avg Search Latency    : {}7.95 microseconds{} (Sub-Microsecond Page Cache hit)",
@@ -122,4 +144,20 @@ fn main() -> io::Result<()> {
     print!("{}", CLEAR_SCREEN);
     println!("Terminal monitor simulation run finished successfully.");
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::format_with_commas;
+
+    #[test]
+    fn formats_small_numbers_without_grouping() {
+        assert_eq!(format_with_commas(999), "999");
+    }
+
+    #[test]
+    fn formats_large_numbers_with_comma_grouping() {
+        assert_eq!(format_with_commas(1_234), "1,234");
+        assert_eq!(format_with_commas(12_345_678), "12,345,678");
+    }
 }
