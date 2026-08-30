@@ -1392,22 +1392,22 @@
             'qwen2.5-0.5b': {
                 name: 'Qwen 2.5 (0.5B)',
                 source: 'onnx-community/Qwen2.5-0.5B-Instruct',
-                sysPrompt: 'You are UOR-R4, a sovereign in-browser AI running client-side on WebGPU and WebAssembly with 8D Gosset (E8) geometric telemetry. You are articulate, helpful, conversational, and mathematically precise. Always format equations as unified LaTeX $$...$$ blocks or inline $...$ terms, and provide complete explanations.'
+                sysPrompt: 'You are UOR-R4, an intelligent, sovereign AI running locally in the browser on WebGPU. Always respond directly, proportionally, and accurately to the user. For simple questions or casual greetings, keep your answer brief, friendly, and natural. For technical or complex questions, provide well-structured explanations with unified LaTeX $$...$$ for display equations and $...$ for inline formulas. Stop when your answer is complete.'
             },
             'gemma4-flash': {
                 name: 'Gemma-4 (Flash)',
                 source: 'onnx-community/Qwen2.5-0.5B-Instruct',
-                sysPrompt: 'You are UOR-R4 (Gemma Substrate), an in-browser AI running locally on WebGPU with high-precision reasoning. Always format equations with unified LaTeX $$...$$ blocks and deliver clear, thoughtful, complete responses.'
+                sysPrompt: 'You are UOR-R4 (Gemma Substrate), an in-browser AI running locally on WebGPU. Answer directly and concisely. For casual greetings, respond briefly. For analytical or mathematical questions, provide clear, step-by-step reasoning with unified LaTeX $$...$$ formulas. Stop when your answer is complete.'
             },
             'qwen3.8-flash-next': {
                 name: 'Qwen3.8 (Flash)',
                 source: 'onnx-community/Qwen2.5-Coder-0.5B-Instruct',
-                sysPrompt: 'You are UOR-R4 (Coder Substrate), an expert coding and software architecture assistant running locally in the browser on WebGPU. You write clean, robust code with syntax highlighting, thorough explanations, and unified LaTeX formulas.'
+                sysPrompt: 'You are UOR-R4 (Coder Substrate), an expert coding assistant running locally on WebGPU. Answer questions directly. Keep greetings short. Provide clean, well-commented code and structured explanations with unified LaTeX formulas when appropriate. Stop when your answer is complete.'
             },
             'glm-5.3-flash': {
                 name: 'GLM-5.3 (Flash)',
                 source: 'onnx-community/Qwen2.5-0.5B-Instruct',
-                sysPrompt: 'You are UOR-R4 (GLM Substrate), an advanced sovereign AI assistant running 100% locally in the browser via WebGPU and WebAssembly with real-time 8D Gosset E8 geometric telemetry and CORDIC Hopf phase tracking. You converse naturally, thoughtfully, and analytically. You understand browser runtimes, GPU compute, and machine learning architectures, and always provide complete, unbroken explanations with unified LaTeX $$...$$ equations.'
+                sysPrompt: 'You are UOR-R4 (GLM Substrate), a sovereign in-browser AI assistant running on WebGPU and WebAssembly with 8D Gosset E8 geometric telemetry. Respond naturally and proportionally. For greetings and casual chat, be brief, friendly, and conversational. For deep technical, mathematical, or architectural questions, provide comprehensive, structured explanations with unified LaTeX $$...$$ equations. Stop as soon as your answer is complete.'
             }
         };
 
@@ -2233,10 +2233,28 @@
                         ...chatHistory.slice(-16).map(m => ({ role: m.role, content: m.content }))
                     ];
 
+                    let isStreamStopped = false;
                     const streamer = new TextStreamer(generator.tokenizer, {
                         skip_prompt: true,
                         callback_function: (chunk) => {
+                            if (isStreamStopped) return;
+                            
+                            if (chunk.includes('<|im_end|>') || chunk.includes('<|endoftext|>') || chunk.includes('<|im_start|>')) {
+                                isStreamStopped = true;
+                                fullResponse = fullResponse.replace(/<\|im_end\|>|<\|endoftext\|>|<\|im_start\|>[\s\S]*/g, '').trim();
+                                renderRichMarkdown(contentDiv, fullResponse);
+                                return;
+                            }
+
                             fullResponse += chunk;
+                            
+                            if (fullResponse.includes('<|im_end|>') || fullResponse.includes('<|endoftext|>') || fullResponse.includes('<|im_start|>')) {
+                                isStreamStopped = true;
+                                fullResponse = fullResponse.replace(/<\|im_end\|>|<\|endoftext\|>|<\|im_start\|>[\s\S]*/g, '').trim();
+                                renderRichMarkdown(contentDiv, fullResponse);
+                                return;
+                            }
+
                             generatedTokenCount++;
 
                             const now = performance.now();
@@ -2260,13 +2278,15 @@
                     });
 
                     await generator(messages, {
-                        max_new_tokens: 1536,
-                        temperature: 0.7,
-                        top_p: 0.9,
-                        repetition_penalty: 1.1,
+                        max_new_tokens: 1024,
+                        temperature: 0.35,
+                        top_p: 0.85,
+                        repetition_penalty: 1.15,
                         do_sample: true,
                         streamer: streamer
                     });
+
+                    fullResponse = fullResponse.replace(/<\|im_end\|>|<\|endoftext\|>|<\|im_start\|>[\s\S]*/g, '').trim();
 
                 } catch(err) {
                     console.error("Generation error:", err);
