@@ -777,7 +777,7 @@
 
         <div class="sidebar-section-label">
             <span>Substrate Library</span>
-            <span style="font-size: 0.65rem; color: var(--accent-cyan);">On-Demand</span>
+            <span style="font-size: 0.65rem; color: var(--accent-cyan);">Persistent Storage</span>
         </div>
 
         <!-- 3-TIER SUBSTRATE CARDS -->
@@ -859,10 +859,10 @@
 
         <div class="sidebar-footer">
             <div style="display: flex; justify-content: space-between; font-family: 'Fira Code', monospace;">
-                <span>Storage Engine:</span>
-                <span style="color: var(--accent-cyan);">IndexedDB Cache</span>
+                <span>Storage Cache:</span>
+                <span style="color: var(--accent-emerald);">● Persisted in Storage</span>
             </div>
-            <div>Zero background downloads on page load. 100% Sovereign.</div>
+            <div>Weights persist across refreshes. Never re-downloads once compiled.</div>
         </div>
     </aside>
 
@@ -906,7 +906,7 @@
                     <p style="font-size: 0.88rem; color: var(--text-secondary); max-width: 480px; line-height: 1.6;">
                         To protect your bandwidth and device memory, no models are downloaded automatically on startup.
                         <br><br>
-                        Select your preferred intelligence tier in the <b>left sidebar</b> and click <b>"Download & Compile"</b> to initialize the neural substrate locally in your browser.
+                        Select your preferred intelligence tier in the <b>left sidebar</b> and click <b>"Download & Compile"</b> to initialize. Once compiled, weights persist across all page refreshes.
                     </p>
                     <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
                         <button class="compile-btn" onclick="requestCompileModel('qwen2.5-0.5b')" style="width: auto; padding: 0.5rem 1.25rem;">
@@ -1015,6 +1015,63 @@
         let rippleShockwave = 0;
         let persistentEngrams = new Set();
         let persistentConnections = [];
+
+        function savePersistentState() {
+            try {
+                localStorage.setItem('uor_compiled_models_v1', JSON.stringify(Array.from(compiledModels)));
+                if (activeModelId) {
+                    localStorage.setItem('uor_active_model_v1', activeModelId);
+                }
+            } catch(e) {
+                console.warn("Storage save error:", e);
+            }
+        }
+
+        function loadPersistentState() {
+            try {
+                const saved = localStorage.getItem('uor_compiled_models_v1');
+                if (saved) {
+                    const arr = JSON.parse(saved);
+                    arr.forEach(id => {
+                        if (MODEL_INFO[id]) compiledModels.add(id);
+                    });
+                }
+                const savedActive = localStorage.getItem('uor_active_model_v1');
+                if (savedActive && MODEL_INFO[savedActive] && compiledModels.has(savedActive)) {
+                    activeModelId = savedActive;
+                }
+            } catch(e) {
+                console.warn("Storage load error:", e);
+            }
+        }
+
+        function refreshUiCards() {
+            Object.keys(MODEL_INFO).forEach(id => {
+                const card = document.getElementById(`card-${id}`);
+                const bBox = document.getElementById(`btnbox-${id}`);
+                if (!card || !bBox) return;
+
+                if (id === activeModelId) {
+                    card.classList.add('active');
+                    bBox.innerHTML = `<div class="active-pill">● Active in Reasoning</div>`;
+                } else if (compiledModels.has(id)) {
+                    card.classList.remove('active');
+                    bBox.innerHTML = `
+                        <button class="activate-btn" onclick="activateModel('${id}')">
+                            <span>⚡ Activate (Cached)</span>
+                        </button>
+                    `;
+                } else {
+                    card.classList.remove('active');
+                    bBox.innerHTML = `
+                        <button class="compile-btn" onclick="requestCompileModel('${id}')">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"></path></svg>
+                            <span>Download & Compile</span>
+                        </button>
+                    `;
+                }
+            });
+        }
 
         window.toggleSidebar = function() {
             document.getElementById('sidebar').classList.toggle('collapsed');
@@ -1212,7 +1269,6 @@
             activeDevice = device;
 
             try {
-                // Use rock-solid q4 INT4 quantization (avoiding buggy f16 shader overflows)
                 generator = await pipeline('text-generation', model.source, {
                     dtype: 'q4',
                     device: device,
@@ -1238,33 +1294,10 @@
 
                 compiledModels.add(modelId);
                 activeModelId = modelId;
+                savePersistentState();
 
                 progBox.style.display = 'none';
-
-                // Update UI cards
-                Object.keys(MODEL_INFO).forEach(id => {
-                    const card = document.getElementById(`card-${id}`);
-                    const bBox = document.getElementById(`btnbox-${id}`);
-                    if(id === modelId) {
-                        card.classList.add('active');
-                        bBox.innerHTML = `<div class="active-pill">● Active in Reasoning</div>`;
-                    } else if (compiledModels.has(id)) {
-                        card.classList.remove('active');
-                        bBox.innerHTML = `
-                            <button class="activate-btn" onclick="activateModel('${id}')">
-                                <span>⚡ Switch to This</span>
-                            </button>
-                        `;
-                    } else {
-                        card.classList.remove('active');
-                        bBox.innerHTML = `
-                            <button class="compile-btn" onclick="requestCompileModel('${id}')">
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"></path></svg>
-                                <span>Download & Compile</span>
-                            </button>
-                        `;
-                    }
-                });
+                refreshUiCards();
 
                 const badgeText = document.getElementById('badgeText');
                 badgeText.innerText = `${model.name} (${label})`;
@@ -1284,22 +1317,8 @@
         window.activateModel = async function(modelId) {
             activeModelId = modelId;
             const model = MODEL_INFO[modelId];
-
-            Object.keys(MODEL_INFO).forEach(id => {
-                const card = document.getElementById(`card-${id}`);
-                const btnBox = document.getElementById(`btnbox-${id}`);
-                if(id === modelId) {
-                    card.classList.add('active');
-                    btnBox.innerHTML = `<div class="active-pill">● Active in Reasoning</div>`;
-                } else if (compiledModels.has(id)) {
-                    card.classList.remove('active');
-                    btnBox.innerHTML = `
-                        <button class="activate-btn" onclick="activateModel('${id}')">
-                            <span>⚡ Switch to This</span>
-                        </button>
-                    `;
-                }
-            });
+            savePersistentState();
+            refreshUiCards();
 
             const badgeText = document.getElementById('badgeText');
             badgeText.innerText = `Activating ${model.name}...`;
@@ -1324,7 +1343,7 @@
                     device: device
                 });
                 badgeText.innerText = `${model.name} (${label})`;
-                showToast(`🚀 ${model.name} Activated!`);
+                showToast(`🚀 ${model.name} Activated from Local Storage!`);
 
                 const emptyState = document.getElementById('emptyStatePrompt');
                 if(emptyState) emptyState.remove();
@@ -1393,7 +1412,6 @@
                     }
                 });
 
-                // Deterministic Greedy Decoding: Guarantees 100% coherent, lucid natural language
                 await generator(messages, {
                     max_new_tokens: 512,
                     do_sample: false,
@@ -1684,9 +1702,15 @@
         }
 
         window.addEventListener('DOMContentLoaded', async () => {
+            loadPersistentState();
+            refreshUiCards();
             await initWasmEngine();
             startBrainVisualizer();
             startWaveformVisualizer();
+
+            if (activeModelId && compiledModels.has(activeModelId)) {
+                await activateModel(activeModelId);
+            }
         });
     </script>
 </body>
