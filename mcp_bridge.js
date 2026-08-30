@@ -381,6 +381,52 @@ function githubFetch(urlStr, method = 'GET', body = null, token = '') {
     });
 }
 
+// --- AUTO-TERMINATION & IDLE EXPIRATION CONTROLLER ---
+const activeWsClients = new Set();
+let shutdownTimer = null;
+const DISCONNECT_GRACE_MS = 60000; // Auto-terminate 60s after all browser tabs close
+const MAX_IDLE_MS = 1800000; // Auto-terminate after 30 mins total idle
+let lastActivityTime = Date.now();
+
+function touchActivity() {
+    lastActivityTime = Date.now();
+    if (shutdownTimer) {
+        clearTimeout(shutdownTimer);
+        shutdownTimer = null;
+        console.log('[Auto-Shutdown] Cancelled auto-shutdown: Client connected.');
+    }
+}
+
+function checkActiveClients() {
+    if (activeWsClients.size === 0) {
+        if (!shutdownTimer) {
+            console.log(`[Auto-Shutdown] No active browser connections. Bridge will auto-terminate in ${DISCONNECT_GRACE_MS / 1000}s...`);
+            shutdownTimer = setTimeout(() => {
+                if (activeWsClients.size === 0) {
+                    console.log('[Auto-Shutdown] 💤 Exiting bridge cleanly (all browser sessions closed).');
+                    process.exit(0);
+                }
+            }, DISCONNECT_GRACE_MS);
+        }
+    }
+}
+
+// Initial grace period on startup
+shutdownTimer = setTimeout(() => {
+    if (activeWsClients.size === 0) {
+        console.log('[Auto-Shutdown] 💤 Exiting bridge cleanly (no browser connected within startup window).');
+        process.exit(0);
+    }
+}, DISCONNECT_GRACE_MS);
+
+// Periodic idle check
+setInterval(() => {
+    if (Date.now() - lastActivityTime > MAX_IDLE_MS) {
+        console.log('[Auto-Shutdown] 💤 Exiting bridge cleanly (idle timeout reached).');
+        process.exit(0);
+    }
+}, 300000);
+
 // --- PURE NODE.JS WEBSOCKET SERVER IMPLEMENTATION ---
 function handleWebSocketUpgrade(req, socket) {
     const key = req.headers['sec-websocket-key'];
@@ -402,6 +448,15 @@ function handleWebSocketUpgrade(req, socket) {
     ];
 
     socket.write(headers.join('\r\n') + '\r\n\r\n');
+    activeWsClients.add(socket);
+    touchActivity();
+    console.log(`[WS] Client connected. Active clients: ${activeWsClients.size}`);
+
+    socket.on('close', () => {
+        activeWsClients.delete(socket);
+        console.log(`[WS] Client disconnected. Active clients: ${activeWsClients.size}`);
+        checkActiveClients();
+    });
 
     let buffer = Buffer.alloc(0);
 
@@ -485,6 +540,7 @@ function sendWsText(socket, text) {
 
 // --- JSON-RPC 2.0 MCP MESSAGE HANDLER ---
 async function processJsonRpcMessage(jsonStr, reply) {
+    touchActivity();
     let req;
     try {
         req = JSON.parse(jsonStr);

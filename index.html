@@ -1820,13 +1820,21 @@
                         Allows in-browser AI to read/write local project files, execute terminal commands, and inspect git diffs.
                     </p>
                     
-                    <div style="background: rgba(0, 243, 255, 0.05); border: 1px solid rgba(0, 243, 255, 0.2); border-radius: var(--radius-sm); padding: 0.65rem 0.75rem; margin-bottom: 0.6rem; display: flex; flex-direction: column; gap: 0.4rem;">
+                    <div style="background: rgba(0, 243, 255, 0.05); border: 1px solid rgba(0, 243, 255, 0.2); border-radius: var(--radius-sm); padding: 0.75rem 0.85rem; margin-bottom: 0.6rem; display: flex; flex-direction: column; gap: 0.5rem;">
                         <div style="display: flex; align-items: center; justify-content: space-between;">
-                            <span style="font-size: 0.76rem; font-weight: 600; color: var(--accent-cyan);">⚡ 1-Click Launch on macOS</span>
-                            <span style="font-size: 0.68rem; color: var(--text-muted);">Double-click script</span>
+                            <span style="font-size: 0.78rem; font-weight: 600; color: var(--accent-cyan);">⚡ Browser-to-Mac 1-Click Launch</span>
+                            <span style="font-size: 0.68rem; color: var(--accent-emerald);">🛡️ Auto-Kills on Tab Close</span>
                         </div>
                         <div style="font-size: 0.73rem; color: var(--text-secondary); line-height: 1.4;">
-                            Run <code>./start_mcp.command</code> or <code>node mcp_bridge.js</code>. The browser connects automatically the moment it starts!
+                            Launch the local bridge directly with 1 button! Auto-terminates 60s after you close this browser tab so no background processes remain.
+                        </div>
+                        <div style="display: flex; gap: 0.5rem; margin-top: 0.2rem; flex-wrap: wrap;">
+                            <button class="compile-btn" onclick="launchLocalBridgeFromBrowser()" style="width: auto; padding: 0.4rem 1rem; font-size: 0.78rem; background: var(--accent-cyan); color: #000; font-weight: 600;">
+                                🚀 Launch Local Bridge
+                            </button>
+                            <button class="compile-btn" onclick="downloadProtocolInstaller()" style="width: auto; padding: 0.4rem 0.85rem; font-size: 0.78rem; background: rgba(255,255,255,0.06); color: var(--text-secondary);">
+                                📥 1-Time Setup (.command)
+                            </button>
                         </div>
                     </div>
 
@@ -2037,6 +2045,24 @@
         window.closeMcpModal = function() {
             const modal = document.getElementById('mcpModalBackdrop');
             if (modal) modal.classList.remove('show');
+        };
+
+        window.launchLocalBridgeFromBrowser = function() {
+            showToast("🚀 Launching local MCP Bridge via uor:// protocol...");
+            window.location.href = 'uor://start';
+            setTimeout(() => {
+                connectMcp(false);
+            }, 1200);
+        };
+
+        window.downloadProtocolInstaller = function() {
+            const a = document.createElement('a');
+            a.href = 'install_uor_protocol.command';
+            a.download = 'install_uor_protocol.command';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            showToast("📥 1-Click Installer downloaded! Run once on your Mac to register uor:// protocol.");
         };
 
         window.saveMcpSettings = function() {
