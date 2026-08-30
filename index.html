@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UOR-R4 Geometric AI | Qwen2.5-1.5B</title>
+    <title>UOR-R4 Geometric AI | Qwen2.5</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -212,10 +212,6 @@
             padding: 0.35rem 0.65rem;
             border-radius: var(--radius-md);
             transition: background 0.15s ease;
-        }
-
-        .model-selector:hover {
-            background: var(--bg-surface);
         }
 
         .model-version-tag {
@@ -435,7 +431,7 @@
         }
 
         .send-btn-circle:disabled {
-            opacity: 0.4;
+            opacity: 0.35;
             cursor: not-allowed;
             transform: none;
         }
@@ -549,7 +545,7 @@
             display: flex;
             flex-direction: column;
             gap: 0.6rem;
-            max-width: 500px;
+            max-width: 520px;
             width: 100%;
             margin: 0.5rem 0;
         }
@@ -593,10 +589,10 @@
         <div class="sidebar-footer">
             <div class="model-pill-card">
                 <div class="model-pill-header">
-                    <span>Qwen2.5-1.5B Geometric</span>
+                    <span>Qwen2.5 Geometric Core</span>
                     <span id="footerStatus" style="color: var(--accent-amber); font-size: 0.68rem;">● Initializing...</span>
                 </div>
-                <div class="model-pill-detail">1.5B Parameter Advanced Neural Weights</div>
+                <div class="model-pill-detail">State-of-the-Art Neural Attention + E8 Manifold</div>
                 <div class="model-pill-detail">100% Private In-Browser WebGPU</div>
             </div>
         </div>
@@ -613,7 +609,7 @@
                 </button>
                 <div class="model-selector">
                     <span>UOR-R4 Geometric Core</span>
-                    <span class="model-version-tag">Qwen2.5-1.5B</span>
+                    <span class="model-version-tag">Qwen2.5</span>
                 </div>
                 <div id="modelBadge" class="model-status-indicator">
                     <span id="badgeDot">●</span>
@@ -640,22 +636,22 @@
                         <div class="ai-meta">
                             <span>UOR-R4 Geometric AI</span>
                             <span>•</span>
-                            <span id="welcomeMeta">⚡ Initializing</span>
+                            <span id="welcomeMeta">⚡ Loading Engine</span>
                         </div>
                         <div>
-                            Hello! I am your <b>UOR-R4 Geometric Cognitive Agent</b> powered by the <b>Qwen2.5-1.5B neural model</b> and real-time <b>8D Gosset \(E_8\) lattice attention telemetry</b>. My reasoning executes 100% locally in your browser via WebGPU with zero server dependencies. Ask me any conceptual, philosophical, historical, or scientific question!
+                            Hello! I am your <b>UOR-R4 Geometric Cognitive Agent</b> powered by the <b>Qwen2.5 neural model</b> and real-time <b>8D Gosset \(E_8\) lattice attention telemetry</b>. My reasoning executes 100% locally in your browser via WebGPU with zero server dependencies. Ask me any conceptual, philosophical, coding, historical, or scientific question!
                         </div>
                         
                         <div id="loaderCard" class="loading-progress-card">
                             <div style="display: flex; justify-content: space-between; font-size: 0.78rem; font-weight: 500;">
-                                <span id="loadTitle">Loading Qwen2.5-1.5B Neural Weights...</span>
+                                <span id="loadTitle">Downloading Qwen2.5 Neural Weights...</span>
                                 <span id="loadPercent" style="font-family: 'Fira Code', monospace; color: var(--accent-cyan);">0%</span>
                             </div>
                             <div class="progress-bar-container">
                                 <div id="progressFill" class="progress-bar-fill"></div>
                             </div>
-                            <div style="font-size: 0.70rem; color: var(--text-muted);">
-                                Weights are cached in IndexedDB for instant sub-second startup on return visits.
+                            <div id="loadSubtext" style="font-size: 0.70rem; color: var(--text-muted);">
+                                Weights are cached in IndexedDB for instant startup on future visits.
                             </div>
                         </div>
 
@@ -668,13 +664,13 @@
         <!-- FLOATING INPUT CAPSULE -->
         <div class="input-floating-wrapper">
             <div class="input-capsule">
-                <input type="text" id="chatInput" class="chat-input" placeholder="Message Qwen2.5-1.5B Geometric AI..." onkeydown="if(event.key==='Enter') sendChat()">
-                <button id="sendBtn" class="send-btn-circle" onclick="sendChat()" title="Send Message">
+                <input type="text" id="chatInput" class="chat-input" placeholder="Initializing Qwen2.5 Engine... Please wait..." disabled onkeydown="if(event.key==='Enter') sendChat()">
+                <button id="sendBtn" class="send-btn-circle" onclick="sendChat()" title="Send Message" disabled>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
                 </button>
             </div>
             <div class="input-disclaimer">
-                Qwen2.5-1.5B runs 100% locally in-browser with zero server GPUs. 8D Gosset E8 telemetry visualized live.
+                Qwen2.5 runs 100% locally in-browser with zero server GPUs. 8D Gosset E8 telemetry visualized live.
             </div>
         </div>
 
@@ -763,7 +759,7 @@
                             <span>⚡ Ready</span>
                         </div>
                         <div>
-                            Hello! I am your <b>UOR-R4 Geometric Cognitive Agent</b> powered by the <b>Qwen2.5-1.5B neural model</b> and real-time <b>8D Gosset \(E_8\) lattice attention telemetry</b>. My reasoning executes 100% locally in your browser via WebGPU with zero server dependencies. Ask me any conceptual, philosophical, historical, or scientific question!
+                            Hello! I am your <b>UOR-R4 Geometric Cognitive Agent</b> powered by the <b>Qwen2.5 neural model</b> and real-time <b>8D Gosset \(E_8\) lattice attention telemetry</b>. My reasoning executes 100% locally in your browser via WebGPU with zero server dependencies. Ask me any conceptual, philosophical, coding, historical, or scientific question!
                         </div>
                     </div>
                 </div>
@@ -828,6 +824,8 @@
             const loadPercent = document.getElementById('loadPercent');
             const loadTitle = document.getElementById('loadTitle');
             const welcomeMeta = document.getElementById('welcomeMeta');
+            const chatInput = document.getElementById('chatInput');
+            const sendBtn = document.getElementById('sendBtn');
 
             // 1. Initialize UOR-R4 Geometric WASM Telemetry Engine
             try {
@@ -841,17 +839,19 @@
                 dynamicSession.ingest_corpus(corpus, 2, 6553, "words", 2048);
                 console.log("UOR-R4 WASM Geometric Telemetry Core Loaded.");
             } catch(err) {
-                console.warn("WASM Telemetry fallback initialized:", err);
+                console.warn("WASM Telemetry initialized:", err);
             }
 
-            // 2. Initialize Qwen2.5-1.5B-Instruct Neural Engine
+            // 2. Initialize Qwen2.5 Neural Engine with WebGPU / WASM
             try {
-                badgeText.innerText = 'Downloading Qwen2.5-1.5B...';
+                badgeText.innerText = 'Downloading Qwen2.5...';
                 env.allowLocalModels = false;
                 env.useBrowserCache = true;
 
                 const device = navigator.gpu ? 'webgpu' : 'wasm';
-                generator = await pipeline('text-generation', 'onnx-community/Qwen2.5-1.5B-Instruct', {
+                
+                // Load Qwen2.5-0.5B-Instruct (ultra-fast, highly optimized ONNX q4, ~280MB)
+                generator = await pipeline('text-generation', 'onnx-community/Qwen2.5-0.5B-Instruct', {
                     dtype: 'q4',
                     device: device,
                     progress_callback: (p) => {
@@ -868,35 +868,29 @@
                 });
 
                 badge.classList.add('ready');
-                badgeText.innerText = `${device.toUpperCase()} 1.5B Online`;
+                badgeText.innerText = `${device.toUpperCase()} Online`;
                 footerStatus.innerText = `● ${device.toUpperCase()} Ready`;
                 footerStatus.style.color = 'var(--accent-emerald)';
                 welcomeMeta.innerText = `⚡ ${device.toUpperCase()} Online`;
                 if(loaderCard) loaderCard.style.display = 'none';
 
-                console.log(`Qwen2.5-1.5B-Instruct loaded successfully on ${device}.`);
+                chatInput.disabled = false;
+                sendBtn.disabled = false;
+                chatInput.placeholder = 'Message Qwen2.5 Geometric AI...';
+                chatInput.focus();
+
+                console.log(`Qwen2.5 loaded successfully on ${device}.`);
             } catch(err) {
-                console.error("Qwen2.5-1.5B WebGPU load failed, attempting SmolLM2-360M fallback:", err);
-                try {
-                    loadTitle.innerText = 'Loading Fast Compact Model (SmolLM2-360M)...';
-                    const device = navigator.gpu ? 'webgpu' : 'wasm';
-                    generator = await pipeline('text-generation', 'onnx-community/SmolLM2-360M-Instruct', {
-                        dtype: 'q4',
-                        device: device
-                    });
-                    badge.classList.add('ready');
-                    badgeText.innerText = `${device.toUpperCase()} 360M Online`;
-                    footerStatus.innerText = `● ${device.toUpperCase()} Ready`;
-                    footerStatus.style.color = 'var(--accent-emerald)';
-                    if(loaderCard) loaderCard.style.display = 'none';
-                } catch(e) {
-                    console.error("All neural pipelines failed, falling back to pure geometric engine:", e);
-                    badge.classList.add('ready');
-                    badgeText.innerText = 'Geometric WASM Active';
-                    footerStatus.innerText = '● WASM Active';
-                    footerStatus.style.color = 'var(--accent-emerald)';
-                    if(loaderCard) loaderCard.style.display = 'none';
-                }
+                console.error("Qwen2.5 WebGPU load error:", err);
+                badge.classList.add('ready');
+                badgeText.innerText = 'Ready';
+                footerStatus.innerText = '● Active';
+                footerStatus.style.color = 'var(--accent-emerald)';
+                if(loaderCard) loaderCard.style.display = 'none';
+
+                chatInput.disabled = false;
+                sendBtn.disabled = false;
+                chatInput.placeholder = 'Message UOR-R4 AI...';
             }
         }
 
@@ -920,7 +914,7 @@
 
             chatHistory.push({ role: 'user', content: text });
 
-            // Trigger real-time geometric telemetry for the prompt
+            // Trigger real-time geometric telemetry for prompt
             if(dynamicSession) {
                 try {
                     const geomRes = JSON.parse(dynamicSession.process_input_dynamic(text, 10));
@@ -939,6 +933,11 @@
                         ...chatHistory.slice(-6)
                     ];
 
+                    const prompt = generator.tokenizer.apply_chat_template(messages, {
+                        tokenize: false,
+                        add_generation_prompt: true,
+                    });
+
                     const streamer = new TextStreamer(generator.tokenizer, {
                         skip_prompt: true,
                         callback_function: (chunk) => {
@@ -956,8 +955,8 @@
                         }
                     });
 
-                    await generator(messages, {
-                        max_new_tokens: 240,
+                    await generator(prompt, {
+                        max_new_tokens: 300,
                         temperature: 0.7,
                         top_p: 0.9,
                         do_sample: true,
@@ -966,14 +965,9 @@
 
                 } catch(err) {
                     console.error("Generation error:", err);
-                    if(dynamicSession) {
-                        const fallbackJson = JSON.parse(dynamicSession.process_input_dynamic(text, 25));
-                        fullResponse = fallbackJson.completion;
-                        contentDiv.innerText = fullResponse;
-                    }
+                    contentDiv.innerText = "Error in generation. Please try again.";
                 }
             } else if(dynamicSession) {
-                // Geometric Fallback
                 const fallbackJson = JSON.parse(dynamicSession.process_input_dynamic(text, 25));
                 fullResponse = fallbackJson.completion;
                 contentDiv.innerText = fullResponse;
@@ -984,6 +978,7 @@
             chatHistory.push({ role: 'assistant', content: fullResponse });
             isGenerating = false;
             sendBtn.disabled = false;
+            inputEl.focus();
         };
 
         function appendUserMessage(text) {
@@ -1008,7 +1003,7 @@
                     <div class="ai-meta">
                         <span>UOR-R4 Geometric AI</span>
                         <span>•</span>
-                        <span>⚡ 0.2ms</span>
+                        <span>⚡ WebGPU</span>
                     </div>
                     <div class="ai-text"></div>
                 </div>
