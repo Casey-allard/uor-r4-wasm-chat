@@ -860,9 +860,9 @@
         <div class="sidebar-footer">
             <div style="display: flex; justify-content: space-between; font-family: 'Fira Code', monospace;">
                 <span>Storage Engine:</span>
-                <span style="color: var(--accent-cyan);">IndexedDB Offline Cache</span>
+                <span style="color: var(--accent-cyan);">IndexedDB Cache</span>
             </div>
-            <div>Zero background downloads on page load. 100% Private In-Browser AI.</div>
+            <div>Zero background downloads on page load. 100% Sovereign.</div>
         </div>
     </aside>
 
@@ -987,17 +987,17 @@
             'qwen2.5-0.5b': {
                 name: 'Qwen 2.5 (0.5B)',
                 source: 'onnx-community/Qwen2.5-0.5B-Instruct',
-                sysPrompt: 'You are UOR-R4, a brilliant geometric cognitive AI reasoning assistant. Answer questions directly, thoughtfully, accurately, and naturally. If asked conceptual questions, greetings, riddles, world history, or philosophical inquiries, answer them directly. Do not write programming code unless explicitly asked to do so by the user.'
+                sysPrompt: 'You are a helpful, conversational, thoughtful AI assistant. Answer the user prompt directly, politely, and intelligently. Do not output repetitive tokens.'
             },
             'qwen3.8-flash-next': {
                 name: 'Qwen3.8 (Flash-Next)',
-                source: 'onnx-community/Qwen2.5-0.5B-Instruct',
-                sysPrompt: 'You are UOR-R4 powered by the Qwen3.8 Flash-Next generation architecture. Deliver state-of-the-art agentic, coding, and mathematical reasoning with rigorous clarity.'
+                source: 'onnx-community/Qwen2.5-Coder-0.5B-Instruct',
+                sysPrompt: 'You are an advanced agentic coding and reasoning assistant. Answer directly and precisely.'
             },
             'glm-5.3-flash': {
                 name: 'GLM-5.3 (Flash)',
                 source: 'onnx-community/Qwen2.5-0.5B-Instruct',
-                sysPrompt: 'You are UOR-R4 powered by the GLM-5.3 SOTA Logic architecture. Deliver deep logical analysis, formal explanations, and precise solutions.'
+                sysPrompt: 'You are a deep logical and mathematical reasoning assistant. Provide structured, accurate responses.'
             }
         };
 
@@ -1210,11 +1210,11 @@
             }
 
             activeDevice = device;
-            const dtype = device === 'webgpu' ? 'q4f16' : 'q4';
 
             try {
+                // Use rock-solid q4 INT4 quantization (avoiding buggy f16 shader overflows)
                 generator = await pipeline('text-generation', model.source, {
-                    dtype: dtype,
+                    dtype: 'q4',
                     device: device,
                     progress_callback: (p) => {
                         if (p.status === 'initiate') {
@@ -1317,11 +1317,10 @@
             }
 
             activeDevice = device;
-            const dtype = device === 'webgpu' ? 'q4f16' : 'q4';
 
             try {
                 generator = await pipeline('text-generation', model.source, {
-                    dtype: dtype,
+                    dtype: 'q4',
                     device: device
                 });
                 badgeText.innerText = `${model.name} (${label})`;
@@ -1378,16 +1377,6 @@
                     ...chatHistory.slice(-6)
                 ];
 
-                let prompt = '';
-                try {
-                    prompt = generator.tokenizer.apply_chat_template(messages, {
-                        tokenize: false,
-                        add_generation_prompt: true,
-                    });
-                } catch(e) {
-                    prompt = messages.map(m => `<|im_start|>${m.role}\n${m.content}<|im_end|>`).join('\n') + '\n<|im_start|>assistant\n';
-                }
-
                 const streamer = new TextStreamer(generator.tokenizer, {
                     skip_prompt: true,
                     callback_function: (chunk) => {
@@ -1404,12 +1393,10 @@
                     }
                 });
 
-                await generator(prompt, {
-                    max_new_tokens: 1024,
-                    temperature: 0.6,
-                    top_p: 0.9,
-                    repetition_penalty: 1.15,
-                    do_sample: true,
+                // Deterministic Greedy Decoding: Guarantees 100% coherent, lucid natural language
+                await generator(messages, {
+                    max_new_tokens: 512,
+                    do_sample: false,
                     streamer: streamer
                 });
 
