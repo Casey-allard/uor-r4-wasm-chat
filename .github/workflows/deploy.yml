@@ -1,0 +1,112 @@
+name: UOR-R4 WASM CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow one concurrent deployment
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build-and-test:
+    name: Build & Test WASM Module
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust Toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+          targets: wasm32-unknown-unknown
+
+      - name: Cache Cargo Dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: Install wasm-pack
+        run: |
+          if ! command -v wasm-pack &> /dev/null; then
+            curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+          fi
+
+      - name: Run Workspace Tests
+        run: cargo test --workspace --verbose
+
+      - name: Compile WASM Module
+        # Compiles the Rust module using wasm-bindgen target 'web' for direct browser imports
+        run: wasm-pack build --target web --release --out-dir pkg
+
+      - name: Package Dashboard Bundle
+        # Consolidates index.html and pkg/ folder into a clean distribution workspace
+        run: |
+          mkdir -p dist
+          cp index.html dist/ || echo "index.html not found, generating stub"
+          # Ensure index.html exists
+          if [ ! -f "dist/index.html" ]; then
+            cat << 'EOF' > dist/index.html
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+              <meta charset="UTF-8">
+              <title>UOR-R4 Cognitive Dashboard</title>
+          </head>
+          <body>
+              <h1>UOR-R4 WebAssembly Terminal Active</h1>
+              <script type="module">
+                  import init from './pkg/uor_r4_wasm_bridge.js';
+                  init().then(() => {
+                      console.log("UOR-R4 WASM successfully initialized.");
+                  });
+              </script>
+          </body>
+          </html>
+          EOF
+          fi
+          cp -r pkg dist/
+
+      - name: Setup GitHub Pages
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: actions/configure-pages@v4
+
+      - name: Upload Build Artifacts
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './dist'
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build-and-test
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy Artifacts
+        id: deployment
+        uses: actions/deploy-pages@v4
