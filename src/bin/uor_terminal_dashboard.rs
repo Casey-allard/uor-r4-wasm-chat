@@ -77,7 +77,11 @@ fn draw_dashboard(frame: u64, total_lookups: &mut u64) {
         let padding = " ".repeat(20 - num_ticks);
         println!(
             "    ├─ Core {} [P-Core - Mmap Search] : [ {}{}{} ] {}% (Active AMX)",
-            core, COLOR_BLUE, ticks, padding, load_pct
+            core,
+            COLOR_BLUE,
+            ticks,
+            padding,
+            load_pct,
         );
     }
 
@@ -89,7 +93,11 @@ fn draw_dashboard(frame: u64, total_lookups: &mut u64) {
         let padding = " ".repeat(20 - num_ticks);
         println!(
             "    ├─ Core {} [E-Core - Infilling ] : [ {}{}{} ] {}% (Low Temp)",
-            core, COLOR_GREEN, ticks, padding, load_pct
+            core,
+            COLOR_GREEN,
+            ticks,
+            padding,
+            load_pct,
         );
     }
     println!("----------------------------------------------------------------------");
