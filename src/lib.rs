@@ -548,7 +548,7 @@ impl InteractiveChatSession {
 
         // Format diagnostic string to parse in HTML dashboard UI
         format!(
-            r#"{"completion":"{}", "snapped":[{},{},{},{},{},{},{},{}], "chi":{:.4}, "delta":{:.4}, "alpha":{:.4}, "winner":"{}"}"#,
+            r#"{{"completion":"{}", "snapped":[{},{},{},{},{},{},{},{}], "chi":{:.4}, "delta":{:.4}, "alpha":{:.4}, "winner":"{}"}}"#,
             output_str,
             diag_snapped[0], diag_snapped[1], diag_snapped[2], diag_snapped[3],
             diag_snapped[4], diag_snapped[5], diag_snapped[6], diag_snapped[7],
@@ -649,10 +649,35 @@ impl BrowserTrainingHarness {
         coords_arr.push_str("]");
 
         format!(
-            r#"{"status":"success", "average_loss":{:.4}, "steps":{}, "updated_coordinates":{}}"#,
+            r#"{{"status":"success", "average_loss":{:.4}, "steps":{}, "updated_coordinates":{}}}"#,
             (avg_loss as f32) / 65536.0,
             steps,
             coords_arr
         )
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{BrowserTrainingHarness, InteractiveChatSession};
+
+    #[test]
+    fn process_input_run_returns_json_payload() {
+        let mut session = InteractiveChatSession::new();
+        let response = session.process_input_run("hello");
+
+        assert!(response.starts_with(r#"{"completion":""#));
+        assert!(response.contains(r#""snapped":["#));
+        assert!(response.ends_with('}'));
+    }
+
+    #[test]
+    fn train_on_corpus_returns_success_json_payload() {
+        let mut harness = BrowserTrainingHarness::new();
+        let response = harness.train_on_corpus("hello routing", 1, 65536);
+
+        assert!(response.starts_with(r#"{"status":"success""#));
+        assert!(response.contains(r#""updated_coordinates":["#));
+        assert!(response.ends_with('}'));
     }
 }

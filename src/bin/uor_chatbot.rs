@@ -574,17 +574,14 @@ fn main() {
 
         session.execute_turn(input_trimmed);
 
-        println!("
-  [Syntactic Output Completion]");
-        print!("    >>> "");
+        println!("\n  [Syntactic Output Completion]");
+        print!("    >>> ");
         for i in 0..session.generated_count {
             print!("{}", session.generated_tokens[i]);
             if i < session.generated_count - 1 {
                 print!(" ");
             }
         }
-        println!(""
-----------------------------------------------------------------------
-");
+        println!("\n----------------------------------------------------------------------\n");
     }
 }
