@@ -696,9 +696,9 @@
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg>
                 </button>
                 <select id="modelSelectorDropdown" class="model-dropdown-select" onchange="changeModel(this.value)">
-                    <option value="onnx-community/Qwen2.5-0.5B-Instruct" selected>UOR-R4 (Qwen 0.5B Substrate • Fast & Reliable)</option>
-                    <option value="onnx-community/Qwen2.5-1.5B-Instruct">UOR-R4 (Qwen 1.5B Substrate • Deep Reasoning)</option>
+                    <option value="onnx-community/Qwen2.5-1.5B-Instruct" selected>UOR-R4 (Qwen 1.5B Substrate • Deep Reasoning)</option>
                     <option value="onnx-community/Llama-3.2-1B-Instruct">UOR-R4 (Llama 1B Substrate • Meta)</option>
+                    <option value="onnx-community/Qwen2.5-0.5B-Instruct">UOR-R4 (Qwen 0.5B Substrate • Fast & Lightweight)</option>
                 </select>
                 <div id="modelBadge" class="model-status-indicator">
                     <span id="badgeDot">●</span>
@@ -816,7 +816,7 @@
         let dynamicSession = null;
         let isGenerating = false;
         let chatHistory = [];
-        let currentModelId = 'onnx-community/Qwen2.5-0.5B-Instruct';
+        let currentModelId = 'onnx-community/Qwen2.5-1.5B-Instruct';
 
         let currentE8Coords = [0, 0, 0, 0, 0, 0, 0, 0];
         let currentChi = 0, currentDelta = 0, currentAlpha = 0;
@@ -957,8 +957,11 @@
         }
 
         window.changeModel = async function(modelId) {
+            if(isGenerating) return;
             currentModelId = modelId;
             generator = null;
+            document.getElementById('chatInput').disabled = true;
+            document.getElementById('sendBtn').disabled = true;
             await loadNeuralModel(modelId);
         };
 
@@ -977,7 +980,7 @@
 
             chatInput.disabled = true;
             sendBtn.disabled = true;
-            chatInput.placeholder = 'Downloading Neural Weight Substrate... Please wait...';
+            chatInput.placeholder = `Loading ${modelId.split('/')[1] || modelId}... Please wait...`;
 
             badge.classList.remove('ready');
             badgeText.innerText = 'Loading...';
@@ -1006,9 +1009,11 @@
                             if(loadPercent) loadPercent.innerText = `${pct}%`;
                             if(progressFill) progressFill.style.width = `${pct}%`;
                             badgeText.innerText = `Downloading: ${pct}%`;
+                            chatInput.placeholder = `Downloading model shards: ${pct}%...`;
                         } else if(p.status === 'done') {
-                            if(loadTitle) loadTitle.innerText = 'Compiling WebGPU Neural Shaders...';
+                            if(loadTitle) loadTitle.innerText = 'Compiling WebGPU Shaders...';
                             badgeText.innerText = 'Compiling Shaders...';
+                            chatInput.placeholder = 'Compiling WebGPU shaders... please wait...';
                         }
                     }
                 });
@@ -1031,16 +1036,13 @@
                 console.error(`Error loading ${modelId}:`, err);
                 if(modelId !== 'onnx-community/Qwen2.5-0.5B-Instruct') {
                     console.log("Falling back to ultra-stable Qwen2.5-0.5B substrate...");
+                    document.getElementById('modelSelectorDropdown').value = 'onnx-community/Qwen2.5-0.5B-Instruct';
                     await loadNeuralModel('onnx-community/Qwen2.5-0.5B-Instruct');
                 } else {
-                    badge.classList.add('ready');
-                    badgeText.innerText = 'Ready';
-                    footerStatus.innerText = '● Active';
-                    footerStatus.style.color = 'var(--accent-emerald)';
-                    if(loaderCard) loaderCard.style.display = 'none';
-                    chatInput.disabled = false;
-                    sendBtn.disabled = false;
-                    chatInput.placeholder = 'Message UOR-R4 AI...';
+                    badgeText.innerText = 'Load Error';
+                    footerStatus.innerText = '● Error';
+                    footerStatus.style.color = 'var(--accent-amber)';
+                    chatInput.placeholder = 'Failed to load model. Please refresh.';
                 }
             }
         }
@@ -1061,7 +1063,7 @@
                 console.warn("WASM Telemetry initialized:", err);
             }
 
-            // 2. Initialize Default Neural Model Substrate (Fast Qwen 0.5B)
+            // 2. Initialize Default Neural Model Substrate (Qwen2.5-1.5B)
             await loadNeuralModel(currentModelId);
         }
 
@@ -1073,7 +1075,7 @@
             if(!text) return;
 
             if(!generator) {
-                alert("Neural model substrate is still downloading. Please wait a moment.");
+                inputEl.placeholder = 'Please wait for the model to finish loading...';
                 return;
             }
 
@@ -1108,11 +1110,6 @@
                     ...chatHistory.slice(-6)
                 ];
 
-                const prompt = generator.tokenizer.apply_chat_template(messages, {
-                    tokenize: false,
-                    add_generation_prompt: true,
-                });
-
                 const streamer = new TextStreamer(generator.tokenizer, {
                     skip_prompt: true,
                     callback_function: (chunk) => {
@@ -1130,21 +1127,51 @@
                     }
                 });
 
-                await generator(prompt, {
+                await generator(messages, {
                     max_new_tokens: 1024,
-                    temperature: 0.6,
+                    temperature: 0.5,
                     top_p: 0.9,
+                    repetition_penalty: 1.1,
                     do_sample: true,
                     streamer: streamer
                 });
 
             } catch(err) {
-                console.error("Generation error:", err);
-                contentDiv.innerText = "Error during generation. Please retry.";
+                console.error("Generation error with messages array, attempting string template fallback:", err);
+                try {
+                    const messages = [
+                        { role: 'system', content: 'You are UOR-R4, a geometric cognitive AI reasoning assistant. Answer questions directly, intelligently, accurately, and naturally. If asked conceptual, riddle, historical, or philosophical questions, provide direct, thoughtful answers. Only write code if explicitly requested.' },
+                        ...chatHistory.slice(-6)
+                    ];
+                    const promptStr = generator.tokenizer.apply_chat_template(messages, { tokenize: false, add_generation_prompt: true });
+                    const streamer = new TextStreamer(generator.tokenizer, {
+                        skip_prompt: true,
+                        callback_function: (chunk) => {
+                            fullResponse += chunk;
+                            contentDiv.innerHTML = renderMarkdown(fullResponse);
+                            scrollDown();
+                        }
+                    });
+                    await generator(promptStr, {
+                        max_new_tokens: 1024,
+                        temperature: 0.5,
+                        top_p: 0.9,
+                        repetition_penalty: 1.1,
+                        do_sample: true,
+                        streamer: streamer
+                    });
+                } catch(fallbackErr) {
+                    console.error("Fallback generation error:", fallbackErr);
+                    contentDiv.innerText = "Generation encountered an issue. Please try your prompt again.";
+                }
             }
 
             contentDiv.classList.remove('typing-cursor');
-            contentDiv.innerHTML = renderMarkdown(fullResponse);
+            if(!fullResponse || fullResponse.trim().length === 0) {
+                contentDiv.innerHTML = renderMarkdown(fullResponse || "Thinking completed.");
+            } else {
+                contentDiv.innerHTML = renderMarkdown(fullResponse);
+            }
             chatHistory.push({ role: 'assistant', content: fullResponse });
             isGenerating = false;
             sendBtn.disabled = false;
