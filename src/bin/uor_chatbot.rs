@@ -573,7 +573,7 @@ fn main() {
         session.execute_turn(input_trimmed);
 
         println!("\n  [Syntactic Output Completion]");
-        print!("    >>> "");
+        print!("    >>> ");
         for i in 0..session.generated_count {
             print!("{}", session.generated_tokens[i]);
             if i < session.generated_count - 1 {
