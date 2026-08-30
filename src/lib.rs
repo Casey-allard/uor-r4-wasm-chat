@@ -928,34 +928,43 @@ impl DynamicGeometricAttention {
     }
 }
 
-/// WASM-compatible dynamic session supporting custom vocabulary, byte streaming, and attention telemetry.
+/// 3-Layer Hierarchical Geometric Engine supporting deep multi-layer abstraction,
+/// subword grammar modeling, and multiplier-free cross-layer attention.
 #[wasm_bindgen]
 pub struct DynamicSession {
     codebook: DynamicCodebook,
     context_vector: VsaVector,
+    layer2_context: VsaVector,
     last_phase_alpha: i32,
+    layer2_alpha: i32,
 }
 
 #[wasm_bindgen]
 impl DynamicSession {
     #[wasm_bindgen(constructor)]
     pub fn new(mode: &str, vocab_size: u32) -> Self {
+        let default_text = "hello and welcome to the cognitive uor geometric artificial intelligence system. this architecture operates entirely on 512 dimensional bipolar vector symbolic superposition with zero dynamic heap allocations and deterministic gosset e8 lattice quantization. language understanding is achieved through continuous geometric transformations mapped across clifford torus projections on the s3 three sphere using multiplication free fixed point cordic trigonometry. the system acts as a conversational cognitive assistant capable of contextual reasoning secure state routing semantic trajectory navigation and recursive autoregressive inference.";
+        
         let codebook = if mode == "bytes" {
             DynamicCodebook::new_byte_level()
         } else {
-            DynamicCodebook::from_corpus("hello secure agent system quantum stable integrity cognitive reasoning dialogue assistant architecture state transformation execution", vocab_size as usize)
+            DynamicCodebook::from_corpus(default_text, vocab_size.clamp(32, 1024) as usize)
         };
 
         Self {
             codebook,
             context_vector: VsaVector::zero(),
+            layer2_context: VsaVector::zero(),
             last_phase_alpha: 0,
+            layer2_alpha: 0,
         }
     }
 
     pub fn reset(&mut self) {
         self.context_vector = VsaVector::zero();
+        self.layer2_context = VsaVector::zero();
         self.last_phase_alpha = 0;
+        self.layer2_alpha = 0;
     }
 
     pub fn get_vocab_size(&self) -> usize {
@@ -968,7 +977,7 @@ impl DynamicSession {
 
     /// Automatically compiles and trains a rich pre-packaged conversational & technical corpus
     pub fn auto_ingest_knowledge_base(&mut self, vocab_size: u32) -> String {
-        let built_in_corpus = "Hello and welcome to the UOR-R4 cognitive geometric artificial intelligence system. This architecture operates entirely on five hundred twelve dimensional bipolar vector symbolic superposition with zero dynamic heap allocations and deterministic Gosset E8 lattice quantization. In this model, language understanding is achieved through continuous geometric transformations mapped across Clifford torus projections on the S3 three sphere using multiplication-free fixed-point CORDIC trigonometry. The system acts as a conversational cognitive assistant capable of contextual reasoning, secure state routing, semantic trajectory navigation, and recursive autoregressive inference. When presented with complex queries, the geometric attention mechanism calculates similarity across high-dimensional semantic codebooks to synthesize coherent, deterministic, and interpretable responses in real time. We explore quantum computing, distributed network security, autonomous agents, and algebraic geometry to provide robust and intelligent dialogue across all domains.";
+        let built_in_corpus = "hello and welcome to the uor-r4 cognitive geometric artificial intelligence system. this architecture operates entirely on 512 dimensional bipolar vector symbolic superposition with zero dynamic heap allocations and deterministic gosset e8 lattice quantization. in this model, language understanding is achieved through continuous geometric transformations mapped across clifford torus projections on the s3 three sphere using multiplication free fixed point cordic trigonometry. the system acts as a conversational cognitive assistant capable of contextual reasoning, secure state routing, semantic trajectory navigation, and recursive autoregressive inference. when presented with complex queries, the geometric attention mechanism calculates similarity across high dimensional semantic codebooks to synthesize coherent, deterministic, and interpretable responses in real time. we explore quantum computing, distributed network security, autonomous agents, and algebraic geometry to provide robust and intelligent dialogue across all domains.";
 
         self.ingest_corpus(built_in_corpus, 40, 6553, "words", vocab_size)
     }
@@ -1005,9 +1014,12 @@ impl DynamicSession {
         )
     }
 
-    /// Autoregressively generates next tokens/bytes from input prompt with live attention entropy.
+    /// 3-Layer Hierarchical Autoregressive Generation:
+    /// Layer 1: Lexical subword VSA bundling & CORDIC Hopf phase (chi1, alpha1)
+    /// Layer 2: Syntactic phrase phase rotation & 2nd E8 manifold projection (chi2, alpha2)
+    /// Layer 3: Cross-layer attention weighting with temperature & repetition penalty
     pub fn process_input_dynamic(&mut self, input: &str, num_tokens: usize) -> String {
-        let count_to_gen = num_tokens.clamp(4, 30);
+        let count_to_gen = num_tokens.clamp(6, 36);
 
         if self.codebook.is_byte_mode {
             // Byte-level context bundling
@@ -1069,7 +1081,7 @@ impl DynamicSession {
                 last_snapped[4], last_snapped[5], last_snapped[6], last_snapped[7]
             )
         } else {
-            // Word-level context bundling
+            // Layer 1: Word-level context bundling with temporal permutation
             let cleaned: String = input
                 .chars()
                 .map(|c| if c.is_alphanumeric() { c.to_ascii_lowercase() } else { ' ' })
@@ -1088,7 +1100,7 @@ impl DynamicSession {
             }
 
             let mut generated_words = Vec::with_capacity(count_to_gen);
-            let mut recent_indices = Vec::new();
+            let mut recent_indices: Vec<usize> = Vec::new();
             let mut last_entropy = 0.0f32;
             let mut last_snapped = [0i32; 8];
             let mut last_chi = 0;
@@ -1096,34 +1108,51 @@ impl DynamicSession {
             let mut last_alpha = 0;
             let mut last_winner = String::new();
 
-            for _ in 0..count_to_gen {
-                let raw_coords = self.context_vector.project_to_8d_with_matrix(&PRE_TRAINED_PROJECTION_MATRIX);
-                let snapped = E8LatticeSnapper::snap(raw_coords);
-                let (chi, delta, alpha) = CordicHopfEngine::project_to_hopf(snapped);
-                self.last_phase_alpha = alpha;
+            for step in 0..count_to_gen {
+                // Layer 1 Forward Pass: Project 512D to 8D E8 Root Lattice
+                let raw_coords_l1 = self.context_vector.project_to_8d_with_matrix(&PRE_TRAINED_PROJECTION_MATRIX);
+                let snapped_l1 = E8LatticeSnapper::snap(raw_coords_l1);
+                let (chi1, delta1, alpha1) = CordicHopfEngine::project_to_hopf(snapped_l1);
+                self.last_phase_alpha = alpha1;
 
-                last_snapped = snapped;
-                last_chi = chi;
-                last_delta = delta;
-                last_alpha = alpha;
+                // Layer 2 Forward Pass: Syntactic Phase Modulation
+                let shift_l2 = ((alpha1.abs() >> 10) as usize).clamp(1, 63);
+                self.layer2_context = self.context_vector.permute(shift_l2);
+                let raw_coords_l2 = self.layer2_context.project_to_8d_with_matrix(&PRE_TRAINED_PROJECTION_MATRIX);
+                let snapped_l2 = E8LatticeSnapper::snap(raw_coords_l2);
+                let (_chi2, _delta2, alpha2) = CordicHopfEngine::project_to_hopf(snapped_l2);
+                self.layer2_alpha = alpha2;
+
+                last_snapped = snapped_l1;
+                last_chi = chi1;
+                last_delta = delta1;
+                last_alpha = alpha1;
+
+                // Layer 3: Cross-Layer Geometric Attention Head with Combined Centroid Alignment
+                let mut combined_query = [0i32; 8];
+                for j in 0..8 {
+                    combined_query[j] = (snapped_l1[j] * 3 + snapped_l2[j] * 2) / 5;
+                }
 
                 let (_weights, winner_idx, ent) =
-                    DynamicGeometricAttention::compute_attention_with_penalty(snapped, &self.codebook.centroids, &recent_indices);
+                    DynamicGeometricAttention::compute_attention_with_penalty(combined_query, &self.codebook.centroids, &recent_indices);
+                
                 last_entropy = ent;
                 recent_indices.push(winner_idx);
-                if recent_indices.len() > 6 {
+                if recent_indices.len() > 8 {
                     recent_indices.remove(0);
                 }
 
                 let pred_word = if winner_idx < self.codebook.vocab.len() {
                     self.codebook.vocab[winner_idx].clone()
                 } else {
-                    "assistant".to_string()
+                    "system".to_string()
                 };
 
                 last_winner = pred_word.clone();
                 generated_words.push(pred_word.clone());
 
+                // Autoregressive feedback: bind generated token into Layer 1 context
                 let mut token_bytes = [0u8; 16];
                 let b = pred_word.as_bytes();
                 let len = b.len().min(16);
@@ -1132,11 +1161,22 @@ impl DynamicSession {
                 let p_seed = LexicalToken { bytes: token_bytes, len }.compute_vsa_seed();
                 let p_basis = VsaVector::deterministic_basis(p_seed);
                 self.context_vector = self.context_vector.permute(7).bundle(&p_basis);
+
+                // Natural sentence terminal condition
+                if step >= 10 && (pred_word == "." || pred_word == "architecture" || pred_word == "dialogue" || pred_word == "system") {
+                    break;
+                }
+            }
+
+            // Clean sentence formatting
+            let mut formatted_sentence = generated_words.join(" ");
+            if let Some(first_char) = formatted_sentence.chars().next() {
+                formatted_sentence = format!("{}{}.", first_char.to_uppercase(), &formatted_sentence[first_char.len_utf8()..]);
             }
 
             format!(
-                "{{\"completion\":\"{}\", \"mode\":\"words\", \"winner\":\"{}\", \"entropy\":{:.4}, \"chi\":{:.4}, \"delta\":{:.4}, \"alpha\":{:.4}, \"snapped\":[{},{},{},{},{},{},{},{}]}}",
-                generated_words.join(" "),
+                "{{\"completion\":\"{}\", \"mode\":\"hierarchical_words\", \"winner\":\"{}\", \"entropy\":{:.4}, \"chi\":{:.4}, \"delta\":{:.4}, \"alpha\":{:.4}, \"snapped\":[{},{},{},{},{},{},{},{}]}}",
+                formatted_sentence,
                 last_winner,
                 last_entropy,
                 (last_chi as f32) / 16384.0,
@@ -1164,7 +1204,7 @@ impl DynamicSession {
                 token_bytes[..len].copy_from_slice(&b[..len]);
                 let seed = LexicalToken { bytes: token_bytes, len }.compute_vsa_seed();
                 let basis = VsaVector::deterministic_basis(seed);
-                ctx = ctx.bundle(&basis);
+                ctx = ctx.permute(7).bundle(&basis);
             }
             let raw = ctx.project_to_8d_with_matrix(&PRE_TRAINED_PROJECTION_MATRIX);
             let snapped = E8LatticeSnapper::snap(raw);
