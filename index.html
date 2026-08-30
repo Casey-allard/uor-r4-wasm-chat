@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UOR-R4 Geometric AI | Cognitive Dialogue Interface</title>
+    <title>UOR-R4 Geometric AI | 3-Layer Cognitive Dialogue & Massive Ingestion</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-base: #070a12;
+            --bg-base: #060912;
             --bg-card: rgba(15, 23, 42, 0.75);
             --bg-card-hover: rgba(30, 41, 59, 0.85);
             --bg-input: #0b1120;
@@ -57,7 +57,7 @@
             border-bottom: 1px solid var(--border);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
-            background: rgba(7, 10, 18, 0.85);
+            background: rgba(6, 9, 18, 0.85);
             position: sticky;
             top: 0;
             z-index: 50;
@@ -201,7 +201,7 @@
 
         /* AUTOMATED INGESTION HERO BAR */
         .auto-ingest-hero {
-            background: linear-gradient(135deg, rgba(0, 243, 255, 0.1), rgba(168, 85, 247, 0.12));
+            background: linear-gradient(135deg, rgba(0, 243, 255, 0.08), rgba(168, 85, 247, 0.12));
             border: 1px solid rgba(0, 243, 255, 0.3);
             border-radius: var(--radius-lg);
             padding: 1.15rem;
@@ -225,7 +225,7 @@
             font-weight: 700;
             padding: 0.75rem 1.35rem;
             border-radius: var(--radius-md);
-            font-size: 0.9rem;
+            font-size: 0.88rem;
             cursor: pointer;
             display: inline-flex;
             align-items: center;
@@ -245,7 +245,7 @@
             color: var(--text-primary);
             padding: 0.75rem 1.15rem;
             border-radius: var(--radius-md);
-            font-size: 0.85rem;
+            font-size: 0.84rem;
             font-weight: 600;
             cursor: pointer;
             display: inline-flex;
@@ -438,11 +438,12 @@
         .canvas-container {
             position: relative;
             width: 100%;
-            height: 280px;
-            background: radial-gradient(circle at 50% 50%, #0e172e 0%, #070a12 100%);
+            height: 300px;
+            background: radial-gradient(circle at 50% 50%, #0d152b 0%, #060912 100%);
             border-radius: var(--radius-md);
-            border: 1px solid rgba(56, 189, 248, 0.15);
+            border: 1px solid rgba(56, 189, 248, 0.2);
             overflow: hidden;
+            box-shadow: inset 0 0 30px rgba(0, 243, 255, 0.05);
         }
 
         canvas {
@@ -459,10 +460,10 @@
             font-size: 0.72rem;
             color: var(--cyan);
             pointer-events: none;
-            background: rgba(0, 0, 0, 0.6);
+            background: rgba(0, 0, 0, 0.65);
             padding: 0.25rem 0.55rem;
             border-radius: 4px;
-            border: 1px solid rgba(0, 243, 255, 0.2);
+            border: 1px solid rgba(0, 243, 255, 0.25);
         }
 
         /* DIAGNOSTICS & METRICS */
@@ -559,7 +560,7 @@
             justify-content: space-between;
             align-items: center;
             margin-top: auto;
-            background: rgba(7, 10, 18, 0.6);
+            background: rgba(6, 9, 18, 0.6);
         }
 
         footer a {
@@ -582,7 +583,7 @@
             </div>
             <div>
                 <div class="brand-title">UOR-R4 COGNITIVE AI</div>
-                <div class="brand-subtitle">8D E8 Gosset Geometric Attention Engine • 100% WebAssembly</div>
+                <div class="brand-subtitle">3-Layer Hierarchical Geometric Attention • 100% WebAssembly</div>
             </div>
         </div>
 
@@ -607,22 +608,25 @@
             <div class="auto-ingest-hero">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <div style="font-size: 0.92rem; font-weight: 700; color: #ffffff; display: flex; align-items: center; gap: 0.45rem;">
-                        <span>🧠 Automated Knowledge Ingestion & Compilation</span>
+                        <span>🧠 Massive Knowledge Ingestion & Auto-Compilation</span>
                     </div>
                     <div class="status-pill" id="ingestStatusPill">
-                        <span>● Baseline Ready</span>
+                        <span>● Pre-Trained Deep Weights Ready</span>
                     </div>
                 </div>
 
                 <div class="auto-ingest-controls">
-                    <button class="btn-magic" id="btnAutoIngest" onclick="triggerAutoIngest()">
-                        <span>🚀 Ingest Knowledge Base & Auto-Compile</span>
+                    <button class="btn-magic" id="btnMassiveIngest" onclick="ingestMassiveCorpus()">
+                        <span>⚡ Ingest Massive Corpus (35,000+ Tokens)</span>
                     </button>
                     <button class="btn-secondary-action" onclick="fetchLiveWikipediaStream()">
-                        <span>🌐 Ingest Live Wikipedia API Stream</span>
+                        <span>🌐 Ingest Multi-Article Wikipedia Batch</span>
+                    </button>
+                    <button class="btn-secondary-action" onclick="triggerAutoIngest()">
+                        <span>🚀 Reset Built-In Manifold</span>
                     </button>
                     <button class="btn-secondary-action" onclick="resetContext()">
-                        <span>🔄 Clear Context</span>
+                        <span>🔄 Clear History</span>
                     </button>
                 </div>
             </div>
@@ -634,16 +638,16 @@
                         <svg fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clip-rule="evenodd"></path></svg>
                         <span>Cognitive Coherent Dialogue</span>
                     </div>
-                    <span style="font-size: 0.72rem; color: var(--text-muted); font-family: 'Fira Code', monospace;" id="activeModelLabel">Model: Auto-Ingested E8 Codebook</span>
+                    <span style="font-size: 0.72rem; color: var(--text-muted); font-family: 'Fira Code', monospace;" id="activeModelLabel">3-Layer Geometric Engine</span>
                 </div>
 
                 <!-- CHAT MESSAGES STREAM -->
                 <div class="chat-stream" id="chatStream">
                     <div class="msg-bubble msg-ai">
-                        <div class="completion-header">UOR-R4 Cognitive System Online</div>
-                        <div class="completion-body">Hello! I am your deterministic geometric AI assistant. Click <b>"Ingest Knowledge Base"</b> above to compile millions of mathematical parameters in WebAssembly, or type a query below to begin!</div>
+                        <div class="completion-header">UOR-R4 Hierarchical Core Online</div>
+                        <div class="completion-body">Hello! I am your deterministic geometric AI assistant. Click <b>"Ingest Massive Corpus"</b> above to stream 35,000+ tokens directly into the E8 Gosset manifold, or type a query below!</div>
                         <div class="msg-meta">
-                            <span>Engine: 512D Bipolar Superposition</span>
+                            <span>Engine: 3-Layer Hierarchical Attention</span>
                             <span>Memory: 0 allocs</span>
                         </div>
                     </div>
@@ -652,9 +656,9 @@
                 <!-- QUICK PROMPT CHIPS -->
                 <div class="chips-container" id="promptChips">
                     <span style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase;">Prompts:</span>
-                    <button class="chip" onclick="quickSend('hello')">hello</button>
+                    <button class="chip" onclick="quickSend('hello assistant')">hello</button>
                     <button class="chip" onclick="quickSend('explain your geometric architecture')">architecture</button>
-                    <button class="chip" onclick="quickSend('how does quantum attention work')">quantum attention</button>
+                    <button class="chip" onclick="quickSend('how does quantum attention operate')">quantum attention</button>
                     <button class="chip" onclick="quickSend('what is vector symbolic reasoning')">vector reasoning</button>
                     <button class="chip" onclick="quickSend('secure autonomous agent')">secure agent</button>
                 </div>
@@ -670,22 +674,22 @@
             </section>
         </div>
 
-        <!-- RIGHT COLUMN: HOPF VISUALIZER & GEOMETRIC TELEMETRY -->
+        <!-- RIGHT COLUMN: DYNAMIC CLIFFORD VISUALIZER & GEOMETRIC TELEMETRY -->
         <div style="display: flex; flex-direction: column; gap: 1.15rem;">
             
-            <!-- HOPF FIBRATION ORBITAL CANVAS -->
+            <!-- DYNAMIC HOPF FIBRATION ORBITAL CANVAS -->
             <section class="glass-panel">
                 <div class="panel-header">
                     <div class="panel-title">
                         <svg fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path></svg>
-                        <span>S³ Hopf Fibration Orbit & CORDIC Phases</span>
+                        <span>Dynamic S³ Hopf Fibration Orbit & Trajectory</span>
                     </div>
-                    <span style="font-size: 0.7rem; color: var(--cyan); font-family: 'Fira Code', monospace;">Clifford Torus</span>
+                    <span style="font-size: 0.7rem; color: var(--cyan); font-family: 'Fira Code', monospace;">Real-Time Manifold</span>
                 </div>
 
                 <div class="canvas-container">
                     <canvas id="hopfCanvas"></canvas>
-                    <div class="canvas-overlay" id="canvasOverlay">χ: 0.0000 | δ: 0.0000 | α: 0.0000</div>
+                    <div class="canvas-overlay" id="canvasOverlay">χ₁: 0.0000 | α₂: 0.0000 | δ: 0.0000</div>
                 </div>
 
                 <!-- 3-LAYER HIERARCHICAL CORDIC HOPF METRICS -->
@@ -731,13 +735,15 @@
         <div>Hosted on GitHub Pages • <a href="https://github.com/Casey-allard/uor-r4-wasm-chat" target="_blank">View GitHub Repository</a></div>
     </footer>
 
-    <!-- WASM BRIDGING & INTERFACE LOGIC SCRIPT -->
+    <!-- WASM BRIDGING & DYNAMIC VISUALIZER SCRIPT -->
     <script type="module">
         import init, { DynamicSession } from './pkg/uor_r4_wasm_bridge.js';
 
         let dynamicSession = null;
         let currentE8Coords = [0, 0, 0, 0, 0, 0, 0, 0];
         let currentChi = 0, currentDelta = 0, currentAlpha = 0;
+        let trajectoryHistory = [];
+        let shockwavePulse = 0;
 
         // Initialize UI Elements
         function initUI() {
@@ -764,13 +770,26 @@
             currentChi = chi || 0;
             currentDelta = delta || 0;
             currentAlpha = alpha || 0;
+            shockwavePulse = 1.0;
 
             document.getElementById('valChi').innerText = currentChi.toFixed(4) + " rad";
             document.getElementById('valAlpha').innerText = currentAlpha.toFixed(4) + " rad";
             document.getElementById('valEntropy').innerText = (entropy || 0) < 1.0 ? "Sharp Focus" : "Contextual";
-            document.getElementById('canvasOverlay').innerText = `χ: ${currentChi.toFixed(4)} | δ: ${currentDelta.toFixed(4)} | α: ${currentAlpha.toFixed(4)}`;
+            document.getElementById('canvasOverlay').innerText = `χ₁: ${currentChi.toFixed(4)} | α₂: ${currentAlpha.toFixed(4)} | δ: ${currentDelta.toFixed(4)}`;
             if(winner) {
                 document.getElementById('winnerTokenLabel').innerText = `Winner: ${winner}`;
+            }
+
+            // Record trajectory point
+            trajectoryHistory.push({
+                chi: currentChi,
+                alpha: currentAlpha,
+                delta: currentDelta,
+                winner: winner || "",
+                time: Date.now()
+            });
+            if(trajectoryHistory.length > 24) {
+                trajectoryHistory.shift();
             }
 
             // Update E8 Bars
@@ -807,7 +826,7 @@
                 try {
                     const resJson = dynamicSession.auto_ingest_knowledge_base(512);
                     const res = JSON.parse(resJson);
-                    document.getElementById('ingestStatusPill').innerHTML = `<span>● Knowledge Base Active (${res.vocab_size} Tokens)</span>`;
+                    document.getElementById('ingestStatusPill').innerHTML = `<span>● 3-Layer Manifold Compiled (${res.vocab_size} Words)</span>`;
                 } catch(kErr) {
                     console.warn("Knowledge base init note:", kErr);
                 }
@@ -824,46 +843,92 @@
         // 1-Click Automated Ingestion
         window.triggerAutoIngest = function() {
             if(!dynamicSession) return;
-            const btn = document.getElementById('btnAutoIngest');
+            const btn = document.getElementById('btnMassiveIngest');
             const pill = document.getElementById('ingestStatusPill');
 
-            btn.disabled = true;
-            btn.innerHTML = '<span>⚡ Compiling 8D Latent Space...</span>';
+            pill.innerHTML = `<span style="color: var(--cyan);">⚡ Compiling Knowledge Base...</span>`;
 
             setTimeout(() => {
                 const resJson = dynamicSession.auto_ingest_knowledge_base(512);
                 const res = JSON.parse(resJson);
 
-                btn.disabled = false;
-                btn.innerHTML = '<span>🚀 Ingest Knowledge Base & Auto-Compile</span>';
-                pill.innerHTML = `<span>● Ingested ${res.vocab_size} Words (Loss: ${res.average_loss.toFixed(3)})</span>`;
-                
-                appendAiMessage("Knowledge base compiled on the spot in WebAssembly! High-dimensional semantic centroids are synchronized across 512 dimensions. How can I assist your research today?", "AI Core", 0, 0, 0, 0.1);
-            }, 60);
+                pill.innerHTML = `<span>● Compiled ${res.vocab_size} Tokens (Loss: ${res.average_loss.toFixed(3)})</span>`;
+                appendAiMessage("Knowledge base compiled on the spot! High-dimensional semantic centroids are synchronized across 3 hierarchical layers.", "AI Core", 0, 0, 0, 0.1);
+            }, 50);
         };
 
-        // Live Wikipedia Stream Ingestion
+        // MASSIVE 35,000+ TOKEN DATASET INGESTION
+        window.ingestMassiveCorpus = async function() {
+            if(!dynamicSession) return;
+            const pill = document.getElementById('ingestStatusPill');
+            const btn = document.getElementById('btnMassiveIngest');
+
+            btn.disabled = true;
+            btn.innerHTML = '<span>📡 Streaming 35,000+ Tokens...</span>';
+            pill.innerHTML = `<span style="color: var(--cyan);">⚡ Downloading Full Classic & Technical Text Corpora...</span>`;
+
+            try {
+                // Fetch classic book & technical treatises in parallel
+                const [r1, r2, r3] = await Promise.all([
+                    fetch('./assets/corpus/alice_in_wonderland.txt').then(r => r.text()).catch(() => ""),
+                    fetch('./assets/corpus/quantum_mechanics.txt').then(r => r.text()).catch(() => ""),
+                    fetch('./assets/corpus/cyber_architecture.txt').then(r => r.text()).catch(() => "")
+                ]);
+
+                const combinedCorpus = `${r1}\n\n${r2}\n\n${r3}`;
+                const wordCount = combinedCorpus.split(/\s+/).length;
+
+                pill.innerHTML = `<span style="color: var(--purple);">⚡ Ingesting ${wordCount.toLocaleString()} Words into 3-Layer WASM Engine...</span>`;
+                btn.innerHTML = '<span>⚡ Training Hierarchical Manifold (WASM)...</span>';
+
+                setTimeout(() => {
+                    const startTime = performance.now();
+                    const resJson = dynamicSession.ingest_corpus(combinedCorpus, 15, 6553, "words", 2048);
+                    const elapsedMs = performance.now() - startTime;
+                    const res = JSON.parse(resJson);
+
+                    const throughput = Math.round((wordCount * 15) / (elapsedMs / 1000));
+
+                    btn.disabled = false;
+                    btn.innerHTML = '<span>⚡ Ingest Massive Corpus (35,000+ Tokens)</span>';
+                    pill.innerHTML = `<span>● Ingested ${wordCount.toLocaleString()} Tokens (${res.vocab_size} Vocab)</span>`;
+                    
+                    shockwavePulse = 2.5;
+                    appendAiMessage(`[Massive Ingestion Complete] Ingested ${wordCount.toLocaleString()} tokens across ${res.steps.toLocaleString()} SGD steps into a 2,048-token 3-layer manifold in ${(elapsedMs/1000).toFixed(2)}s (${throughput.toLocaleString()} tokens/sec on CPU). Ready for coherent chat!`, "WASM Engine", 0, 0, 0, res.entropy);
+                }, 60);
+
+            } catch(err) {
+                console.error("Massive Ingestion Error:", err);
+                btn.disabled = false;
+                btn.innerHTML = '<span>⚡ Ingest Massive Corpus (35,000+ Tokens)</span>';
+                pill.innerHTML = `<span style="color: var(--rose);">Error: ${err.message}</span>`;
+            }
+        };
+
+        // Live Multi-Article Wikipedia Batch Ingestion
         window.fetchLiveWikipediaStream = async function() {
             if(!dynamicSession) return;
             const pill = document.getElementById('ingestStatusPill');
-            pill.innerHTML = `<span style="color: var(--cyan);">📡 Fetching Live Wikipedia Articles...</span>`;
+            pill.innerHTML = `<span style="color: var(--cyan);">📡 Fetching 10 Live Wikipedia Articles...</span>`;
 
             try {
-                const url = "https://en.wikipedia.org/w/api.php?action=query&origin=*&format=json&generator=random&grnnamespace=0&grnlimit=5&prop=extracts&explaintext=1";
+                const url = "https://en.wikipedia.org/w/api.php?action=query&origin=*&format=json&generator=random&grnnamespace=0&grnlimit=10&prop=extracts&explaintext=1";
                 const resp = await fetch(url);
                 const data = await resp.json();
                 const pages = data.query ? Object.values(data.query.pages) : [];
                 const text = pages.map(p => p.extract || "").filter(t => t.length > 50).join("\n\n");
-                const titles = pages.map(p => p.title).join(", ");
+                const titles = pages.map(p => p.title).slice(0, 4).join(", ");
+                const wordCount = text.split(/\s+/).length;
 
-                pill.innerHTML = `<span style="color: var(--purple);">⚡ Ingesting "${titles.slice(0, 35)}..."</span>`;
+                pill.innerHTML = `<span style="color: var(--purple);">⚡ Ingesting ${wordCount} Words from "${titles}..."</span>`;
 
                 setTimeout(() => {
-                    const resJson = dynamicSession.ingest_corpus(text, 30, 6553, "words", 512);
+                    const resJson = dynamicSession.ingest_corpus(text, 25, 6553, "words", 1024);
                     const res = JSON.parse(resJson);
 
-                    pill.innerHTML = `<span>● Live Wikipedia Ingested (${res.vocab_size} Words)</span>`;
-                    appendAiMessage(`[Live Wikipedia Ingested] Successfully downloaded and compiled articles on "${titles}". The geometric attention manifold has been hot-updated!`, "Wikipedia Stream", 0, 0, 0, res.entropy);
+                    pill.innerHTML = `<span>● Live Wikipedia Ingested (${res.vocab_size} Vocab)</span>`;
+                    shockwavePulse = 2.0;
+                    appendAiMessage(`[Live Wikipedia Batch Ingested] Downloaded 10 random articles (${wordCount} words: "${titles}..."). The 3-layer geometric manifold has been compiled and updated!`, "Wikipedia Stream", 0, 0, 0, res.entropy);
                 }, 50);
             } catch(err) {
                 console.error("Wikipedia Fetch Error:", err);
@@ -881,8 +946,8 @@
             inputEl.value = '';
 
             try {
-                // Generate 12-18 coherent words
-                const resultJson = dynamicSession.process_input_dynamic(text, 14);
+                // Generate 14-20 coherent words
+                const resultJson = dynamicSession.process_input_dynamic(text, 16);
                 const data = JSON.parse(resultJson);
 
                 if(data.completion) {
@@ -903,6 +968,7 @@
         window.resetContext = function() {
             if(dynamicSession) {
                 dynamicSession.reset();
+                trajectoryHistory = [];
                 appendAiMessage("Context vector cleared. Superposition accumulator reset to zero base.", "System", 0, 0, 0, 0);
                 updateTelemetry([0,0,0,0,0,0,0,0], 0, 0, 0, "none", 0);
             }
@@ -925,8 +991,8 @@
                 <div class="completion-header">${winner || "UOR-R4 Core"}</div>
                 <div class="completion-body">${completion}</div>
                 <div class="msg-meta">
-                    <span>χ: ${chi.toFixed(3)} rad</span>
-                    <span>α: ${alpha.toFixed(3)} rad</span>
+                    <span>χ₁: ${chi.toFixed(3)} rad</span>
+                    <span>α₂: ${alpha.toFixed(3)} rad</span>
                     <span>Focus: ${(entropy || 0.1).toFixed(2)} bits</span>
                 </div>
             `;
@@ -934,7 +1000,7 @@
             stream.scrollTop = stream.scrollHeight;
         }
 
-        // HTML5 CANVAS 3D HOPF VISUALIZER
+        // DEEP DYNAMIC CLIFFORD TORUS & HOPF TRAJECTORY VISUALIZER
         function startHopfVisualizer() {
             const canvas = document.getElementById('hopfCanvas');
             const ctx = canvas.getContext('2d');
@@ -949,46 +1015,55 @@
 
             function render() {
                 t += 0.02;
+                shockwavePulse = Math.max(0, shockwavePulse - 0.02);
+
                 const width = canvas.width;
                 const height = canvas.height;
                 const cx = width / 2;
                 const cy = height / 2;
-                const scale = Math.min(width, height) * 0.4;
+                const scale = Math.min(width, height) * 0.42;
 
                 ctx.clearRect(0, 0, width, height);
 
-                // Background starfield particles
-                ctx.fillStyle = 'rgba(0, 243, 255, 0.4)';
-                for(let i = 0; i < 20; i++) {
-                    const px = (Math.sin(i * 137.5 + t * 0.2) * 0.5 + 0.5) * width;
-                    const py = (Math.cos(i * 93.1 + t * 0.15) * 0.5 + 0.5) * height;
+                // Dynamic background starfield particles
+                ctx.fillStyle = 'rgba(0, 243, 255, 0.35)';
+                for(let i = 0; i < 24; i++) {
+                    const px = (Math.sin(i * 137.5 + t * 0.15) * 0.5 + 0.5) * width;
+                    const py = (Math.cos(i * 93.1 + t * 0.12) * 0.5 + 0.5) * height;
                     ctx.fillRect(px, py, 1.5, 1.5);
                 }
 
-                // Render Clifford Torus / Hopf fiber curves
-                const numFibers = 16;
-                const steps = 60;
+                // Render Dynamically Warping Clifford Torus fibers
+                const numFibers = 20;
+                const steps = 70;
+
+                // Chi & Alpha directly control the geometric shape and rotation!
+                const warpEta = Math.PI / 4 + (currentChi * 0.25) + Math.sin(t * 0.6) * 0.08;
+                const phaseRot = (currentAlpha * 0.75) + t * 0.35;
+                const deltaTilt = (currentDelta * 0.5) + t * 0.2;
 
                 for(let f = 0; f < numFibers; f++) {
-                    const u = (f / numFibers) * Math.PI * 2 + (currentAlpha * 0.001) + t * 0.3;
-                    const eta = Math.PI / 4 + Math.sin(t * 0.5 + currentChi * 0.001) * 0.15;
+                    const u = (f / numFibers) * Math.PI * 2 + phaseRot;
+                    const fiberEta = warpEta + (Math.sin(f + t) * 0.05 * (1 + shockwavePulse));
 
                     ctx.beginPath();
                     for(let s = 0; s <= steps; s++) {
                         const v = (s / steps) * Math.PI * 2;
                         
-                        const x1 = Math.cos(u) * Math.sin(eta);
-                        const y1 = Math.sin(u) * Math.sin(eta);
-                        const x2 = Math.cos(v) * Math.cos(eta);
-                        const y2 = Math.sin(v) * Math.cos(eta);
+                        const x1 = Math.cos(u) * Math.sin(fiberEta);
+                        const y1 = Math.sin(u) * Math.sin(fiberEta);
+                        const x2 = Math.cos(v) * Math.cos(fiberEta);
+                        const y2 = Math.sin(v) * Math.cos(fiberEta);
 
-                        const denom = 1.6 - y2;
+                        // Stereographic projection S3 -> R3 with dynamic pulse
+                        const denom = 1.65 - y2 * (1.0 + shockwavePulse * 0.2);
                         const px3 = x1 / denom;
                         const py3 = y1 / denom;
                         const pz3 = x2 / denom;
 
-                        const rotY = t * 0.4 + currentDelta * 0.002;
-                        const rotX = 0.5;
+                        // 3D rotation based on CORDIC angles
+                        const rotY = deltaTilt;
+                        const rotX = 0.55 + currentChi * 0.1;
 
                         const rx = px3 * Math.cos(rotY) + pz3 * Math.sin(rotY);
                         const rz = -px3 * Math.sin(rotY) + pz3 * Math.cos(rotY);
@@ -1004,18 +1079,67 @@
                         }
                     }
 
-                    const hue = (f * (360 / numFibers) + t * 20) % 360;
-                    ctx.strokeStyle = `hsla(${hue}, 90%, 65%, 0.45)`;
-                    ctx.lineWidth = 1.5;
+                    const hue = (f * (360 / numFibers) + (currentAlpha * 40) + t * 15) % 360;
+                    ctx.strokeStyle = `hsla(${hue}, 95%, 68%, ${0.35 + shockwavePulse * 0.3})`;
+                    ctx.lineWidth = 1.4 + shockwavePulse * 0.8;
                     ctx.stroke();
                 }
 
-                // Central Hopf Core Node
+                // Render Trajectory Path of Recent Thought States
+                if(trajectoryHistory.length > 1) {
+                    ctx.beginPath();
+                    for(let i = 0; i < trajectoryHistory.length; i++) {
+                        const pt = trajectoryHistory[i];
+                        const u = pt.alpha * 0.8;
+                        const v = pt.chi * 0.8;
+                        const x = Math.cos(u) * 0.7;
+                        const y = Math.sin(v) * 0.7;
+                        const sx = cx + x * scale;
+                        const sy = cy + y * scale;
+
+                        if(i === 0) {
+                            ctx.moveTo(sx, sy);
+                        } else {
+                            ctx.lineTo(sx, sy);
+                        }
+                    }
+                    ctx.strokeStyle = 'rgba(0, 243, 255, 0.75)';
+                    ctx.lineWidth = 2.5;
+                    ctx.setLineDash([4, 4]);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+
+                    // Draw glowing node for each trajectory token
+                    for(let i = 0; i < trajectoryHistory.length; i++) {
+                        const pt = trajectoryHistory[i];
+                        const u = pt.alpha * 0.8;
+                        const v = pt.chi * 0.8;
+                        const sx = cx + Math.cos(u) * 0.7 * scale;
+                        const sy = cy + Math.sin(v) * 0.7 * scale;
+
+                        ctx.beginPath();
+                        ctx.arc(sx, sy, i === trajectoryHistory.length - 1 ? 5.5 : 3, 0, Math.PI * 2);
+                        ctx.fillStyle = i === trajectoryHistory.length - 1 ? '#00f3ff' : '#a855f7';
+                        ctx.shadowColor = '#00f3ff';
+                        ctx.shadowBlur = 12;
+                        ctx.fill();
+                        ctx.shadowBlur = 0;
+
+                        if(i === trajectoryHistory.length - 1 && pt.winner) {
+                            ctx.fillStyle = '#f8fafc';
+                            ctx.font = '11px "Fira Code", monospace';
+                            ctx.fillText(pt.winner, sx + 8, sy - 4);
+                        }
+                    }
+                }
+
+                // Central Active Hopf Core Node with Dynamic Pulsing
+                const coreRadius = 6 + (Math.abs(currentChi) * 2) + (shockwavePulse * 8);
                 ctx.beginPath();
-                ctx.arc(cx, cy, 6, 0, Math.PI * 2);
-                ctx.fillStyle = '#00f3ff';
+                ctx.arc(cx, cy, coreRadius, 0, Math.PI * 2);
+                ctx.fillStyle = shockwavePulse > 0.5 ? '#ffffff' : '#00f3ff';
                 ctx.shadowColor = '#00f3ff';
-                ctx.shadowBlur = 16;
+                ctx.shadowBlur = 20 + shockwavePulse * 20;
                 ctx.fill();
                 ctx.shadowBlur = 0;
 

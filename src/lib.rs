@@ -701,7 +701,7 @@ impl DynamicCodebook {
         let mut sorted_words: Vec<(String, usize)> = word_counts.into_iter().collect();
         sorted_words.sort_by(|a, b| b.1.cmp(&a.1));
 
-        let limit = max_vocab_size.clamp(16, 2048).min(sorted_words.len().max(16));
+        let limit = max_vocab_size.clamp(16, 4096).min(sorted_words.len().max(16));
         let mut vocab = Vec::with_capacity(limit);
         let mut centroids = Vec::with_capacity(limit);
 
@@ -977,9 +977,9 @@ impl DynamicSession {
 
     /// Automatically compiles and trains a rich pre-packaged conversational & technical corpus
     pub fn auto_ingest_knowledge_base(&mut self, vocab_size: u32) -> String {
-        let built_in_corpus = "hello and welcome to the uor-r4 cognitive geometric artificial intelligence system. this architecture operates entirely on 512 dimensional bipolar vector symbolic superposition with zero dynamic heap allocations and deterministic gosset e8 lattice quantization. in this model, language understanding is achieved through continuous geometric transformations mapped across clifford torus projections on the s3 three sphere using multiplication free fixed point cordic trigonometry. the system acts as a conversational cognitive assistant capable of contextual reasoning, secure state routing, semantic trajectory navigation, and recursive autoregressive inference. when presented with complex queries, the geometric attention mechanism calculates similarity across high dimensional semantic codebooks to synthesize coherent, deterministic, and interpretable responses in real time. we explore quantum computing, distributed network security, autonomous agents, and algebraic geometry to provide robust and intelligent dialogue across all domains.";
+        let built_in_corpus = "hello and welcome to the uor-r4 cognitive geometric artificial intelligence system. this architecture operates entirely on 512 dimensional bipolar vector symbolic superposition with zero dynamic heap allocations and deterministic gosset e8 lattice quantization. in this model, language understanding is achieved through continuous geometric transformations mapped across clifford torus projections on the s3 three sphere using multiplication free fixed point cordic trigonometry. the system acts as a conversational cognitive assistant capable of contextual reasoning, secure state routing, semantic trajectory navigation, and recursive autoregressive inference. when presented with complex queries, the geometric attention mechanism calculates similarity across high dimensional semantic codebooks to synthesize coherent, deterministic, and interpretable responses in real time. we explore quantum computing, distributed network security, autonomous agents, and algebraic geometry to provide robust and intelligent dialogue across all domains. the primary objective of this architecture is to provide explainable, verifiable, and mathematically grounded cognitive dialogue. by representing language tokens as continuous orbits on higher dimensional spheres, the engine captures complex grammatical relationships and contextual nuances without requiring billions of floating point operations. the internal state transitions smoothly between concepts, preserving temporal dependencies through hyperdimensional vector permutations. whether discussing advanced physics, software architecture, or general philosophical inquiries, the geometric attention heads coordinate across multiple layers to generate structured and insightful completions.";
 
-        self.ingest_corpus(built_in_corpus, 40, 6553, "words", vocab_size)
+        self.ingest_corpus(built_in_corpus, 25, 6553, "words", vocab_size)
     }
 
     /// Ingests a raw text corpus, builds the vocabulary (if in words mode), and trains centroids.
