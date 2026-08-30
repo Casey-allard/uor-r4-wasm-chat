@@ -675,7 +675,7 @@
                     <span>UOR-R4 Geometric Core</span>
                     <span id="footerStatus" style="color: var(--accent-amber); font-size: 0.68rem;">● Initializing...</span>
                 </div>
-                <div class="model-pill-detail">Qwen 1.5B Substrate + E8 Gosset Manifold</div>
+                <div class="model-pill-detail">Qwen 2.5 Neural Substrate + E8 Gosset Manifold</div>
                 <div class="model-pill-detail">100% Private In-Browser WebGPU</div>
             </div>
         </div>
@@ -691,7 +691,7 @@
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg>
                 </button>
                 <div class="brand-badge">
-                    <span>UOR-R4 (Qwen 1.5B Substrate • Deep Reasoning)</span>
+                    <span>UOR-R4 Geometric AI (Qwen 2.5)</span>
                 </div>
                 <div id="modelBadge" class="model-status-indicator">
                     <span id="badgeDot">●</span>
@@ -721,12 +721,12 @@
                             <span id="welcomeMeta">⚡ Loading Engine</span>
                         </div>
                         <div>
-                            Hello! I am your <b>UOR-R4 Geometric Cognitive Agent</b> powered by the <b>Qwen 1.5B neural model</b> and real-time <b>8D Gosset \(E_8\) lattice attention telemetry</b>. My reasoning executes 100% locally in your browser via WebGPU with zero server dependencies. Ask me any conceptual, philosophical, coding, historical, or scientific question!
+                            Hello! I am your <b>UOR-R4 Geometric Cognitive Agent</b> powered by the <b>Qwen 2.5 neural model</b> and real-time <b>8D Gosset \(E_8\) lattice attention telemetry</b>. My reasoning executes 100% locally in your browser via WebGPU with zero server dependencies. Ask me any conceptual, philosophical, coding, historical, or scientific question!
                         </div>
                         
                         <div id="loaderCard" class="loading-progress-card">
                             <div style="display: flex; justify-content: space-between; font-size: 0.78rem; font-weight: 500;">
-                                <span id="loadTitle">Downloading Qwen 1.5B Neural Weights...</span>
+                                <span id="loadTitle">Downloading Qwen 2.5 Neural Weights...</span>
                                 <span id="loadPercent" style="font-family: 'Fira Code', monospace; color: var(--accent-cyan);">0%</span>
                             </div>
                             <div class="progress-bar-container">
@@ -752,7 +752,7 @@
                 </button>
             </div>
             <div class="input-disclaimer">
-                UOR-R4 Geometric Cognitive Engine running 100% locally via WebGPU. Pretrained weightsets (Qwen 1.5B) serve as the lexical base for UOR-R4 geometric projection.
+                UOR-R4 Geometric Cognitive Engine running 100% locally via WebGPU. Pretrained weightsets (Qwen 2.5) serve as the lexical base for UOR-R4 geometric projection.
             </div>
         </div>
 
@@ -895,7 +895,7 @@
                             <span>⚡ Ready</span>
                         </div>
                         <div>
-                            Hello! I am your <b>UOR-R4 Geometric Cognitive Agent</b> powered by the <b>Qwen 1.5B neural model</b> and real-time <b>8D Gosset \(E_8\) lattice attention telemetry</b>. My reasoning executes 100% locally in your browser via WebGPU with zero server dependencies. Ask me any conceptual, philosophical, coding, historical, or scientific question!
+                            Hello! I am your <b>UOR-R4 Geometric Cognitive Agent</b> powered by the <b>Qwen 2.5 neural model</b> and real-time <b>8D Gosset \(E_8\) lattice attention telemetry</b>. My reasoning executes 100% locally in your browser via WebGPU with zero server dependencies. Ask me any conceptual, philosophical, coding, historical, or scientific question!
                         </div>
                     </div>
                 </div>
@@ -978,14 +978,13 @@
                 console.warn("WASM Telemetry initialized:", err);
             }
 
-            // 2. Initialize Qwen 1.5B Neural Engine on WebGPU
+            // 2. Initialize Qwen 2.5 Neural Engine on WebGPU
             try {
-                badgeText.innerText = 'Downloading Qwen 1.5B...';
+                badgeText.innerText = 'Downloading Qwen 2.5...';
                 const device = navigator.gpu ? 'webgpu' : 'wasm';
-                const dtype = device === 'webgpu' ? 'q4f16' : 'q4';
 
-                generator = await pipeline('text-generation', 'onnx-community/Qwen2.5-1.5B-Instruct', {
-                    dtype: dtype,
+                generator = await pipeline('text-generation', 'onnx-community/Qwen2.5-0.5B-Instruct', {
+                    dtype: 'q4',
                     device: device,
                     progress_callback: (p) => {
                         if(p.status === 'progress') {
@@ -1003,8 +1002,8 @@
                 });
 
                 badge.classList.add('ready');
-                badgeText.innerText = `${device.toUpperCase()} 1.5B Online`;
-                footerStatus.innerText = `● ${device.toUpperCase()} 1.5B Ready`;
+                badgeText.innerText = `${device.toUpperCase()} Online`;
+                footerStatus.innerText = `● ${device.toUpperCase()} Ready`;
                 footerStatus.style.color = 'var(--accent-emerald)';
                 welcomeMeta.innerText = `⚡ ${device.toUpperCase()} Online`;
                 if(loaderCard) loaderCard.style.display = 'none';
@@ -1014,37 +1013,18 @@
                 chatInput.placeholder = 'Message UOR-R4 Geometric AI...';
                 chatInput.focus();
 
-                console.log(`Qwen2.5-1.5B-Instruct loaded successfully on ${device} (${dtype}).`);
+                console.log(`Qwen2.5-Instruct loaded successfully on ${device}.`);
             } catch(err) {
-                console.warn("Primary q4f16 load failed, trying standard q4 fallback:", err);
-                try {
-                    const device = navigator.gpu ? 'webgpu' : 'wasm';
-                    generator = await pipeline('text-generation', 'onnx-community/Qwen2.5-1.5B-Instruct', {
-                        dtype: 'q4',
-                        device: device
-                    });
-                    badge.classList.add('ready');
-                    badgeText.innerText = `${device.toUpperCase()} 1.5B Online`;
-                    footerStatus.innerText = `● ${device.toUpperCase()} 1.5B Ready`;
-                    footerStatus.style.color = 'var(--accent-emerald)';
-                    welcomeMeta.innerText = `⚡ ${device.toUpperCase()} Online`;
-                    if(loaderCard) loaderCard.style.display = 'none';
-                    chatInput.disabled = false;
-                    sendBtn.disabled = false;
-                    chatInput.placeholder = 'Message UOR-R4 Geometric AI...';
-                    chatInput.focus();
-                } catch(err2) {
-                    console.error("Qwen2.5-1.5B load failed:", err2);
-                    badgeText.innerText = 'Load Error';
-                    footerStatus.innerText = '● Error';
-                    footerStatus.style.color = 'var(--accent-amber)';
-                    chatInput.placeholder = 'Failed to load model. Please refresh the page.';
-                    if(loaderCard) {
-                        loaderCard.style.display = 'flex';
-                        loadTitle.innerText = 'Initialization Failed for Qwen 1.5B';
-                        document.getElementById('loadSubtext').innerText = err2 ? (err2.message || String(err2)) : "Could not compile model shaders.";
-                        document.getElementById('loadSubtext').style.color = '#ef4444';
-                    }
+                console.error("Qwen load failed:", err);
+                badgeText.innerText = 'Load Error';
+                footerStatus.innerText = '● Error';
+                footerStatus.style.color = 'var(--accent-amber)';
+                chatInput.placeholder = 'Failed to load model. Please refresh the page.';
+                if(loaderCard) {
+                    loaderCard.style.display = 'flex';
+                    loadTitle.innerText = 'Initialization Failed for Qwen';
+                    document.getElementById('loadSubtext').innerText = err ? (err.message || String(err)) : "Could not compile model shaders.";
+                    document.getElementById('loadSubtext').style.color = '#ef4444';
                 }
             }
         }
