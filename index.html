@@ -608,7 +608,7 @@
             <div class="auto-ingest-hero">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <div style="font-size: 0.92rem; font-weight: 700; color: #ffffff; display: flex; align-items: center; gap: 0.45rem;">
-                        <span>🧠 Massive Knowledge Ingestion & Auto-Compilation</span>
+                        <span>🧠 Massive Knowledge Ingestion & Continuous Stream</span>
                     </div>
                     <div class="status-pill" id="ingestStatusPill">
                         <span>● Pre-Trained Deep Weights Ready</span>
@@ -617,13 +617,13 @@
 
                 <div class="auto-ingest-controls">
                     <button class="btn-magic" id="btnMassiveIngest" onclick="ingestMassiveCorpus()">
-                        <span>⚡ Ingest Massive Corpus (35,000+ Tokens)</span>
+                        <span>⚡ Ingest 100k+ Knowledge Shard</span>
+                    </button>
+                    <button class="btn-secondary-action" id="btnAutoPilot" onclick="toggleAutoPilotStream()">
+                        <span>🔄 Start Auto-Pilot Stream</span>
                     </button>
                     <button class="btn-secondary-action" onclick="fetchLiveWikipediaStream()">
-                        <span>🌐 Ingest Multi-Article Wikipedia Batch</span>
-                    </button>
-                    <button class="btn-secondary-action" onclick="triggerAutoIngest()">
-                        <span>🚀 Reset Built-In Manifold</span>
+                        <span>🌐 Ingest 10 Wikipedia Articles</span>
                     </button>
                     <button class="btn-secondary-action" onclick="resetContext()">
                         <span>🔄 Clear History</span>
@@ -645,7 +645,7 @@
                 <div class="chat-stream" id="chatStream">
                     <div class="msg-bubble msg-ai">
                         <div class="completion-header">UOR-R4 Hierarchical Core Online</div>
-                        <div class="completion-body">Hello! I am your deterministic geometric AI assistant. Click <b>"Ingest Massive Corpus"</b> above to stream 35,000+ tokens directly into the E8 Gosset manifold, or type a query below!</div>
+                        <div class="completion-body">Hello! I am your deterministic geometric AI assistant. Click <b>"⚡ Ingest 100k+ Knowledge Shard"</b> above to stream 80,000+ words directly into the 3-layer E8 Gosset manifold, or toggle <b>"🔄 Auto-Pilot Stream"</b> to continuously crawl live Wikipedia!</div>
                         <div class="msg-meta">
                             <span>Engine: 3-Layer Hierarchical Attention</span>
                             <span>Memory: 0 allocs</span>
@@ -658,9 +658,9 @@
                     <span style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase;">Prompts:</span>
                     <button class="chip" onclick="quickSend('hello assistant')">hello</button>
                     <button class="chip" onclick="quickSend('explain your geometric architecture')">architecture</button>
-                    <button class="chip" onclick="quickSend('how does quantum attention operate')">quantum attention</button>
-                    <button class="chip" onclick="quickSend('what is vector symbolic reasoning')">vector reasoning</button>
-                    <button class="chip" onclick="quickSend('secure autonomous agent')">secure agent</button>
+                    <button class="chip" onclick="quickSend('how does quantum computing operate')">quantum computing</button>
+                    <button class="chip" onclick="quickSend('what is artificial intelligence')">artificial intelligence</button>
+                    <button class="chip" onclick="quickSend('philosophy of mind and logic')">philosophy & logic</button>
                 </div>
 
                 <!-- INPUT BAR -->
@@ -744,10 +744,12 @@
         let currentChi = 0, currentDelta = 0, currentAlpha = 0;
         let trajectoryHistory = [];
         let shockwavePulse = 0;
+        let autoPilotTimer = null;
+        let totalTokensIngested = 0;
+        let totalBatchesIngested = 0;
 
         // Initialize UI Elements
         function initUI() {
-            // Build E8 Bars
             const e8Container = document.getElementById('e8BarsContainer');
             e8Container.innerHTML = '';
             for(let i = 0; i < 8; i++) {
@@ -780,7 +782,6 @@
                 document.getElementById('winnerTokenLabel').innerText = `Winner: ${winner}`;
             }
 
-            // Record trajectory point
             trajectoryHistory.push({
                 chi: currentChi,
                 alpha: currentAlpha,
@@ -792,7 +793,6 @@
                 trajectoryHistory.shift();
             }
 
-            // Update E8 Bars
             for(let i = 0; i < 8; i++) {
                 const val = currentE8Coords[i];
                 const fillEl = document.getElementById(`e8Fill_${i}`);
@@ -816,19 +816,18 @@
 
             try {
                 await init();
-                dynamicSession = new DynamicSession("words", 512);
+                dynamicSession = new DynamicSession("words", 2048);
 
                 dot.style.background = 'var(--emerald)';
                 dot.style.boxShadow = '0 0 10px var(--emerald)';
                 txt.innerText = 'WASM Ready (Active)';
 
-                // Auto-compile knowledge base
                 try {
                     const resJson = dynamicSession.auto_ingest_knowledge_base(512);
                     const res = JSON.parse(resJson);
-                    document.getElementById('ingestStatusPill').innerHTML = `<span>● 3-Layer Manifold Compiled (${res.vocab_size} Words)</span>`;
+                    document.getElementById('ingestStatusPill').innerHTML = `<span>● 3-Layer Manifold Online (${res.vocab_size} Concepts)</span>`;
                 } catch(kErr) {
-                    console.warn("Knowledge base init note:", kErr);
+                    console.warn("Knowledge base note:", kErr);
                 }
 
                 console.log("UOR-R4 WASM Bridge initialized successfully.");
@@ -840,72 +839,103 @@
             }
         }
 
-        // 1-Click Automated Ingestion
-        window.triggerAutoIngest = function() {
-            if(!dynamicSession) return;
-            const btn = document.getElementById('btnMassiveIngest');
-            const pill = document.getElementById('ingestStatusPill');
-
-            pill.innerHTML = `<span style="color: var(--cyan);">⚡ Compiling Knowledge Base...</span>`;
-
-            setTimeout(() => {
-                const resJson = dynamicSession.auto_ingest_knowledge_base(512);
-                const res = JSON.parse(resJson);
-
-                pill.innerHTML = `<span>● Compiled ${res.vocab_size} Tokens (Loss: ${res.average_loss.toFixed(3)})</span>`;
-                appendAiMessage("Knowledge base compiled on the spot! High-dimensional semantic centroids are synchronized across 3 hierarchical layers.", "AI Core", 0, 0, 0, 0.1);
-            }, 50);
-        };
-
-        // MASSIVE 35,000+ TOKEN DATASET INGESTION
+        // MASSIVE 100K+ KNOWLEDGE SHARD INGESTION
         window.ingestMassiveCorpus = async function() {
             if(!dynamicSession) return;
             const pill = document.getElementById('ingestStatusPill');
             const btn = document.getElementById('btnMassiveIngest');
 
             btn.disabled = true;
-            btn.innerHTML = '<span>📡 Streaming 35,000+ Tokens...</span>';
-            pill.innerHTML = `<span style="color: var(--cyan);">⚡ Downloading Full Classic & Technical Text Corpora...</span>`;
+            btn.innerHTML = '<span>📡 Downloading 80k+ Word Shard...</span>';
+            pill.innerHTML = `<span style="color: var(--cyan);">⚡ Streaming Complete Multi-Topic Shard (Physics, AI, Philosophy, Logic)...</span>`;
 
             try {
-                // Fetch classic book & technical treatises in parallel
-                const [r1, r2, r3] = await Promise.all([
-                    fetch('./assets/corpus/alice_in_wonderland.txt').then(r => r.text()).catch(() => ""),
-                    fetch('./assets/corpus/quantum_mechanics.txt').then(r => r.text()).catch(() => ""),
-                    fetch('./assets/corpus/cyber_architecture.txt').then(r => r.text()).catch(() => "")
-                ]);
-
-                const combinedCorpus = `${r1}\n\n${r2}\n\n${r3}`;
-                const wordCount = combinedCorpus.split(/\s+/).length;
+                const resp = await fetch('./assets/corpus/massive_knowledge_shard.txt');
+                const corpus = await resp.text();
+                const wordCount = corpus.split(/\s+/).length;
 
                 pill.innerHTML = `<span style="color: var(--purple);">⚡ Ingesting ${wordCount.toLocaleString()} Words into 3-Layer WASM Engine...</span>`;
-                btn.innerHTML = '<span>⚡ Training Hierarchical Manifold (WASM)...</span>';
+                btn.innerHTML = '<span>⚡ Training 2,048-Token Manifold...</span>';
 
                 setTimeout(() => {
                     const startTime = performance.now();
-                    const resJson = dynamicSession.ingest_corpus(combinedCorpus, 15, 6553, "words", 2048);
+                    const resJson = dynamicSession.ingest_corpus(corpus, 3, 6553, "words", 2048);
                     const elapsedMs = performance.now() - startTime;
                     const res = JSON.parse(resJson);
 
-                    const throughput = Math.round((wordCount * 15) / (elapsedMs / 1000));
+                    const throughput = Math.round((wordCount * 3) / (elapsedMs / 1000));
+                    totalTokensIngested += wordCount;
 
                     btn.disabled = false;
-                    btn.innerHTML = '<span>⚡ Ingest Massive Corpus (35,000+ Tokens)</span>';
-                    pill.innerHTML = `<span>● Ingested ${wordCount.toLocaleString()} Tokens (${res.vocab_size} Vocab)</span>`;
+                    btn.innerHTML = '<span>⚡ Ingest 100k+ Knowledge Shard</span>';
+                    pill.innerHTML = `<span>● Ingested ${wordCount.toLocaleString()} Tokens (${res.vocab_size} Concepts)</span>`;
                     
                     shockwavePulse = 2.5;
-                    appendAiMessage(`[Massive Ingestion Complete] Ingested ${wordCount.toLocaleString()} tokens across ${res.steps.toLocaleString()} SGD steps into a 2,048-token 3-layer manifold in ${(elapsedMs/1000).toFixed(2)}s (${throughput.toLocaleString()} tokens/sec on CPU). Ready for coherent chat!`, "WASM Engine", 0, 0, 0, res.entropy);
-                }, 60);
+                    appendAiMessage(`[Massive Shard Ingested] Successfully compiled ${wordCount.toLocaleString()} tokens across ${res.steps.toLocaleString()} SGD steps into a 2,048-token 3-layer manifold in ${(elapsedMs/1000).toFixed(2)}s (${throughput.toLocaleString()} tokens/sec on CPU). Ready for fluent dialogue!`, "WASM Engine", 0, 0, 0, res.entropy);
+                }, 50);
 
             } catch(err) {
                 console.error("Massive Ingestion Error:", err);
                 btn.disabled = false;
-                btn.innerHTML = '<span>⚡ Ingest Massive Corpus (35,000+ Tokens)</span>';
+                btn.innerHTML = '<span>⚡ Ingest 100k+ Knowledge Shard</span>';
                 pill.innerHTML = `<span style="color: var(--rose);">Error: ${err.message}</span>`;
             }
         };
 
-        // Live Multi-Article Wikipedia Batch Ingestion
+        // CONTINUOUS BACKGROUND AUTO-PILOT STREAMING WORKER
+        window.toggleAutoPilotStream = function() {
+            const btn = document.getElementById('btnAutoPilot');
+            const pill = document.getElementById('ingestStatusPill');
+
+            if(autoPilotTimer) {
+                clearInterval(autoPilotTimer);
+                autoPilotTimer = null;
+                btn.innerHTML = '<span>🔄 Start Auto-Pilot Stream</span>';
+                btn.style.background = 'rgba(15, 23, 42, 0.85)';
+                btn.style.borderColor = 'rgba(255, 255, 255, 0.12)';
+                pill.innerHTML = `<span>● Stream Paused (${totalTokensIngested.toLocaleString()} Total Tokens)</span>`;
+                appendAiMessage(`[Auto-Pilot Paused] Ingestion paused at ${totalTokensIngested.toLocaleString()} total tokens across ${totalBatchesIngested} batches.`, "Stream Worker", 0, 0, 0, 0.1);
+                return;
+            }
+
+            btn.innerHTML = '<span>⏹️ Stop Auto-Pilot Stream</span>';
+            btn.style.background = 'rgba(244, 63, 94, 0.2)';
+            btn.style.borderColor = 'var(--rose)';
+
+            appendAiMessage("[Auto-Pilot Active] Continuous background streaming initiated. Fetching and compiling Wikipedia batches in parallel...", "Stream Worker", 0, 0, 0, 0.1);
+
+            const streamStep = async () => {
+                if(!dynamicSession) return;
+                try {
+                    const url = "https://en.wikipedia.org/w/api.php?action=query&origin=*&format=json&generator=random&grnnamespace=0&grnlimit=6&prop=extracts&explaintext=1";
+                    const resp = await fetch(url);
+                    const data = await resp.json();
+                    const pages = data.query ? Object.values(data.query.pages) : [];
+                    const text = pages.map(p => p.extract || "").filter(t => t.length > 50).join("\n\n");
+                    const words = text.split(/\s+/).length;
+
+                    if(words > 20) {
+                        const t0 = performance.now();
+                        const resJson = dynamicSession.ingest_corpus(text, 3, 6553, "words", 2048);
+                        const elapsed = performance.now() - t0;
+                        const res = JSON.parse(resJson);
+
+                        totalTokensIngested += words;
+                        totalBatchesIngested += 1;
+                        shockwavePulse = 1.5;
+
+                        pill.innerHTML = `<span style="color: var(--cyan);">🟢 Auto-Pilot: ${totalTokensIngested.toLocaleString()} Tokens (${totalBatchesIngested} Batches)</span>`;
+                    }
+                } catch(e) {
+                    console.warn("Auto-Pilot Step Note:", e);
+                }
+            };
+
+            streamStep();
+            autoPilotTimer = setInterval(streamStep, 3500);
+        };
+
+        // Live Multi-Article Wikipedia Ingestion
         window.fetchLiveWikipediaStream = async function() {
             if(!dynamicSession) return;
             const pill = document.getElementById('ingestStatusPill');
@@ -923,10 +953,11 @@
                 pill.innerHTML = `<span style="color: var(--purple);">⚡ Ingesting ${wordCount} Words from "${titles}..."</span>`;
 
                 setTimeout(() => {
-                    const resJson = dynamicSession.ingest_corpus(text, 25, 6553, "words", 1024);
+                    const resJson = dynamicSession.ingest_corpus(text, 3, 6553, "words", 2048);
                     const res = JSON.parse(resJson);
 
-                    pill.innerHTML = `<span>● Live Wikipedia Ingested (${res.vocab_size} Vocab)</span>`;
+                    totalTokensIngested += wordCount;
+                    pill.innerHTML = `<span>● Live Wikipedia Ingested (${res.vocab_size} Concepts)</span>`;
                     shockwavePulse = 2.0;
                     appendAiMessage(`[Live Wikipedia Batch Ingested] Downloaded 10 random articles (${wordCount} words: "${titles}..."). The 3-layer geometric manifold has been compiled and updated!`, "Wikipedia Stream", 0, 0, 0, res.entropy);
                 }, 50);
@@ -946,7 +977,6 @@
             inputEl.value = '';
 
             try {
-                // Generate 14-20 coherent words
                 const resultJson = dynamicSession.process_input_dynamic(text, 16);
                 const data = JSON.parse(resultJson);
 
@@ -1025,7 +1055,6 @@
 
                 ctx.clearRect(0, 0, width, height);
 
-                // Dynamic background starfield particles
                 ctx.fillStyle = 'rgba(0, 243, 255, 0.35)';
                 for(let i = 0; i < 24; i++) {
                     const px = (Math.sin(i * 137.5 + t * 0.15) * 0.5 + 0.5) * width;
@@ -1033,11 +1062,9 @@
                     ctx.fillRect(px, py, 1.5, 1.5);
                 }
 
-                // Render Dynamically Warping Clifford Torus fibers
                 const numFibers = 20;
                 const steps = 70;
 
-                // Chi & Alpha directly control the geometric shape and rotation!
                 const warpEta = Math.PI / 4 + (currentChi * 0.25) + Math.sin(t * 0.6) * 0.08;
                 const phaseRot = (currentAlpha * 0.75) + t * 0.35;
                 const deltaTilt = (currentDelta * 0.5) + t * 0.2;
@@ -1055,13 +1082,11 @@
                         const x2 = Math.cos(v) * Math.cos(fiberEta);
                         const y2 = Math.sin(v) * Math.cos(fiberEta);
 
-                        // Stereographic projection S3 -> R3 with dynamic pulse
                         const denom = 1.65 - y2 * (1.0 + shockwavePulse * 0.2);
                         const px3 = x1 / denom;
                         const py3 = y1 / denom;
                         const pz3 = x2 / denom;
 
-                        // 3D rotation based on CORDIC angles
                         const rotY = deltaTilt;
                         const rotX = 0.55 + currentChi * 0.1;
 
@@ -1085,7 +1110,6 @@
                     ctx.stroke();
                 }
 
-                // Render Trajectory Path of Recent Thought States
                 if(trajectoryHistory.length > 1) {
                     ctx.beginPath();
                     for(let i = 0; i < trajectoryHistory.length; i++) {
@@ -1109,7 +1133,6 @@
                     ctx.stroke();
                     ctx.setLineDash([]);
 
-                    // Draw glowing node for each trajectory token
                     for(let i = 0; i < trajectoryHistory.length; i++) {
                         const pt = trajectoryHistory[i];
                         const u = pt.alpha * 0.8;
@@ -1133,7 +1156,6 @@
                     }
                 }
 
-                // Central Active Hopf Core Node with Dynamic Pulsing
                 const coreRadius = 6 + (Math.abs(currentChi) * 2) + (shockwavePulse * 8);
                 ctx.beginPath();
                 ctx.arc(cx, cy, coreRadius, 0, Math.PI * 2);

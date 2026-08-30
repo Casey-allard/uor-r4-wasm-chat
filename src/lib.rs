@@ -692,8 +692,14 @@ impl DynamicCodebook {
             .map(|c| if c.is_alphanumeric() { c.to_ascii_lowercase() } else { ' ' })
             .collect();
 
+        let is_junk = |w: &str| -> bool {
+            if w.len() < 2 || w.len() > 16 { return true; }
+            if w.chars().any(|c| c.is_ascii_digit()) { return true; }
+            matches!(w, "displaystyle" | "isbn" | "doi" | "http" | "https" | "url" | "vol" | "pp" | "ref" | "retrieved" | "archived" | "author" | "editor" | "press" | "publisher" | "edition" | "cite" | "page" | "pages" | "verlag" | "ibid" | "et" | "al")
+        };
+
         for word in cleaned.split_whitespace() {
-            if word.len() >= 2 {
+            if !is_junk(word) {
                 *word_counts.entry(word.to_string()).or_insert(0) += 1;
             }
         }
@@ -734,7 +740,7 @@ impl DynamicCodebook {
         }
     }
 
-    /// Single fixed-point SGD coordinate update step for a target centroid.
+    /// Single fixed-point SGD coordinate update step for a target centroid with TF-IDF frequency dampening.
     pub fn train_step(
         &mut self,
         query_snapped: [i32; 8],
@@ -749,8 +755,10 @@ impl DynamicCodebook {
         let loss = (65536 - target_weight_q16).max(0);
 
         if target_idx < self.centroids.len() {
+            // Down-scale frequent stop words (indices < 16) to prevent gradient collapse
+            let freq_dampener = if target_idx < 16 { 6 } else { 1 };
             for j in 0..8 {
-                let grad = ((query_snapped[j] as i64) * loss * (learning_rate_q16 as i64)) / (65536 * 65536);
+                let grad = ((query_snapped[j] as i64) * loss * (learning_rate_q16 as i64)) / (65536 * 65536 * freq_dampener);
                 let delta = (grad * 4) as i32;
                 self.centroids[target_idx][j] = self.centroids[target_idx][j].saturating_add(delta);
             }
@@ -812,7 +820,10 @@ impl DynamicCodebook {
                 .map(|(i, w)| (w.clone(), i))
                 .collect();
 
-            for _ in 0..epochs {
+            // Optimal epochs for fast convergence in WASM
+            let actual_epochs = epochs.clamp(1, 10);
+
+            for _ in 0..actual_epochs {
                 for i in 0..(words.len() - 1) {
                     let next_word = words[i + 1];
 
@@ -874,6 +885,11 @@ impl DynamicGeometricAttention {
             return (Vec::new(), 0, 0.0);
         }
 
+        let prev_was_stopword = match recent_indices.last() {
+            Some(&last_idx) => last_idx < 12,
+            None => false,
+        };
+
         let mut max_logit = i32::MIN;
         let mut raw_logits = Vec::with_capacity(v_len);
 
@@ -882,9 +898,13 @@ impl DynamicGeometricAttention {
             for j in 0..8 {
                 dot = dot.saturating_add(query[j] * centroid[j]);
             }
-            // Strong repetition penalty: heavily suppresses recent tokens
+            // Repetition penalty: heavily suppresses recent tokens
             if recent_indices.contains(&idx) {
-                dot = dot.saturating_sub(dot.abs() / 2 + 1000);
+                dot = dot.saturating_sub(dot.abs() / 2 + 1200);
+            }
+            // Grammar transition constraint: consecutive stop-words are suppressed
+            if prev_was_stopword && idx < 12 {
+                dot = dot.saturating_sub(dot.abs() / 3 + 800);
             }
 
             raw_logits.push(dot);
