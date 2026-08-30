@@ -61,32 +61,12 @@ jobs:
         run: wasm-pack build --target web --release --out-dir pkg
 
       - name: Package Dashboard Bundle
-        # Consolidates index.html and pkg/ folder into a clean distribution workspace
+        # Consolidates index.html, pkg/, and assets/ into a clean distribution workspace
         run: |
           mkdir -p dist
-          cp index.html dist/ || echo "index.html not found, generating stub"
-          # Ensure index.html exists
-          if [ ! -f "dist/index.html" ]; then
-            cat << 'EOF' > dist/index.html
-          <!DOCTYPE html>
-          <html lang="en">
-          <head>
-              <meta charset="UTF-8">
-              <title>UOR-R4 Cognitive Dashboard</title>
-          </head>
-          <body>
-              <h1>UOR-R4 WebAssembly Terminal Active</h1>
-              <script type="module">
-                  import init from './pkg/uor_r4_wasm_bridge.js';
-                  init().then(() => {
-                      console.log("UOR-R4 WASM successfully initialized.");
-                  });
-              </script>
-          </body>
-          </html>
-          EOF
-          fi
+          cp index.html dist/
           cp -r pkg dist/
+          cp -r assets dist/ 2>/dev/null || true
 
       - name: Setup GitHub Pages
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'

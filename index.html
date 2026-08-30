@@ -799,19 +799,25 @@
                 await init();
                 dynamicSession = new DynamicSession("words", 512);
 
-                // Auto-compile the rich knowledge base on load!
-                dynamicSession.auto_ingest_knowledge_base(512);
-
                 dot.style.background = 'var(--emerald)';
                 dot.style.boxShadow = '0 0 10px var(--emerald)';
                 txt.innerText = 'WASM Ready (Active)';
-                document.getElementById('ingestStatusPill').innerHTML = `<span>● Knowledge Base Compiled (512 Centroids)</span>`;
-                console.log("UOR-R4 WASM Bridge initialized with pre-compiled knowledge base.");
+
+                // Auto-compile knowledge base
+                try {
+                    const resJson = dynamicSession.auto_ingest_knowledge_base(512);
+                    const res = JSON.parse(resJson);
+                    document.getElementById('ingestStatusPill').innerHTML = `<span>● Knowledge Base Active (${res.vocab_size} Tokens)</span>`;
+                } catch(kErr) {
+                    console.warn("Knowledge base init note:", kErr);
+                }
+
+                console.log("UOR-R4 WASM Bridge initialized successfully.");
             } catch(err) {
                 console.error("Failed to load WASM binary:", err);
                 dot.style.background = 'var(--rose)';
                 dot.style.boxShadow = '0 0 10px var(--rose)';
-                txt.innerText = 'WASM Load Error';
+                txt.innerText = 'WASM Load Error: ' + (err.message || err);
             }
         }
 

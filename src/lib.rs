@@ -170,6 +170,17 @@ impl VsaVector {
         Self { elements }
     }
 
+    pub const fn permute(&self, shift: usize) -> Self {
+        let mut elements = [0i16; VSA_DIM];
+        let mut i = 0;
+        while i < VSA_DIM {
+            let target = (i + shift) % VSA_DIM;
+            elements[target] = self.elements[i];
+            i += 1;
+        }
+        Self { elements }
+    }
+
     pub const fn project_to_8d_with_matrix(&self, matrix: &[[i16; VSA_DIM]; 8]) -> [i32; 8] {
         let mut output = [0i32; 8];
         let mut b = 0;
@@ -810,7 +821,7 @@ impl DynamicCodebook {
                         None => continue,
                     };
 
-                    // Sliding context window of previous tokens
+                    // Sliding context window of previous tokens with temporal permutation
                     let mut ctx = VsaVector::zero();
                     let start_k = if i >= 2 { i - 2 } else { 0 };
                     for k in start_k..=i {
@@ -821,7 +832,7 @@ impl DynamicCodebook {
                         token_bytes[..len].copy_from_slice(&b[..len]);
                         let seed = LexicalToken { bytes: token_bytes, len }.compute_vsa_seed();
                         let basis = VsaVector::deterministic_basis(seed);
-                        ctx = ctx.bundle(&basis);
+                        ctx = ctx.permute(7).bundle(&basis);
                     }
 
                     let raw_coords = ctx.project_to_8d_with_matrix(&PRE_TRAINED_PROJECTION_MATRIX);
@@ -871,9 +882,9 @@ impl DynamicGeometricAttention {
             for j in 0..8 {
                 dot = dot.saturating_add(query[j] * centroid[j]);
             }
-            // Repetition penalty: reduce logit if recently generated
+            // Strong repetition penalty: heavily suppresses recent tokens
             if recent_indices.contains(&idx) {
-                dot = dot.saturating_sub(6);
+                dot = dot.saturating_sub(dot.abs() / 2 + 1000);
             }
 
             raw_logits.push(dot);
@@ -1005,7 +1016,7 @@ impl DynamicSession {
                 b_arr[0] = b;
                 let seed = LexicalToken { bytes: b_arr, len: 1 }.compute_vsa_seed();
                 let basis = VsaVector::deterministic_basis(seed);
-                self.context_vector = self.context_vector.bundle(&basis);
+                self.context_vector = self.context_vector.permute(7).bundle(&basis);
             }
 
             let mut generated_bytes = Vec::with_capacity(count_to_gen);
@@ -1031,7 +1042,7 @@ impl DynamicSession {
                     DynamicGeometricAttention::compute_attention_with_penalty(snapped, &self.codebook.centroids, &recent_indices);
                 last_entropy = ent;
                 recent_indices.push(winner_idx);
-                if recent_indices.len() > 4 {
+                if recent_indices.len() > 6 {
                     recent_indices.remove(0);
                 }
 
@@ -1042,7 +1053,7 @@ impl DynamicSession {
                 b_arr[0] = pred_byte;
                 let p_seed = LexicalToken { bytes: b_arr, len: 1 }.compute_vsa_seed();
                 let p_basis = VsaVector::deterministic_basis(p_seed);
-                self.context_vector = self.context_vector.bundle(&p_basis);
+                self.context_vector = self.context_vector.permute(7).bundle(&p_basis);
             }
 
             let completion_str = String::from_utf8_lossy(&generated_bytes).to_string();
@@ -1073,7 +1084,7 @@ impl DynamicSession {
 
                 let seed = LexicalToken { bytes: token_bytes, len }.compute_vsa_seed();
                 let basis = VsaVector::deterministic_basis(seed);
-                self.context_vector = self.context_vector.bundle(&basis);
+                self.context_vector = self.context_vector.permute(7).bundle(&basis);
             }
 
             let mut generated_words = Vec::with_capacity(count_to_gen);
@@ -1100,7 +1111,7 @@ impl DynamicSession {
                     DynamicGeometricAttention::compute_attention_with_penalty(snapped, &self.codebook.centroids, &recent_indices);
                 last_entropy = ent;
                 recent_indices.push(winner_idx);
-                if recent_indices.len() > 3 {
+                if recent_indices.len() > 6 {
                     recent_indices.remove(0);
                 }
 
@@ -1120,7 +1131,7 @@ impl DynamicSession {
 
                 let p_seed = LexicalToken { bytes: token_bytes, len }.compute_vsa_seed();
                 let p_basis = VsaVector::deterministic_basis(p_seed);
-                self.context_vector = self.context_vector.bundle(&p_basis);
+                self.context_vector = self.context_vector.permute(7).bundle(&p_basis);
             }
 
             format!(
