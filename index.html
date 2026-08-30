@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UOR-R4 Cognitive Dashboard | Geometric AI & Massive Corpus Ingestion</title>
+    <title>UOR-R4 Cognitive Dashboard | Live Corpus API & Geometric AI</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -228,6 +228,52 @@
             box-shadow: 0 0 10px var(--cyan-glow);
         }
 
+        /* LIVE CORPUS API DOWNLOADER CARD */
+        .api-downloader-box {
+            background: linear-gradient(135deg, rgba(0, 243, 255, 0.06), rgba(168, 85, 247, 0.08));
+            border: 1px solid rgba(0, 243, 255, 0.25);
+            border-radius: var(--radius-md);
+            padding: 0.85rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.65rem;
+        }
+
+        .api-btn-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 0.4rem;
+        }
+
+        .api-btn {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+            padding: 0.45rem 0.65rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.75rem;
+            font-family: 'Fira Code', monospace;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.35rem;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+
+        .api-btn:hover {
+            background: rgba(0, 243, 255, 0.18);
+            border-color: var(--cyan);
+            color: var(--cyan);
+            transform: translateY(-1px);
+        }
+
+        .wiki-search-bar {
+            display: flex;
+            gap: 0.4rem;
+        }
+
         /* CHAT TERMINAL */
         .chat-box {
             display: flex;
@@ -430,7 +476,7 @@
         .dropzone {
             border: 2px dashed rgba(56, 189, 248, 0.3);
             border-radius: var(--radius-md);
-            padding: 1rem;
+            padding: 0.85rem;
             text-align: center;
             background: rgba(0, 0, 0, 0.25);
             cursor: pointer;
@@ -443,7 +489,7 @@
         }
 
         .dropzone-text {
-            font-size: 0.8rem;
+            font-size: 0.78rem;
             color: var(--text-secondary);
             font-family: 'Fira Code', monospace;
         }
@@ -662,7 +708,7 @@
 
         .corpus-textarea {
             width: 100%;
-            height: 85px;
+            height: 75px;
             background: var(--bg-input);
             border: 1px solid var(--border);
             border-radius: var(--radius-md);
@@ -769,7 +815,7 @@
     <!-- MAIN DASHBOARD -->
     <main class="dashboard-grid">
         
-        <!-- LEFT COLUMN: CHAT INTERFACE & MASSIVE INGESTION STUDIO -->
+        <!-- LEFT COLUMN: CHAT INTERFACE & LIVE API INGESTION STUDIO -->
         <div style="display: flex; flex-direction: column; gap: 1.25rem;">
             
             <!-- INTERACTIVE CHAT PANEL -->
@@ -795,7 +841,7 @@
                 <div class="chat-stream" id="chatStream">
                     <div class="msg-bubble msg-ai">
                         <div class="completion-text">UOR-R4 Geometric Core Online.</div>
-                        <div>Select a prompt or drop a custom text file below to test massive corpus ingestion and general attention sensitivity.</div>
+                        <div>Click any <b>Corpus API Downloader</b> button below to fetch live text and compile the model on the spot!</div>
                         <div class="msg-meta">
                             <span>Status: Ready</span>
                             <span>Memory: Zero dynamic heap allocs</span>
@@ -818,7 +864,7 @@
 
                 <!-- INPUT BAR -->
                 <div class="input-bar">
-                    <input type="text" id="chatInput" class="text-input" placeholder="Enter query (e.g. 'quantum', 'system')..." onkeydown="if(event.key==='Enter') sendChat()">
+                    <input type="text" id="chatInput" class="text-input" placeholder="Enter query..." onkeydown="if(event.key==='Enter') sendChat()">
                     <button class="btn btn-primary" onclick="sendChat()">
                         <span>Send</span>
                         <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path></svg>
@@ -826,27 +872,55 @@
                 </div>
             </section>
 
-            <!-- MASSIVE CORPUS INGESTION STUDIO & FILE DROPZONE -->
+            <!-- LIVE CORPUS API DOWNLOADER & INSTANT INGESTION STUDIO -->
             <section class="glass-panel training-container">
                 <div class="panel-header">
                     <div class="panel-title">
-                        <svg fill="currentColor" viewBox="0 0 20 20"><path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"></path></svg>
-                        <span>Massive Corpus Ingestion & Dynamic Training Studio</span>
+                        <svg fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                        <span>Live Corpus API Downloader & Instant WASM Ingestor</span>
                     </div>
-                    <div style="display: flex; gap: 0.4rem;">
-                        <button class="chip" onclick="loadCorpusPreset('security')">Preset: Security</button>
-                        <button class="chip" onclick="loadCorpusPreset('ai')">Preset: AI Paper</button>
-                        <button class="chip" onclick="loadCorpusPreset('quantum')">Preset: Quantum</button>
+                    <span style="font-size: 0.72rem; color: var(--cyan); font-family: 'Fira Code', monospace;">1-Click Auto-Train</span>
+                </div>
+
+                <!-- 1-CLICK API DOWNLOADER BUTTONS -->
+                <div class="api-downloader-box">
+                    <div style="font-size: 0.75rem; color: var(--text-secondary); font-weight: 600;">
+                        ⚡ Fetch Remote API Corpus & Train On The Spot:
+                    </div>
+                    <div class="api-btn-grid">
+                        <button class="api-btn" onclick="fetchAndIngestCorpus('wikipedia_random')">
+                            <span>🌐 Live Wikipedia API</span>
+                        </button>
+                        <button class="api-btn" onclick="fetchAndIngestCorpus('alice')">
+                            <span>📚 Alice (Gutenberg)</span>
+                        </button>
+                        <button class="api-btn" onclick="fetchAndIngestCorpus('tinystories')">
+                            <span>🤖 TinyStories AI</span>
+                        </button>
+                        <button class="api-btn" onclick="fetchAndIngestCorpus('quantum')">
+                            <span>⚛️ Quantum Treatise</span>
+                        </button>
+                        <button class="api-btn" onclick="fetchAndIngestCorpus('cyber')">
+                            <span>💻 Cyber Architecture</span>
+                        </button>
+                    </div>
+
+                    <!-- WIKIPEDIA TOPIC SEARCH BAR -->
+                    <div class="wiki-search-bar">
+                        <input type="text" id="wikiSearchInput" class="text-input" style="padding: 0.45rem 0.75rem; font-size: 0.78rem;" placeholder="Search any Wikipedia topic (e.g. 'Artificial Intelligence', 'Philosophy', 'Physics')..." onkeydown="if(event.key==='Enter') searchWikiAndIngest()">
+                        <button class="btn btn-primary" style="padding: 0.45rem 0.85rem; font-size: 0.75rem;" onclick="searchWikiAndIngest()">
+                            <span>Fetch & Train</span>
+                        </button>
                     </div>
                 </div>
 
                 <!-- DRAG AND DROP FILE DROPZONE -->
                 <div class="dropzone" id="fileDropzone" onclick="document.getElementById('fileUploadInput').click()">
-                    <div class="dropzone-text">📁 Drop text corpus file here (.txt, .md, .json) or click to browse</div>
+                    <div class="dropzone-text">📁 Or drop local text file here (.txt, .md, .json) to ingest</div>
                     <input type="file" id="fileUploadInput" accept=".txt,.md,.json,.csv" style="display: none;" onchange="handleFileDrop(event)">
                 </div>
 
-                <textarea id="corpusText" class="corpus-textarea" placeholder="Paste or drop massive text corpus here..."></textarea>
+                <textarea id="corpusText" class="corpus-textarea" placeholder="Corpus text will appear here..."></textarea>
 
                 <div class="progress-bar-container">
                     <div id="trainingProgressBar" class="progress-bar-fill"></div>
@@ -854,7 +928,7 @@
 
                 <div class="training-controls">
                     <div style="font-size: 0.8rem; color: var(--text-muted); font-family: 'Fira Code', monospace;" id="trainStatusLabel">
-                        Epochs: 50 | Mode: <span id="lblActiveMode">Default 12</span> | Status: Ready
+                        Epochs: 30 | Mode: <span id="lblActiveMode">Default 12</span> | Status: Ready
                     </div>
                     <div style="display: flex; gap: 0.5rem;">
                         <button class="btn btn-success" id="trainBtn" onclick="runTraining()">
@@ -990,7 +1064,7 @@
 
     <!-- FOOTER -->
     <footer>
-        <div>UOR-R4 WebAssembly Architecture • Multiplier-Free Geometric AI • Universal Byte & Dynamic Ingestion</div>
+        <div>UOR-R4 WebAssembly Architecture • Multiplier-Free Geometric AI • Live API Corpus Downloader</div>
         <div>Hosted on GitHub Pages • <a href="https://github.com/Casey-allard/uor-r4-wasm-chat" target="_blank">View GitHub Repository</a></div>
     </footer>
 
@@ -1030,7 +1104,6 @@
             }
 
             renderAttentionSpectrum(activeVocab);
-            loadCorpusPreset('security');
             setupDropzone();
         }
 
@@ -1069,12 +1142,8 @@
             if(mode === 'words') lbl.innerText = 'Dynamic Words';
             if(mode === 'bytes') lbl.innerText = 'Universal 256-Bytes';
 
-            if(dynamicSession) {
-                dynamicSession.reset();
-            }
-            if(chatSession) {
-                chatSession.reset();
-            }
+            if(dynamicSession) dynamicSession.reset();
+            if(chatSession) chatSession.reset();
 
             appendAiMessage(`[Mode Switched] Active Engine: ${mode.toUpperCase()}. Context cleared.`, "system", 0, 0, 0, 0);
         };
@@ -1199,14 +1268,98 @@
             stream.scrollTop = stream.scrollHeight;
         }
 
-        // Training Presets & Execution
-        window.loadCorpusPreset = function(preset) {
-            const presets = {
-                security: "hello secure agent system. quantum stable system integrity. routing integrity execution sattvic. fano isolated secure.",
-                ai: "artificial intelligence attention mechanism geometric lattice Gosset Clifford torus vector symbolic architecture fixed point arithmetic continuous space",
-                quantum: "quantum stable system integrity. isolated fano routing sattvic. secure agent quantum state execution."
-            };
-            document.getElementById('corpusText').value = presets[preset] || presets.security;
+        // REMOTE CORPUS API DOWNLOADER & INSTANT COMPILATION
+        window.fetchAndIngestCorpus = async function(source) {
+            const statusLabel = document.getElementById('trainStatusLabel');
+            const progressBar = document.getElementById('trainingProgressBar');
+            statusLabel.innerText = `📡 Fetching remote corpus from ${source}...`;
+            progressBar.style.width = '20%';
+
+            try {
+                let text = "";
+                let sourceTitle = "";
+
+                if(source === 'wikipedia_random') {
+                    const url = "https://en.wikipedia.org/w/api.php?action=query&origin=*&format=json&generator=random&grnnamespace=0&grnlimit=4&prop=extracts&explaintext=1";
+                    const resp = await fetch(url);
+                    const data = await resp.json();
+                    const pages = data.query ? Object.values(data.query.pages) : [];
+                    text = pages.map(p => p.extract || "").filter(t => t.length > 50).join("\n\n");
+                    sourceTitle = `Wikipedia (${pages.map(p => p.title).join(", ")})`;
+                } else if(source === 'alice') {
+                    const resp = await fetch('./assets/corpus/alice_in_wonderland.txt');
+                    text = await resp.text();
+                    sourceTitle = "Alice in Wonderland (Project Gutenberg)";
+                } else if(source === 'tinystories') {
+                    const resp = await fetch('./assets/corpus/tinystories_sample.txt');
+                    text = await resp.text();
+                    sourceTitle = "TinyStories AI Corpus";
+                } else if(source === 'quantum') {
+                    const resp = await fetch('./assets/corpus/quantum_mechanics.txt');
+                    text = await resp.text();
+                    sourceTitle = "Quantum Mechanics Treatise";
+                } else if(source === 'cyber') {
+                    const resp = await fetch('./assets/corpus/cyber_architecture.txt');
+                    text = await resp.text();
+                    sourceTitle = "Cyber & Systems Architecture";
+                }
+
+                if(!text || text.trim().length === 0) {
+                    throw new Error("Received empty corpus payload.");
+                }
+
+                document.getElementById('corpusText').value = text;
+                switchMode('words');
+                appendAiMessage(`[API Downloaded] Successfully fetched ${sourceTitle} (${text.length} chars). Compiling model on the spot...`, "system", 0, 0, 0, 0);
+
+                // Instantly trigger WASM compilation & training
+                runTraining();
+            } catch(err) {
+                console.error("Fetch Error:", err);
+                statusLabel.innerText = `Fetch Error: ${err.message}`;
+                alert("Failed to fetch remote corpus: " + err.message);
+            }
+        };
+
+        window.searchWikiAndIngest = async function() {
+            const topic = document.getElementById('wikiSearchInput').value.trim();
+            if(!topic) return;
+
+            const statusLabel = document.getElementById('trainStatusLabel');
+            const progressBar = document.getElementById('trainingProgressBar');
+            statusLabel.innerText = `🔍 Searching Wikipedia API for "${topic}"...`;
+            progressBar.style.width = '25%';
+
+            try {
+                const searchUrl = `https://en.wikipedia.org/w/api.php?action=query&origin=*&format=json&list=search&srsearch=${encodeURIComponent(topic)}&utf8=1&srlimit=3`;
+                const searchResp = await fetch(searchUrl);
+                const searchData = await searchResp.json();
+                const pageIds = searchData.query?.search?.map(s => s.pageid).join("|");
+
+                if(!pageIds) {
+                    throw new Error(`No Wikipedia articles found for "${topic}".`);
+                }
+
+                const extractUrl = `https://en.wikipedia.org/w/api.php?action=query&origin=*&format=json&pageids=${pageIds}&prop=extracts&explaintext=1`;
+                const extractResp = await fetch(extractUrl);
+                const extractData = await extractResp.json();
+                const pages = extractData.query ? Object.values(extractData.query.pages) : [];
+                const text = pages.map(p => p.extract || "").filter(t => t.length > 50).join("\n\n");
+
+                if(!text) {
+                    throw new Error("No article text extracted.");
+                }
+
+                document.getElementById('corpusText').value = text;
+                switchMode('words');
+                appendAiMessage(`[Wikipedia API Ingested] Fetched articles for "${topic}" (${text.length} characters). Compiling model in-browser...`, "system", 0, 0, 0, 0);
+
+                runTraining();
+            } catch(err) {
+                console.error("Wikipedia Search Error:", err);
+                statusLabel.innerText = `Error: ${err.message}`;
+                alert("Wikipedia API Error: " + err.message);
+            }
         };
 
         function setupDropzone() {
@@ -1236,7 +1389,9 @@
             reader.onload = (e) => {
                 document.getElementById('corpusText').value = e.target.result;
                 document.getElementById('trainStatusLabel').innerText = `Loaded: ${file.name} (${file.size} bytes)`;
-                appendAiMessage(`[File Ingestion Ready] Loaded ${file.name} (${(file.size/1024).toFixed(1)} KB). Click 'Ingest & Train' to begin.`, "system", 0, 0, 0, 0);
+                appendAiMessage(`[File Dropped] Loaded ${file.name} (${(file.size/1024).toFixed(1)} KB). Compiling on the spot...`, "system", 0, 0, 0, 0);
+                switchMode('words');
+                runTraining();
             };
             reader.readAsText(file);
         }
@@ -1244,7 +1399,7 @@
         window.runTraining = function() {
             const corpus = document.getElementById('corpusText').value.trim();
             if(!corpus) {
-                alert("Please enter or drop a training corpus.");
+                alert("Please enter, drop, or download a corpus.");
                 return;
             }
 
@@ -1253,7 +1408,7 @@
             const statusLabel = document.getElementById('trainStatusLabel');
 
             btn.disabled = true;
-            btn.innerHTML = '<span>Ingesting & Training on CPU (WASM)...</span>';
+            btn.innerHTML = '<span>Compiling & Training on CPU (WASM)...</span>';
             progressBar.style.width = '30%';
 
             setTimeout(() => {
@@ -1276,7 +1431,7 @@
                             if(res.top_vocab) {
                                 renderAttentionSpectrum(res.top_vocab);
                             }
-                            appendAiMessage(`[Ingestion Complete] Ingested ${res.vocab_size} unique tokens over ${res.steps} steps. Perplexity: ${res.perplexity.toFixed(3)}, Focus Entropy: ${res.entropy.toFixed(3)} bits.`, "system", 0, 0, 0, res.entropy);
+                            appendAiMessage(`[Compiled On The Spot!] Ingested ${res.vocab_size} unique tokens across ${res.steps} steps. Perplexity: ${res.perplexity.toFixed(3)}, Attention Focus Entropy: ${res.entropy.toFixed(3)} bits. Ready for chat!`, "system", 0, 0, 0, res.entropy);
                         }
                     }
                 } catch(err) {
