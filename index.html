@@ -52,17 +52,22 @@
 
     <!-- WASM BINDINGS INTERFACE SCRIPT -->
     <script type="module">
-        import init, { InteractiveChatSession, BrowserTrainingHarness } from './uor_r4_wasm_bridge.js';
+        import init, { InteractiveChatSession, BrowserTrainingHarness } from './pkg/uor_r4_wasm_bridge.js';
 
         let chatSession = null;
         let trainer = null;
 
         async function setup() {
-            // Initialize the WebAssembly binary runtime locally
-            await init();
-            chatSession = new InteractiveChatSession();
-            trainer = new BrowserTrainingHarness();
-            logMsg("WASM module loaded. Client-side M1 CORDIC engines active.", "trainLogs");
+            try {
+                // Initialize the WebAssembly binary runtime locally
+                await init();
+                chatSession = new InteractiveChatSession();
+                trainer = new BrowserTrainingHarness();
+                logMsg("WASM module loaded. Client-side M1 CORDIC engines active.", "trainLogs");
+            } catch (err) {
+                console.error("Failed to load WASM module:", err);
+                logMsg("ERR: Failed to initialize WASM module (" + err.message + ")", "trainLogs");
+            }
         }
 
         window.runLocalTraining = function() {

@@ -414,8 +414,8 @@ impl GeometricAttention {
         let mut sum_accum = 0i32;
 
         for i in 0..VOCAB_SIZE {
-            // Logits scaling adjustment for fixed-point sensitivity (diff >> 14 matching training)
-            let diff = (raw_logits[i] - max_logit) >> 14; 
+            // Logits scaling adjustment for fixed-point sensitivity (diff << 13 into Q16)
+            let diff = (raw_logits[i] - max_logit) << 13; 
             let exp_approx = Self::shift_add_exp(diff);
             exp_sums[i] = exp_approx;
             sum_accum = sum_accum.saturating_add(exp_approx);
