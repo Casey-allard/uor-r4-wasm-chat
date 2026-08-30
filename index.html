@@ -696,9 +696,9 @@
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg>
                 </button>
                 <select id="modelSelectorDropdown" class="model-dropdown-select" onchange="changeModel(this.value)">
-                    <option value="onnx-community/Qwen2.5-1.5B-Instruct" selected>UOR-R4 (Qwen 1.5B Weights • Deep Reasoning)</option>
-                    <option value="onnx-community/Llama-3.2-1B-Instruct">UOR-R4 (Llama 1B Weights • Meta Substrate)</option>
-                    <option value="onnx-community/Qwen2.5-0.5B-Instruct">UOR-R4 (Qwen 0.5B Weights • Fast)</option>
+                    <option value="onnx-community/Qwen2.5-0.5B-Instruct" selected>UOR-R4 (Qwen 0.5B Substrate • Fast & Reliable)</option>
+                    <option value="onnx-community/Qwen2.5-1.5B-Instruct">UOR-R4 (Qwen 1.5B Substrate • Deep Reasoning)</option>
+                    <option value="onnx-community/Llama-3.2-1B-Instruct">UOR-R4 (Llama 1B Substrate • Meta)</option>
                 </select>
                 <div id="modelBadge" class="model-status-indicator">
                     <span id="badgeDot">●</span>
@@ -816,7 +816,7 @@
         let dynamicSession = null;
         let isGenerating = false;
         let chatHistory = [];
-        let currentModelId = 'onnx-community/Qwen2.5-1.5B-Instruct';
+        let currentModelId = 'onnx-community/Qwen2.5-0.5B-Instruct';
 
         let currentE8Coords = [0, 0, 0, 0, 0, 0, 0, 0];
         let currentChi = 0, currentDelta = 0, currentAlpha = 0;
@@ -1061,7 +1061,7 @@
                 console.warn("WASM Telemetry initialized:", err);
             }
 
-            // 2. Initialize Default Neural Model Substrate (Qwen2.5-1.5B)
+            // 2. Initialize Default Neural Model Substrate (Fast Qwen 0.5B)
             await loadNeuralModel(currentModelId);
         }
 
@@ -1071,6 +1071,11 @@
             const sendBtn = document.getElementById('sendBtn');
             const text = inputEl.value.trim();
             if(!text) return;
+
+            if(!generator) {
+                alert("Neural model substrate is still downloading. Please wait a moment.");
+                return;
+            }
 
             document.getElementById('sessionTitle').innerText = text.slice(0, 24) + (text.length > 24 ? '...' : '');
 
@@ -1097,53 +1102,45 @@
 
             let fullResponse = "";
 
-            if(generator) {
-                try {
-                    const messages = [
-                        { role: 'system', content: 'You are UOR-R4, a geometric cognitive AI reasoning agent. You utilize pretrained neural weight tensors as your linguistic foundation while your reasoning trajectories are anchored by high-dimensional geometric manifold telemetry. Answer questions accurately, concisely, and naturally. Only write code when explicitly requested.' },
-                        ...chatHistory.slice(-6)
-                    ];
+            try {
+                const messages = [
+                    { role: 'system', content: 'You are UOR-R4, a geometric cognitive AI reasoning assistant. Answer questions directly, intelligently, accurately, and naturally. If asked conceptual, riddle, historical, or philosophical questions, provide direct, thoughtful answers. Only write code if explicitly requested.' },
+                    ...chatHistory.slice(-6)
+                ];
 
-                    const prompt = generator.tokenizer.apply_chat_template(messages, {
-                        tokenize: false,
-                        add_generation_prompt: true,
-                    });
+                const prompt = generator.tokenizer.apply_chat_template(messages, {
+                    tokenize: false,
+                    add_generation_prompt: true,
+                });
 
-                    const streamer = new TextStreamer(generator.tokenizer, {
-                        skip_prompt: true,
-                        callback_function: (chunk) => {
-                            fullResponse += chunk;
-                            contentDiv.innerHTML = renderMarkdown(fullResponse);
-                            scrollDown();
+                const streamer = new TextStreamer(generator.tokenizer, {
+                    skip_prompt: true,
+                    callback_function: (chunk) => {
+                        fullResponse += chunk;
+                        contentDiv.innerHTML = renderMarkdown(fullResponse);
+                        scrollDown();
 
-                            // Dynamically rotate geometric coordinates on token arrival
-                            if(dynamicSession && chunk.trim().length > 1) {
-                                try {
-                                    const tRes = JSON.parse(dynamicSession.process_input_dynamic(chunk, 1));
-                                    updateTelemetry(tRes.snapped, tRes.chi, tRes.delta, tRes.alpha, tRes.winner);
-                                } catch(e){}
-                            }
+                        // Dynamically rotate geometric coordinates on token arrival
+                        if(dynamicSession && chunk.trim().length > 1) {
+                            try {
+                                const tRes = JSON.parse(dynamicSession.process_input_dynamic(chunk, 1));
+                                updateTelemetry(tRes.snapped, tRes.chi, tRes.delta, tRes.alpha, tRes.winner);
+                            } catch(e){}
                         }
-                    });
+                    }
+                });
 
-                    await generator(prompt, {
-                        max_new_tokens: 1024,
-                        temperature: 0.4,
-                        top_p: 0.85,
-                        repetition_penalty: 1.1,
-                        do_sample: true,
-                        streamer: streamer
-                    });
+                await generator(prompt, {
+                    max_new_tokens: 1024,
+                    temperature: 0.6,
+                    top_p: 0.9,
+                    do_sample: true,
+                    streamer: streamer
+                });
 
-                } catch(err) {
-                    console.error("Generation error:", err);
-                    contentDiv.innerText = "Error in generation. Please try again.";
-                }
-            } else if(dynamicSession) {
-                const fallbackJson = JSON.parse(dynamicSession.process_input_dynamic(text, 25));
-                fullResponse = fallbackJson.completion;
-                contentDiv.innerHTML = renderMarkdown(fullResponse);
-                updateTelemetry(fallbackJson.snapped, fallbackJson.chi, fallbackJson.delta, fallbackJson.alpha, fallbackJson.winner);
+            } catch(err) {
+                console.error("Generation error:", err);
+                contentDiv.innerText = "Error during generation. Please retry.";
             }
 
             contentDiv.classList.remove('typing-cursor');
