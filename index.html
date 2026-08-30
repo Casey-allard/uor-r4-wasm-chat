@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UOR-R4 Geometric AI | SmolLM-135M</title>
+    <title>UOR-R4 Geometric AI | Qwen2.5-1.5B</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -214,6 +214,10 @@
             transition: background 0.15s ease;
         }
 
+        .model-selector:hover {
+            background: var(--bg-surface);
+        }
+
         .model-version-tag {
             font-size: 0.65rem;
             background: rgba(0, 243, 255, 0.12);
@@ -227,7 +231,7 @@
 
         .model-status-indicator {
             font-size: 0.72rem;
-            padding: 0.2rem 0.5rem;
+            padding: 0.25rem 0.6rem;
             border-radius: 12px;
             background: rgba(245, 158, 11, 0.12);
             color: var(--accent-amber);
@@ -236,6 +240,7 @@
             align-items: center;
             gap: 0.35rem;
             font-family: 'Fira Code', monospace;
+            transition: all 0.2s ease;
         }
 
         .model-status-indicator.ready {
@@ -534,6 +539,35 @@
             0%, 100% { opacity: 1; }
             50% { opacity: 0; }
         }
+
+        /* PROGRESS BOX FOR MODEL DOWNLOAD */
+        .loading-progress-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 1rem 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+            max-width: 500px;
+            width: 100%;
+            margin: 0.5rem 0;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 9999px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple));
+            transition: width 0.2s ease;
+        }
     </style>
 </head>
 <body>
@@ -559,11 +593,11 @@
         <div class="sidebar-footer">
             <div class="model-pill-card">
                 <div class="model-pill-header">
-                    <span>SmolLM-135M Geometric</span>
-                    <span id="footerStatus" style="color: var(--accent-amber); font-size: 0.68rem;">● Loading...</span>
+                    <span>Qwen2.5-1.5B Geometric</span>
+                    <span id="footerStatus" style="color: var(--accent-amber); font-size: 0.68rem;">● Initializing...</span>
                 </div>
-                <div class="model-pill-detail">600B Token Neural Weights + E8 Manifold</div>
-                <div class="model-pill-detail">100% Private In-Browser Execution</div>
+                <div class="model-pill-detail">1.5B Parameter Advanced Neural Weights</div>
+                <div class="model-pill-detail">100% Private In-Browser WebGPU</div>
             </div>
         </div>
     </aside>
@@ -579,7 +613,7 @@
                 </button>
                 <div class="model-selector">
                     <span>UOR-R4 Geometric Core</span>
-                    <span class="model-version-tag">SmolLM-135M</span>
+                    <span class="model-version-tag">Qwen2.5-1.5B</span>
                 </div>
                 <div id="modelBadge" class="model-status-indicator">
                     <span id="badgeDot">●</span>
@@ -606,11 +640,25 @@
                         <div class="ai-meta">
                             <span>UOR-R4 Geometric AI</span>
                             <span>•</span>
-                            <span>⚡ Ready</span>
+                            <span id="welcomeMeta">⚡ Initializing</span>
                         </div>
                         <div>
-                            Hello! I am your <b>UOR-R4 Geometric Cognitive Agent</b> powered by a local <b>SmolLM-135M neural weightset</b> and <b>8D Gosset \(E_8\) lattice attention telemetry</b>. My reasoning runs 100% locally in your browser with zero server GPUs. Ask me any conceptual, philosophical, historical, or scientific question!
+                            Hello! I am your <b>UOR-R4 Geometric Cognitive Agent</b> powered by the <b>Qwen2.5-1.5B neural model</b> and real-time <b>8D Gosset \(E_8\) lattice attention telemetry</b>. My reasoning executes 100% locally in your browser via WebGPU with zero server dependencies. Ask me any conceptual, philosophical, historical, or scientific question!
                         </div>
+                        
+                        <div id="loaderCard" class="loading-progress-card">
+                            <div style="display: flex; justify-content: space-between; font-size: 0.78rem; font-weight: 500;">
+                                <span id="loadTitle">Loading Qwen2.5-1.5B Neural Weights...</span>
+                                <span id="loadPercent" style="font-family: 'Fira Code', monospace; color: var(--accent-cyan);">0%</span>
+                            </div>
+                            <div class="progress-bar-container">
+                                <div id="progressFill" class="progress-bar-fill"></div>
+                            </div>
+                            <div style="font-size: 0.70rem; color: var(--text-muted);">
+                                Weights are cached in IndexedDB for instant sub-second startup on return visits.
+                            </div>
+                        </div>
+
                     </div>
                 </div>
 
@@ -620,13 +668,13 @@
         <!-- FLOATING INPUT CAPSULE -->
         <div class="input-floating-wrapper">
             <div class="input-capsule">
-                <input type="text" id="chatInput" class="chat-input" placeholder="Message UOR-R4 Geometric AI..." onkeydown="if(event.key==='Enter') sendChat()">
+                <input type="text" id="chatInput" class="chat-input" placeholder="Message Qwen2.5-1.5B Geometric AI..." onkeydown="if(event.key==='Enter') sendChat()">
                 <button id="sendBtn" class="send-btn-circle" onclick="sendChat()" title="Send Message">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
                 </button>
             </div>
             <div class="input-disclaimer">
-                Runs 100% locally on your device via WebGPU / WebAssembly with zero server dependencies.
+                Qwen2.5-1.5B runs 100% locally in-browser with zero server GPUs. 8D Gosset E8 telemetry visualized live.
             </div>
         </div>
 
@@ -715,7 +763,7 @@
                             <span>⚡ Ready</span>
                         </div>
                         <div>
-                            Hello! I am your <b>UOR-R4 Geometric Cognitive Agent</b> powered by a local <b>SmolLM-135M neural weightset</b> and <b>8D Gosset \(E_8\) lattice attention telemetry</b>. My reasoning runs 100% locally in your browser with zero server GPUs. Ask me any conceptual, philosophical, historical, or scientific question!
+                            Hello! I am your <b>UOR-R4 Geometric Cognitive Agent</b> powered by the <b>Qwen2.5-1.5B neural model</b> and real-time <b>8D Gosset \(E_8\) lattice attention telemetry</b>. My reasoning executes 100% locally in your browser via WebGPU with zero server dependencies. Ask me any conceptual, philosophical, historical, or scientific question!
                         </div>
                     </div>
                 </div>
@@ -775,6 +823,11 @@
             const badge = document.getElementById('modelBadge');
             const badgeText = document.getElementById('badgeText');
             const footerStatus = document.getElementById('footerStatus');
+            const loaderCard = document.getElementById('loaderCard');
+            const progressFill = document.getElementById('progressFill');
+            const loadPercent = document.getElementById('loadPercent');
+            const loadTitle = document.getElementById('loadTitle');
+            const welcomeMeta = document.getElementById('welcomeMeta');
 
             // 1. Initialize UOR-R4 Geometric WASM Telemetry Engine
             try {
@@ -791,36 +844,59 @@
                 console.warn("WASM Telemetry fallback initialized:", err);
             }
 
-            // 2. Initialize Trained SmolLM-135M Neural Engine
+            // 2. Initialize Qwen2.5-1.5B-Instruct Neural Engine
             try {
-                badgeText.innerText = 'Downloading SmolLM (65MB)...';
+                badgeText.innerText = 'Downloading Qwen2.5-1.5B...';
                 env.allowLocalModels = false;
                 env.useBrowserCache = true;
 
                 const device = navigator.gpu ? 'webgpu' : 'wasm';
-                generator = await pipeline('text-generation', 'HuggingFaceTB/SmolLM-135M-Instruct', {
+                generator = await pipeline('text-generation', 'onnx-community/Qwen2.5-1.5B-Instruct', {
                     dtype: 'q4',
                     device: device,
                     progress_callback: (p) => {
                         if(p.status === 'progress') {
-                            badgeText.innerText = `Loading: ${Math.round(p.progress || 0)}%`;
+                            const pct = Math.round(p.progress || 0);
+                            loadPercent.innerText = `${pct}%`;
+                            progressFill.style.width = `${pct}%`;
+                            badgeText.innerText = `Downloading: ${pct}%`;
                         } else if(p.status === 'done') {
-                            badgeText.innerText = 'Compiling Neural Shader...';
+                            loadTitle.innerText = 'Compiling WebGPU Neural Shaders...';
+                            badgeText.innerText = 'Compiling Shaders...';
                         }
                     }
                 });
 
                 badge.classList.add('ready');
-                badgeText.innerText = `${device.toUpperCase()} Online`;
-                footerStatus.innerText = `● ${device.toUpperCase()} Active`;
+                badgeText.innerText = `${device.toUpperCase()} 1.5B Online`;
+                footerStatus.innerText = `● ${device.toUpperCase()} Ready`;
                 footerStatus.style.color = 'var(--accent-emerald)';
-                console.log(`SmolLM-135M Instruct loaded successfully on ${device}.`);
+                welcomeMeta.innerText = `⚡ ${device.toUpperCase()} Online`;
+                if(loaderCard) loaderCard.style.display = 'none';
+
+                console.log(`Qwen2.5-1.5B-Instruct loaded successfully on ${device}.`);
             } catch(err) {
-                console.error("Transformers.js WebGPU/WASM load failed, falling back to pure geometric engine:", err);
-                badge.classList.add('ready');
-                badgeText.innerText = 'Geometric WASM Active';
-                footerStatus.innerText = '● WASM Active';
-                footerStatus.style.color = 'var(--accent-emerald)';
+                console.error("Qwen2.5-1.5B WebGPU load failed, attempting SmolLM2-360M fallback:", err);
+                try {
+                    loadTitle.innerText = 'Loading Fast Compact Model (SmolLM2-360M)...';
+                    const device = navigator.gpu ? 'webgpu' : 'wasm';
+                    generator = await pipeline('text-generation', 'onnx-community/SmolLM2-360M-Instruct', {
+                        dtype: 'q4',
+                        device: device
+                    });
+                    badge.classList.add('ready');
+                    badgeText.innerText = `${device.toUpperCase()} 360M Online`;
+                    footerStatus.innerText = `● ${device.toUpperCase()} Ready`;
+                    footerStatus.style.color = 'var(--accent-emerald)';
+                    if(loaderCard) loaderCard.style.display = 'none';
+                } catch(e) {
+                    console.error("All neural pipelines failed, falling back to pure geometric engine:", e);
+                    badge.classList.add('ready');
+                    badgeText.innerText = 'Geometric WASM Active';
+                    footerStatus.innerText = '● WASM Active';
+                    footerStatus.style.color = 'var(--accent-emerald)';
+                    if(loaderCard) loaderCard.style.display = 'none';
+                }
             }
         }
 
@@ -859,8 +935,8 @@
             if(generator) {
                 try {
                     const messages = [
-                        { role: 'system', content: 'You are UOR-R4, a brilliant, concise, helpful, and eloquent AI reasoning assistant. Give clear, insightful, and natural explanations.' },
-                        ...chatHistory.slice(-4)
+                        { role: 'system', content: 'You are UOR-R4, a brilliant, thoughtful, and articulate AI reasoning assistant. Give clear, elegant, insightful, and natural explanations.' },
+                        ...chatHistory.slice(-6)
                     ];
 
                     const streamer = new TextStreamer(generator.tokenizer, {
@@ -881,8 +957,8 @@
                     });
 
                     await generator(messages, {
-                        max_new_tokens: 160,
-                        temperature: 0.6,
+                        max_new_tokens: 240,
+                        temperature: 0.7,
                         top_p: 0.9,
                         do_sample: true,
                         streamer: streamer
