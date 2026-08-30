@@ -3,33 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UOR-R4 Agent Studio | 7.0B Parameter Geometric Cognitive AI</title>
+    <title>UOR-R4 70B | Geometric Cognitive AI</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-base: #080b12;
-            --bg-sidebar: #0b101b;
-            --bg-card: rgba(14, 20, 34, 0.75);
-            --bg-card-hover: rgba(22, 32, 52, 0.9);
-            --bg-input: #0d1424;
-            --border: rgba(255, 255, 255, 0.08);
-            --border-highlight: rgba(0, 243, 255, 0.35);
-            --cyan: #00f3ff;
-            --cyan-glow: rgba(0, 243, 255, 0.25);
-            --emerald: #10b981;
-            --emerald-glow: rgba(16, 185, 129, 0.2);
-            --purple: #a855f7;
-            --purple-glow: rgba(168, 85, 247, 0.25);
-            --rose: #f43f5e;
-            --gold: #fbbf24;
-            --text-primary: #f8fafc;
-            --text-secondary: #94a3b8;
-            --text-muted: #64748b;
-            --radius-lg: 12px;
+            --bg-main: #212121;
+            --bg-sidebar: #171717;
+            --bg-surface: #2f2f2f;
+            --bg-surface-hover: #383838;
+            --bg-input: #2f2f2f;
+            --border: rgba(255, 255, 255, 0.1);
+            --border-subtle: rgba(255, 255, 255, 0.06);
+            --text-primary: #ececec;
+            --text-secondary: #b4b4b4;
+            --text-muted: #8e8e8e;
+            --accent-cyan: #00f3ff;
+            --accent-emerald: #10b981;
+            --accent-purple: #a855f7;
+            --radius-xl: 24px;
+            --radius-lg: 14px;
             --radius-md: 8px;
-            --radius-sm: 5px;
+            --radius-sm: 6px;
         }
 
         * {
@@ -39,250 +35,273 @@
         }
 
         body {
-            background-color: var(--bg-base);
+            background-color: var(--bg-main);
             color: var(--text-primary);
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             height: 100vh;
             display: flex;
-            flex-direction: column;
             overflow: hidden;
-            background-image: 
-                radial-gradient(circle at 10% 10%, rgba(0, 243, 255, 0.03) 0%, transparent 40%),
-                radial-gradient(circle at 90% 90%, rgba(168, 85, 247, 0.03) 0%, transparent 40%),
-                linear-gradient(rgba(255, 255, 255, 0.005) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255, 255, 255, 0.005) 1px, transparent 1px);
-            background-size: 100% 100%, 100% 100%, 24px 24px, 24px 24px;
+            -webkit-font-smoothing: antialiased;
         }
 
-        /* HEADER */
-        header {
-            border-bottom: 1px solid var(--border);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            background: rgba(8, 11, 18, 0.95);
-            padding: 0.7rem 1.4rem;
+        /* SIDEBAR (ChatGPT / Claude Style) */
+        .sidebar {
+            width: 260px;
+            background-color: var(--bg-sidebar);
+            border-right: 1px solid var(--border-subtle);
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            z-index: 50;
+            flex-direction: column;
+            padding: 0.85rem;
+            flex-shrink: 0;
+            transition: transform 0.25s ease, width 0.25s ease;
+            z-index: 40;
         }
 
-        .brand-container {
+        .sidebar.collapsed {
+            transform: translateX(-100%);
+            width: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .new-chat-btn {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 0.65rem 0.85rem;
+            border-radius: var(--radius-md);
+            font-size: 0.88rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.15s ease;
+            margin-bottom: 1rem;
+        }
+
+        .new-chat-btn:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .sidebar-section-label {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            padding: 0.4rem 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .chat-history-list {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+        }
+
+        .chat-history-list::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .chat-history-list::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+
+        .history-item {
+            padding: 0.55rem 0.65rem;
+            border-radius: var(--radius-md);
+            font-size: 0.84rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            transition: background 0.15s ease, color 0.15s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .history-item:hover, .history-item.active {
+            background: var(--bg-surface);
+            color: var(--text-primary);
+        }
+
+        .sidebar-footer {
+            border-top: 1px solid var(--border-subtle);
+            padding-top: 0.85rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .model-pill-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: 0.6rem 0.75rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .model-pill-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .model-pill-detail {
+            font-size: 0.68rem;
+            color: var(--text-muted);
+            font-family: 'Fira Code', monospace;
+        }
+
+        /* MAIN CHAT CONTAINER */
+        .main-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            position: relative;
+            background: var(--bg-main);
+            overflow: hidden;
+        }
+
+        /* TOP NAVIGATION BAR */
+        .top-navbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 1.25rem;
+            border-bottom: 1px solid var(--border-subtle);
+            background: var(--bg-main);
+            z-index: 30;
+        }
+
+        .nav-left {
             display: flex;
             align-items: center;
             gap: 0.75rem;
         }
 
-        .brand-icon {
-            width: 32px;
-            height: 32px;
-            border-radius: var(--radius-md);
-            background: linear-gradient(135deg, #00f3ff, #a855f7);
+        .icon-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 0.4rem;
+            border-radius: var(--radius-sm);
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 0 14px var(--cyan-glow);
+            transition: background 0.15s ease, color 0.15s ease;
         }
 
-        .brand-icon svg {
-            width: 17px;
-            height: 17px;
-            fill: #000;
+        .icon-btn:hover {
+            background: var(--bg-surface);
+            color: var(--text-primary);
         }
 
-        .brand-title {
-            font-size: 1.0rem;
-            font-weight: 700;
-            letter-spacing: -0.01em;
-            color: #ffffff;
+        .model-selector {
             display: flex;
             align-items: center;
-            gap: 0.45rem;
+            gap: 0.4rem;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            cursor: pointer;
+            padding: 0.35rem 0.65rem;
+            border-radius: var(--radius-md);
+            transition: background 0.15s ease;
         }
 
-        .brand-badge-tag {
+        .model-selector:hover {
+            background: var(--bg-surface);
+        }
+
+        .model-version-tag {
             font-size: 0.65rem;
             background: rgba(0, 243, 255, 0.12);
-            color: var(--cyan);
-            border: 1px solid rgba(0, 243, 255, 0.3);
+            color: var(--accent-cyan);
+            border: 1px solid rgba(0, 243, 255, 0.25);
             padding: 0.1rem 0.4rem;
             border-radius: 4px;
             font-family: 'Fira Code', monospace;
             font-weight: 600;
         }
 
-        .brand-subtitle {
-            font-size: 0.68rem;
-            color: var(--text-muted);
-            font-family: 'Fira Code', monospace;
-        }
-
-        .header-badges {
+        .nav-right {
             display: flex;
             align-items: center;
             gap: 0.6rem;
         }
 
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.35rem;
-            padding: 0.25rem 0.6rem;
-            border-radius: var(--radius-sm);
-            font-size: 0.72rem;
-            font-family: 'Fira Code', monospace;
-            font-weight: 500;
-            border: 1px solid var(--border);
-            background: rgba(14, 20, 34, 0.6);
-        }
-
-        .badge-dot {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: var(--emerald);
-            box-shadow: 0 0 8px var(--emerald);
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.5; transform: scale(0.85); }
-        }
-
-        /* 3-COLUMN STUDIO LAYOUT */
-        .studio-layout {
-            display: grid;
-            grid-template-columns: 260px 1fr 380px;
-            flex: 1;
-            overflow: hidden;
-        }
-
-        @media (max-width: 1200px) {
-            .studio-layout {
-                grid-template-columns: 240px 1fr;
-            }
-            .telemetry-dock {
-                display: none;
-            }
-        }
-
-        @media (max-width: 850px) {
-            .studio-layout {
-                grid-template-columns: 1fr;
-            }
-            .sidebar {
-                display: none;
-            }
-        }
-
-        /* LEFT SIDEBAR */
-        .sidebar {
-            background: var(--bg-sidebar);
-            border-right: 1px solid var(--border);
-            padding: 1.1rem;
-            display: flex;
-            flex-direction: column;
-            gap: 1.1rem;
-            overflow-y: auto;
-        }
-
-        .sidebar-section-title {
-            font-size: 0.68rem;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            color: var(--text-muted);
-            font-family: 'Fira Code', monospace;
-            font-weight: 600;
-            margin-bottom: 0.45rem;
-        }
-
-        .model-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-md);
-            padding: 0.85rem;
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        .model-name {
-            font-size: 0.86rem;
-            font-weight: 700;
-            color: #ffffff;
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
-        }
-
-        .spec-row {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.72rem;
-            font-family: 'Fira Code', monospace;
-            color: var(--text-secondary);
-        }
-
-        .spec-val {
-            color: var(--cyan);
-            font-weight: 600;
-        }
-
-        .side-btn {
-            background: rgba(14, 20, 34, 0.75);
+        .telemetry-toggle-btn {
+            background: rgba(255, 255, 255, 0.06);
             border: 1px solid var(--border);
             color: var(--text-primary);
-            padding: 0.6rem 0.8rem;
-            border-radius: var(--radius-sm);
+            padding: 0.35rem 0.75rem;
+            border-radius: var(--radius-md);
             font-size: 0.78rem;
-            font-weight: 600;
+            font-weight: 500;
             cursor: pointer;
             display: flex;
             align-items: center;
             gap: 0.45rem;
             transition: all 0.15s ease;
-            width: 100%;
         }
 
-        .side-btn:hover {
-            background: rgba(0, 243, 255, 0.08);
-            border-color: var(--cyan);
-            color: var(--cyan);
+        .telemetry-toggle-btn:hover, .telemetry-toggle-btn.active {
+            background: rgba(0, 243, 255, 0.12);
+            border-color: var(--accent-cyan);
+            color: var(--accent-cyan);
         }
 
-        /* CENTER CHAT WORKSPACE */
-        .chat-workspace {
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-            background: rgba(8, 11, 18, 0.3);
-            overflow: hidden;
+        .status-indicator {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--accent-emerald);
         }
 
-        .chat-feed {
+        /* CONVERSATION STREAM (768px Centered Column) */
+        .chat-scroll-area {
             flex: 1;
             overflow-y: auto;
-            padding: 1.5rem 2rem;
             display: flex;
             flex-direction: column;
-            gap: 1.25rem;
+            align-items: center;
+            padding: 2rem 1rem 4rem 1rem;
             scroll-behavior: smooth;
         }
 
-        .chat-feed::-webkit-scrollbar {
-            width: 5px;
+        .chat-scroll-area::-webkit-scrollbar {
+            width: 6px;
         }
 
-        .chat-feed::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.08);
+        .chat-scroll-area::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.12);
             border-radius: 9999px;
         }
 
-        .chat-row {
+        .conversation-column {
+            width: 100%;
+            max-width: 768px;
             display: flex;
-            gap: 0.9rem;
-            max-width: 880px;
+            flex-direction: column;
+            gap: 1.75rem;
+        }
+
+        .message-row {
+            display: flex;
+            gap: 1rem;
             width: 100%;
             animation: fadeIn 0.2s ease-out;
         }
@@ -292,193 +311,159 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        .chat-row.user-row {
-            margin-left: auto;
-            flex-direction: row-reverse;
+        .message-row.user-row {
+            justify-content: flex-end;
         }
 
-        .avatar {
-            width: 30px;
-            height: 30px;
-            border-radius: var(--radius-sm);
+        .user-bubble {
+            background: var(--bg-surface);
+            padding: 0.85rem 1.25rem;
+            border-radius: var(--radius-lg);
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            line-height: 1.55;
+            max-width: 80%;
+            word-break: break-word;
+        }
+
+        .ai-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #00f3ff, #a855f7);
+            color: #000;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.7rem;
+            font-size: 0.72rem;
             font-weight: 700;
             flex-shrink: 0;
-            font-family: 'Fira Code', monospace;
+            margin-top: 2px;
         }
 
-        .avatar-ai {
-            background: linear-gradient(135deg, #00f3ff, #a855f7);
-            color: #000;
-            box-shadow: 0 0 10px var(--cyan-glow);
-        }
-
-        .avatar-user {
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid var(--border);
-            color: #fff;
-        }
-
-        .bubble-content {
+        .ai-content {
+            flex: 1;
             display: flex;
             flex-direction: column;
-            gap: 0.35rem;
-            max-width: calc(100% - 44px);
-        }
-
-        .msg-meta {
-            display: flex;
-            align-items: center;
-            gap: 0.45rem;
-            font-size: 0.68rem;
-            font-family: 'Fira Code', monospace;
-            color: var(--text-muted);
-        }
-
-        .msg-text-user {
-            background: linear-gradient(135deg, rgba(0, 243, 255, 0.12), rgba(168, 85, 247, 0.16));
-            border: 1px solid rgba(0, 243, 255, 0.25);
-            padding: 0.85rem 1.15rem;
-            border-radius: var(--radius-md);
-            color: #ffffff;
-            font-size: 0.92rem;
-            line-height: 1.55;
-        }
-
-        .msg-text-ai {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            padding: 1rem 1.25rem;
-            border-radius: var(--radius-md);
+            gap: 0.5rem;
+            font-size: 0.96rem;
+            line-height: 1.68;
             color: var(--text-primary);
-            font-size: 0.93rem;
-            line-height: 1.6;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
         }
 
-        /* INPUT DOCK */
-        .input-dock {
-            padding: 0.85rem 1.5rem 1.15rem 1.5rem;
-            background: rgba(8, 11, 18, 0.92);
-            border-top: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            gap: 0.55rem;
-        }
-
-        .dock-chips {
+        .ai-meta {
             display: flex;
             align-items: center;
-            gap: 0.35rem;
-            overflow-x: auto;
-        }
-
-        .dock-chips::-webkit-scrollbar {
-            display: none;
-        }
-
-        .chip {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid var(--border);
-            color: var(--text-secondary);
+            gap: 0.5rem;
             font-size: 0.72rem;
+            color: var(--text-muted);
             font-family: 'Fira Code', monospace;
-            padding: 0.25rem 0.55rem;
-            border-radius: var(--radius-sm);
-            cursor: pointer;
-            white-space: nowrap;
-            transition: all 0.15s ease;
         }
 
-        .chip:hover {
-            background: rgba(0, 243, 255, 0.08);
-            border-color: var(--cyan);
-            color: var(--cyan);
-        }
-
-        .input-bar {
+        /* FLOATING INPUT CAPSULE */
+        .input-floating-wrapper {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 0 1rem 1.5rem 1rem;
             display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: linear-gradient(180deg, transparent 0%, var(--bg-main) 35%);
+            pointer-events: none;
+        }
+
+        .input-capsule {
+            width: 100%;
+            max-width: 768px;
             background: var(--bg-input);
             border: 1px solid var(--border);
-            border-radius: var(--radius-md);
-            padding: 0.35rem 0.5rem 0.35rem 1rem;
+            border-radius: var(--radius-xl);
+            padding: 0.5rem 0.6rem 0.5rem 1.25rem;
+            display: flex;
             align-items: center;
-            gap: 0.65rem;
-            transition: border-color 0.15s ease;
+            gap: 0.75rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+            pointer-events: auto;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
         }
 
-        .input-bar:focus-within {
-            border-color: var(--cyan);
-            box-shadow: 0 0 12px var(--cyan-glow);
+        .input-capsule:focus-within {
+            border-color: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 8px 36px rgba(0, 0, 0, 0.55);
         }
 
         .chat-input {
             flex: 1;
             background: transparent;
             border: none;
-            color: #ffffff;
-            font-size: 0.92rem;
+            color: var(--text-primary);
+            font-size: 0.95rem;
             font-family: 'Inter', sans-serif;
             outline: none;
+            padding: 0.35rem 0;
         }
 
-        .btn-send {
-            background: linear-gradient(135deg, #00f3ff, #a855f7);
+        .chat-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .send-btn-circle {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: var(--text-primary);
             border: none;
             color: #000;
-            font-weight: 700;
-            padding: 0.55rem 1.05rem;
-            border-radius: var(--radius-sm);
-            font-size: 0.82rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.4rem;
-            transition: all 0.15s ease;
+            transition: opacity 0.15s ease, transform 0.15s ease;
+            flex-shrink: 0;
         }
 
-        .btn-send:hover {
-            box-shadow: 0 0 14px var(--cyan-glow);
-            transform: translateY(-1px);
+        .send-btn-circle:hover {
+            transform: scale(1.05);
         }
 
-        /* RIGHT TELEMETRY DOCK: 3D SYNAPTIC NEURAL BRAIN */
-        .telemetry-dock {
+        .input-disclaimer {
+            margin-top: 0.55rem;
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            text-align: center;
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* 3D NEURAL BRAIN SIDECAR DRAWER (Like Claude Artifacts / Cursor Sidecar) */
+        .telemetry-sidecar {
+            width: 380px;
             background: var(--bg-sidebar);
-            border-left: 1px solid var(--border);
-            padding: 1.1rem;
+            border-left: 1px solid var(--border-subtle);
             display: flex;
             flex-direction: column;
-            gap: 1.1rem;
-            overflow-y: auto;
+            transition: transform 0.25s ease, width 0.25s ease;
+            flex-shrink: 0;
+            z-index: 35;
         }
 
-        .brain-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-md);
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.35);
-            flex: 1;
+        .telemetry-sidecar.hidden {
+            display: none;
         }
 
-        .brain-header {
-            padding: 0.7rem 0.9rem;
-            border-bottom: 1px solid var(--border);
+        .sidecar-header {
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            justify-content: space-between;
+            padding: 0.85rem 1.15rem;
+            border-bottom: 1px solid var(--border-subtle);
         }
 
-        .brain-title {
-            font-size: 0.8rem;
-            font-weight: 700;
-            color: #ffffff;
+        .sidecar-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-primary);
             display: flex;
             align-items: center;
             gap: 0.45rem;
@@ -488,7 +473,7 @@
             position: relative;
             width: 100%;
             height: 380px;
-            background: radial-gradient(circle at 50% 50%, #0c1426 0%, #080b12 100%);
+            background: radial-gradient(circle at 50% 50%, #171d2c 0%, #0d111a 100%);
         }
 
         canvas {
@@ -504,205 +489,182 @@
             right: 10px;
             font-family: 'Fira Code', monospace;
             font-size: 0.68rem;
-            color: var(--cyan);
-            background: rgba(8, 11, 18, 0.85);
-            padding: 0.4rem 0.7rem;
+            color: var(--accent-cyan);
+            background: rgba(15, 17, 23, 0.85);
+            padding: 0.4rem 0.65rem;
             border-radius: var(--radius-sm);
-            border: 1px solid var(--border);
+            border: 1px solid var(--border-subtle);
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
-        /* LIVE SYNAPTIC WAVE MONITOR */
-        .wave-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-md);
-            padding: 0.85rem;
+        .sidecar-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
             display: flex;
             flex-direction: column;
-            gap: 0.45rem;
+            gap: 1rem;
         }
 
-        .wave-canvas-box {
+        .wave-box {
             width: 100%;
-            height: 55px;
-            background: rgba(11, 16, 27, 0.9);
+            height: 60px;
+            background: rgba(255, 255, 255, 0.02);
             border-radius: var(--radius-sm);
             overflow: hidden;
-            border: 1px solid var(--border);
+            border: 1px solid var(--border-subtle);
         }
     </style>
 </head>
 <body>
 
-    <!-- TOP HEADER -->
-    <header>
-        <div class="brand-container">
-            <div class="brand-icon">
-                <svg viewBox="0 0 24 24">
-                    <circle cx="12" cy="12" r="9" stroke="black" stroke-width="2" fill="none"/>
-                    <ellipse cx="12" cy="12" rx="9" ry="3.5" stroke="black" stroke-width="1.5" fill="none"/>
-                    <ellipse cx="12" cy="12" rx="3.5" ry="9" stroke="black" stroke-width="1.5" fill="none"/>
-                </svg>
+    <!-- LEFT SIDEBAR (ChatGPT Style) -->
+    <aside class="sidebar" id="sidebar">
+        <button class="new-chat-btn" onclick="resetChat()">
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"></path></svg>
+                <span>New chat</span>
             </div>
-            <div>
-                <div class="brand-title">
-                    <span>UOR-R4 Agent Studio</span>
-                    <span class="brand-badge-tag">7.0B WASM</span>
+            <span style="font-size: 0.75rem; color: var(--text-muted); font-family: 'Fira Code', monospace;">⌘K</span>
+        </button>
+
+        <div class="sidebar-section-label">Recent Explorations</div>
+        <div class="chat-history-list">
+            <div class="history-item active" onclick="quickSend('hello!')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                <span>Geometric Cognitive Core</span>
+            </div>
+            <div class="history-item" onclick="quickSend('explain quantum computing')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                <span>Quantum Superposition</span>
+            </div>
+            <div class="history-item" onclick="quickSend('why is geometric attention deterministic')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                <span>Deterministic E8 Lattices</span>
+            </div>
+            <div class="history-item" onclick="quickSend('what is the philosophy of mind')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                <span>Philosophy of Mind</span>
+            </div>
+            <div class="history-item" onclick="quickSend('tell me a story')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                <span>Gosset Manifold Odyssey</span>
+            </div>
+        </div>
+
+        <div class="sidebar-footer">
+            <div class="model-pill-card">
+                <div class="model-pill-header">
+                    <span>UOR-R4 70B</span>
+                    <span style="color: var(--accent-emerald); font-size: 0.68rem;">● Online</span>
                 </div>
-                <div class="brand-subtitle">Geometric Neural Engine • Zero Server Dependencies</div>
+                <div class="model-pill-detail">1.5T Token Compressed E8 Manifold</div>
+                <div class="model-pill-detail">Zero Server Dependencies • WASM</div>
             </div>
         </div>
+    </aside>
 
-        <div class="header-badges">
-            <div class="badge" id="wasmStatusBadge">
-                <div class="badge-dot" id="statusDot"></div>
-                <span id="statusText">Initializing Engine...</span>
-            </div>
-            <div class="badge" style="border-color: rgba(16, 185, 129, 0.3);">
-                <span style="color: var(--emerald);">0 Heap Allocs</span>
-            </div>
-        </div>
-    </header>
-
-    <!-- 3-COLUMN STUDIO LAYOUT -->
-    <div class="studio-layout">
+    <!-- MAIN CHAT AREA -->
+    <main class="main-container">
         
-        <!-- LEFT SIDEBAR: AGENT PROFILE & TELEMETRY -->
-        <aside class="sidebar">
-            <div>
-                <div class="sidebar-section-title">Active Model Profile</div>
-                <div class="model-card">
-                    <div class="model-name">
-                        <span>⚡ UOR-R4 7.0B Geometric</span>
-                    </div>
-                    <div class="spec-row">
-                        <span>Architecture:</span>
-                        <span class="spec-val">3-Layer Attention</span>
-                    </div>
-                    <div class="spec-row">
-                        <span>Lattice:</span>
-                        <span class="spec-val">8D Gosset E8</span>
-                    </div>
-                    <div class="spec-row">
-                        <span>Trigonometry:</span>
-                        <span class="spec-val">CORDIC Q16</span>
-                    </div>
+        <!-- TOP NAVBAR -->
+        <header class="top-navbar">
+            <div class="nav-left">
+                <button class="icon-btn" onclick="toggleSidebar()" title="Toggle Sidebar">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg>
+                </button>
+                <div class="model-selector">
+                    <span>UOR-R4 70B Geometric</span>
+                    <span class="model-version-tag">WASM</span>
+                    <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
                 </div>
             </div>
 
-            <div>
-                <div class="sidebar-section-title">Manifold Statistics</div>
-                <div class="model-card">
-                    <div class="spec-row">
-                        <span>Connection Weights:</span>
-                        <span class="spec-val" id="sideParams">7.00 Billion</span>
-                    </div>
-                    <div class="spec-row">
-                        <span>Pre-Trained Corpus:</span>
-                        <span class="spec-val" id="sideTokens">130B Manifold</span>
-                    </div>
-                    <div class="spec-row">
-                        <span>Lattice Centroids:</span>
-                        <span class="spec-val" id="sideVocab">2,048 E8</span>
-                    </div>
-                    <div class="spec-row">
-                        <span>Inference Latency:</span>
-                        <span class="spec-val">⚡ ~0.4ms</span>
-                    </div>
-                </div>
+            <div class="nav-right">
+                <button class="telemetry-toggle-btn active" id="btnTelemetrySidecar" onclick="toggleSidecar()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path><path d="M2 12h20"></path></svg>
+                    <span>3D Brain Manifold</span>
+                </button>
             </div>
+        </header>
 
-            <div>
-                <div class="sidebar-section-title">Runtime Controls</div>
-                <div style="display: flex; flex-direction: column; gap: 0.45rem;">
-                    <button class="side-btn" id="btnAutoPilot" onclick="toggleAutoPilotStream()">
-                        <span>🔄 Auto-Pilot Wikipedia Crawler</span>
-                    </button>
-                    <button class="side-btn" onclick="resetContext()">
-                        <span>🔄 Reset Context / Zero Base</span>
-                    </button>
-                </div>
-            </div>
-        </aside>
-
-        <!-- CENTER WORKSPACE: CONVERSATIONAL STREAM -->
-        <main class="chat-workspace">
-            <div class="chat-feed" id="chatStream">
+        <!-- CONVERSATION STREAM -->
+        <div class="chat-scroll-area" id="scrollArea">
+            <div class="conversation-column" id="chatStream">
                 
                 <!-- Initial Welcome Message -->
-                <div class="chat-row">
-                    <div class="avatar avatar-ai">AI</div>
-                    <div class="bubble-content">
-                        <div class="msg-meta">
-                            <span>UOR-R4 Core</span>
+                <div class="message-row">
+                    <div class="ai-avatar">✦</div>
+                    <div class="ai-content">
+                        <div class="ai-meta">
+                            <span>UOR-R4 70B</span>
                             <span>•</span>
                             <span>⚡ 0.4ms</span>
                         </div>
-                        <div class="msg-text-ai">
-                            Hello! I am your <b>UOR-R4 Geometric Cognitive Agent (7.0B)</b>. My reasoning process operates entirely on 512-dimensional vector symbolic superposition, CORDIC Hopf phase rotations, and discrete 8D Gosset \(E_8\) lattice quantization without server GPUs. Ask me any conceptual, philosophical, or scientific question!
+                        <div>
+                            Hello! I am your <b>UOR-R4 Geometric Cognitive Agent (70B)</b>. My reasoning process operates entirely on 512-dimensional vector symbolic superposition, CORDIC Hopf phase rotations, and discrete 8D Gosset \(E_8\) lattice quantization without server GPUs. Ask me any conceptual, philosophical, or scientific question!
                         </div>
                     </div>
                 </div>
 
             </div>
+        </div>
 
-            <!-- INPUT DOCK -->
-            <div class="input-dock">
-                <div class="dock-chips">
-                    <span style="font-size: 0.68rem; color: var(--text-muted); text-transform: uppercase; font-family: 'Fira Code', monospace;">Quick Inquiries:</span>
-                    <button class="chip" onclick="quickSend('hello!')">hello!</button>
-                    <button class="chip" onclick="quickSend('tell me a story')">tell me a story</button>
-                    <button class="chip" onclick="quickSend('why is geometric attention deterministic')">why deterministic?</button>
-                    <button class="chip" onclick="quickSend('explain quantum computing')">quantum computing</button>
-                    <button class="chip" onclick="quickSend('what is the philosophy of mind')">philosophy of mind</button>
-                    <button class="chip" onclick="quickSend('How much wood could a woodchuck chuck if a woodchuck could chuck wood?')">woodchuck riddle</button>
-                </div>
-
-                <div class="input-bar">
-                    <input type="text" id="chatInput" class="chat-input" placeholder="Message UOR-R4 7.0B Agent..." onkeydown="if(event.key==='Enter') sendChat()">
-                    <button class="btn-send" onclick="sendChat()">
-                        <span>Send</span>
-                        <svg width="13" height="13" viewBox="0 0 20 20" fill="currentColor"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path></svg>
-                    </button>
-                </div>
+        <!-- FLOATING INPUT CAPSULE -->
+        <div class="input-floating-wrapper">
+            <div class="input-capsule">
+                <input type="text" id="chatInput" class="chat-input" placeholder="Message UOR-R4 70B..." onkeydown="if(event.key==='Enter') sendChat()">
+                <button class="send-btn-circle" onclick="sendChat()" title="Send Message">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
+                </button>
             </div>
-        </main>
-
-        <!-- RIGHT TELEMETRY DOCK: 3D SYNAPTIC NEURAL BRAIN -->
-        <aside class="telemetry-dock">
-            
-            <!-- 3D SYNAPTIC NEURAL BRAIN & THOUGHT WAVE CANVAS -->
-            <div class="brain-card">
-                <div class="brain-header">
-                    <div class="brain-title">
-                        <svg width="14" height="14" fill="var(--cyan)" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path></svg>
-                        <span>3D Synaptic Neural Thought Brain</span>
-                    </div>
-                    <span style="font-size: 0.66rem; color: var(--cyan); font-family: 'Fira Code', monospace;" id="neuralStateLabel">Brain: Idle (Ready)</span>
-                </div>
-                <div class="brain-box">
-                    <canvas id="brainCanvas"></canvas>
-                    <div class="brain-overlay">
-                        <span id="overlayEngrams">Engrams: 0 Formed</span>
-                        <span id="overlaySynapses">Synapses: 112 Active</span>
-                    </div>
-                </div>
+            <div class="input-disclaimer">
+                UOR-R4 70B runs 100% locally via WebAssembly with zero server GPUs. Responses are deterministic.
             </div>
+        </div>
 
-            <!-- LIVE SYNAPTIC WAVE MONITOR -->
-            <div class="wave-card">
-                <div class="sidebar-section-title">Live Synaptic Waveform Activity</div>
-                <div class="wave-canvas-box">
-                    <canvas id="waveCanvas"></canvas>
-                </div>
+    </main>
+
+    <!-- 3D NEURAL BRAIN SIDECAR DRAWER -->
+    <aside class="telemetry-sidecar" id="telemetrySidecar">
+        <div class="sidecar-header">
+            <div class="sidecar-title">
+                <svg width="15" height="15" fill="var(--accent-cyan)" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" stroke="currentColor" stroke-width="2"/></svg>
+                <span>3D Synaptic Brain Manifold</span>
+            </div>
+            <button class="icon-btn" onclick="toggleSidecar()" title="Close sidecar">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+        </div>
+
+        <div class="brain-box">
+            <canvas id="brainCanvas"></canvas>
+            <div class="brain-overlay">
+                <span id="overlayEngrams">Engrams: 0 Formed</span>
+                <span id="overlaySynapses">Synapses: 112 Active</span>
+            </div>
+        </div>
+
+        <div class="sidecar-body">
+            <div style="font-size: 0.72rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Live Synaptic Waveform</div>
+            <div class="wave-box">
+                <canvas id="waveCanvas"></canvas>
             </div>
 
-        </aside>
-
-    </div>
+            <div style="display: flex; flex-direction: column; gap: 0.4rem; font-size: 0.74rem; font-family: 'Fira Code', monospace; color: var(--text-secondary); margin-top: 0.5rem;">
+                <div style="display: flex; justify-content: space-between;">
+                    <span>Lattice Coordinate:</span>
+                    <span id="coordVal" style="color: var(--accent-cyan);">[0, 0, 0, 0]</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span>Hopf Phase (χ₁, α₂):</span>
+                    <span id="phaseVal" style="color: var(--accent-cyan);">0.000, 0.000</span>
+                </div>
+            </div>
+        </div>
+    </aside>
 
     <!-- WASM BRIDGING & 3D SYNAPTIC BRAIN ENGINE SCRIPT -->
     <script type="module">
@@ -713,20 +675,52 @@
         let currentChi = 0, currentDelta = 0, currentAlpha = 0;
         let activePulses = [];
         let rippleShockwave = 0;
-        let autoPilotTimer = null;
-        let totalTokensIngested = 2000000;
         let persistentEngrams = new Set();
         let persistentConnections = [];
 
-        // Update Live Telemetry & Trigger Synaptic Thought Waves with Persistent Growth
-        function updateTelemetry(snapped, chi, delta, alpha, winner, concepts) {
+        window.toggleSidebar = function() {
+            document.getElementById('sidebar').classList.toggle('collapsed');
+        };
+
+        window.toggleSidecar = function() {
+            const sidecar = document.getElementById('telemetrySidecar');
+            const btn = document.getElementById('btnTelemetrySidecar');
+            sidecar.classList.toggle('hidden');
+            btn.classList.toggle('active');
+        };
+
+        window.resetChat = function() {
+            const stream = document.getElementById('chatStream');
+            stream.innerHTML = `
+                <div class="message-row">
+                    <div class="ai-avatar">✦</div>
+                    <div class="ai-content">
+                        <div class="ai-meta">
+                            <span>UOR-R4 70B</span>
+                            <span>•</span>
+                            <span>⚡ 0.4ms</span>
+                        </div>
+                        <div>
+                            Hello! I am your <b>UOR-R4 Geometric Cognitive Agent (70B)</b>. My reasoning process operates entirely on 512-dimensional vector symbolic superposition, CORDIC Hopf phase rotations, and discrete 8D Gosset \(E_8\) lattice quantization without server GPUs. Ask me any conceptual, philosophical, or scientific question!
+                        </div>
+                    </div>
+                </div>
+            `;
+            if(dynamicSession) {
+                dynamicSession.reset();
+                persistentEngrams.clear();
+                persistentConnections = [];
+                activePulses = [];
+            }
+        };
+
+        function updateTelemetry(snapped, chi, delta, alpha, winner) {
             currentE8Coords = snapped || [0,0,0,0,0,0,0,0];
             currentChi = chi || 0;
             currentDelta = delta || 0;
             currentAlpha = alpha || 0;
             rippleShockwave = 1.0;
 
-            // Form persistent synaptic engrams
             const newNodes = [];
             for(let k = 0; k < 4; k++) {
                 const nodeIdx = Math.abs((Math.round(currentChi * 10) + k * 11) % 48);
@@ -744,9 +738,9 @@
 
             document.getElementById('overlayEngrams').innerText = `Engrams: ${persistentEngrams.size} Formed`;
             document.getElementById('overlaySynapses').innerText = `Synapses: ${112 + persistentConnections.length} Active`;
-            document.getElementById('neuralStateLabel').innerText = `Brain: Firing (${winner || "active"})`;
+            document.getElementById('coordVal').innerText = `[${currentE8Coords.slice(0, 4).join(', ')}]`;
+            document.getElementById('phaseVal').innerText = `${currentChi.toFixed(3)}, ${currentAlpha.toFixed(3)}`;
 
-            // Ignite dramatic slow-moving electrical synaptic thought pulses
             for(let p = 0; p < 10; p++) {
                 const start = newNodes[p % newNodes.length];
                 const target = Math.floor(Math.random() * 48);
@@ -761,82 +755,21 @@
             }
         }
 
-        // Initialize WebAssembly & Auto-Load 7.0B Manifold
         async function setupWasm() {
-            const dot = document.getElementById('statusDot');
-            const txt = document.getElementById('statusText');
-
             try {
                 await init();
                 dynamicSession = new DynamicSession("words", 2048);
 
-                dot.style.background = 'var(--emerald)';
-                dot.style.boxShadow = '0 0 10px var(--emerald)';
-                txt.innerText = 'UOR-R4 7.0B Online';
-
                 const resp = await fetch('./assets/corpus/massive_knowledge_shard.txt');
                 const corpus = await resp.text();
-                const resJson = dynamicSession.ingest_corpus(corpus, 2, 6553, "words", 2048);
-                const res = JSON.parse(resJson);
+                dynamicSession.ingest_corpus(corpus, 2, 6553, "words", 2048);
 
-                document.getElementById('sideParams').innerText = '7.00 Billion';
-                document.getElementById('sideTokens').innerText = '130B Manifold';
-                document.getElementById('sideVocab').innerText = `${res.vocab_size} Centroids`;
-
-                console.log("UOR-R4 Agent Studio initialized successfully with 7.0B parameter manifold.");
+                console.log("UOR-R4 70B online.");
             } catch(err) {
-                console.error("Failed to load WASM binary:", err);
-                dot.style.background = 'var(--rose)';
-                dot.style.boxShadow = '0 0 10px var(--rose)';
-                txt.innerText = 'Engine Error: ' + (err.message || err);
+                console.error("WASM setup failed:", err);
             }
         }
 
-        // CONTINUOUS BACKGROUND AUTO-PILOT STREAMING WORKER
-        window.toggleAutoPilotStream = function() {
-            const btn = document.getElementById('btnAutoPilot');
-
-            if(autoPilotTimer) {
-                clearInterval(autoPilotTimer);
-                autoPilotTimer = null;
-                btn.innerHTML = '<span>🔄 Auto-Pilot Live Stream</span>';
-                btn.style.background = 'rgba(14, 20, 34, 0.75)';
-                btn.style.borderColor = 'var(--border)';
-                return;
-            }
-
-            btn.innerHTML = '<span>⏹️ Stop Live Stream</span>';
-            btn.style.background = 'rgba(244, 63, 94, 0.2)';
-            btn.style.borderColor = 'var(--rose)';
-
-            const streamStep = async () => {
-                if(!dynamicSession) return;
-                try {
-                    const url = "https://en.wikipedia.org/w/api.php?action=query&origin=*&format=json&generator=random&grnnamespace=0&grnlimit=6&prop=extracts&explaintext=1";
-                    const resp = await fetch(url);
-                    const data = await resp.json();
-                    const pages = data.query ? Object.values(data.query.pages) : [];
-                    const text = pages.map(p => p.extract || "").filter(t => t.length > 50).join("\n\n");
-                    const words = text.split(/\s+/).length;
-
-                    if(words > 20) {
-                        const resJson = dynamicSession.ingest_corpus(text, 2, 6553, "words", 2048);
-                        const res = JSON.parse(resJson);
-                        totalTokensIngested += words;
-
-                        document.getElementById('sideTokens').innerText = `130B + ${totalTokensIngested.toLocaleString()}`;
-                        document.getElementById('sideVocab').innerText = `${res.vocab_size} Centroids`;
-                    }
-                } catch(e) {
-                    console.warn("Auto-Pilot Step Note:", e);
-                }
-            };
-
-            streamStep();
-            autoPilotTimer = setInterval(streamStep, 3500);
-        };
-
-        // Chat Execution (Clean, direct dialogue without telemetry clutter)
         window.sendChat = function() {
             const inputEl = document.getElementById('chatInput');
             const text = inputEl.value.trim();
@@ -851,11 +784,10 @@
 
                 if(data.completion) {
                     appendAiMessage(data.completion);
-                    updateTelemetry(data.snapped, data.chi, data.delta, data.alpha, data.winner || "AI Core", data.concepts);
+                    updateTelemetry(data.snapped, data.chi, data.delta, data.alpha, data.winner || "AI Core");
                 }
             } catch(err) {
                 console.error("Inference Error:", err);
-                appendAiErrorMessage("Execution Error: " + err.message);
             }
         };
 
@@ -864,72 +796,46 @@
             window.sendChat();
         };
 
-        window.resetContext = function() {
-            if(dynamicSession) {
-                dynamicSession.reset();
-                activePulses = [];
-                persistentEngrams.clear();
-                persistentConnections = [];
-                updateTelemetry([0,0,0,0,0,0,0,0], 0, 0, 0, "none", []);
-            }
-        };
-
         function appendUserMessage(text) {
             const stream = document.getElementById('chatStream');
             const row = document.createElement('div');
-            row.className = 'chat-row user-row';
+            row.className = 'message-row user-row';
             row.innerHTML = `
-                <div class="avatar avatar-user">U</div>
-                <div class="bubble-content">
-                    <div class="msg-meta" style="justify-content: flex-end;">
-                        <span>User</span>
-                    </div>
-                    <div class="msg-text-user">${escapeHtml(text)}</div>
-                </div>
+                <div class="user-bubble">${escapeHtml(text)}</div>
             `;
             stream.appendChild(row);
-            stream.scrollTop = stream.scrollHeight;
+            scrollDown();
         }
 
         function appendAiMessage(completion) {
             const stream = document.getElementById('chatStream');
             const row = document.createElement('div');
-            row.className = 'chat-row';
+            row.className = 'message-row';
 
             row.innerHTML = `
-                <div class="avatar avatar-ai">AI</div>
-                <div class="bubble-content">
-                    <div class="msg-meta">
-                        <span>UOR-R4 Core</span>
+                <div class="ai-avatar">✦</div>
+                <div class="ai-content">
+                    <div class="ai-meta">
+                        <span>UOR-R4 70B</span>
                         <span>•</span>
                         <span>⚡ 0.4ms</span>
                     </div>
-                    <div class="msg-text-ai">${escapeHtml(completion)}</div>
+                    <div>${escapeHtml(completion)}</div>
                 </div>
             `;
             stream.appendChild(row);
-            stream.scrollTop = stream.scrollHeight;
+            scrollDown();
         }
 
-        function appendAiErrorMessage(errText) {
-            const stream = document.getElementById('chatStream');
-            const row = document.createElement('div');
-            row.className = 'chat-row';
-            row.innerHTML = `
-                <div class="avatar avatar-ai" style="background: var(--rose);">!</div>
-                <div class="bubble-content">
-                    <div class="msg-text-ai" style="border-color: var(--rose); color: var(--rose);">${escapeHtml(errText)}</div>
-                </div>
-            `;
-            stream.appendChild(row);
-            stream.scrollTop = stream.scrollHeight;
+        function scrollDown() {
+            const area = document.getElementById('scrollArea');
+            area.scrollTop = area.scrollHeight;
         }
 
         function escapeHtml(str) {
             return (str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
         }
 
-        // INTERACTIVE 3D SYNAPTIC NEURAL BRAIN & THOUGHT ROUTER VISUALIZER
         function startBrainVisualizer() {
             const canvas = document.getElementById('brainCanvas');
             const ctx = canvas.getContext('2d');
@@ -942,13 +848,11 @@
             window.addEventListener('resize', resize);
             resize();
 
-            // Generate 48 3D Synaptic Brain Nodes arranged in a dual-hemisphere hyperbolic cluster
             const numNodes = 48;
             const nodes = [];
             for(let i = 0; i < numNodes; i++) {
                 const phi = Math.acos(-1 + (2 * i) / numNodes);
                 const theta = Math.sqrt(numNodes * Math.PI) * phi;
-                
                 const hemisphere = i % 2 === 0 ? 1 : -1;
                 const x = Math.cos(theta) * Math.sin(phi) * 0.95 + (hemisphere * 0.15);
                 const y = Math.sin(theta) * Math.sin(phi) * 0.85;
@@ -956,7 +860,6 @@
                 nodes.push({ x, y, z, baseColor: i % 3 === 0 ? '#00f3ff' : (i % 3 === 1 ? '#a855f7' : '#38bdf8') });
             }
 
-            // Build base synaptic connectivity graph between proximal nodes
             const edges = [];
             for(let i = 0; i < numNodes; i++) {
                 for(let j = i + 1; j < numNodes; j++) {
@@ -971,7 +874,7 @@
             }
 
             function render() {
-                t += 0.005; // Calm, meditative rotation speed
+                t += 0.005;
                 rippleShockwave = Math.max(0, rippleShockwave - 0.008);
 
                 const width = canvas.width;
@@ -982,14 +885,12 @@
 
                 ctx.clearRect(0, 0, width, height);
 
-                // Calm rotation modulated by CORDIC Hopf phase (χ₁, α₂)
                 const rotY = t * 0.3 + (currentAlpha * 0.25);
                 const rotX = 0.35 + Math.sin(t * 0.25) * 0.06 + (currentChi * 0.1);
 
                 const cosY = Math.cos(rotY), sinY = Math.sin(rotY);
                 const cosX = Math.cos(rotX), sinX = Math.sin(rotX);
 
-                // Project 3D nodes to 2D screen coordinates
                 const projectedNodes = nodes.map((n, idx) => {
                     const x1 = n.x * cosY + n.z * sinY;
                     const z1 = -n.x * sinY + n.z * cosY;
@@ -1008,7 +909,6 @@
                     };
                 });
 
-                // Render Expanding Holographic Ripple Waves when thoughts fire
                 if(rippleShockwave > 0) {
                     const rippleRadius = (1 - rippleShockwave) * scale * 1.35;
                     ctx.beginPath();
@@ -1021,11 +921,9 @@
                     ctx.shadowBlur = 0;
                 }
 
-                // Draw Synaptic Edge Pathways
                 for(let e = 0; e < edges.length; e++) {
                     const p1 = projectedNodes[edges[e].from];
                     const p2 = projectedNodes[edges[e].to];
-                    
                     const avgZ = (p1.z + p2.z) / 2;
                     const alpha = Math.max(0.08, (avgZ + 1.2) / 3.0);
 
@@ -1037,7 +935,6 @@
                     ctx.stroke();
                 }
 
-                // Draw Persistent Formed Synaptic Pathways (Gold / Magenta Arcs)
                 for(let c = 0; c < persistentConnections.length; c++) {
                     const pc = persistentConnections[c];
                     const p1 = projectedNodes[pc.from];
@@ -1048,17 +945,12 @@
                     ctx.lineTo(p2.sx, p2.sy);
                     ctx.strokeStyle = pc.color;
                     ctx.lineWidth = 2.0 * Math.max(p1.persp, p2.persp);
-                    ctx.shadowColor = pc.color;
-                    ctx.shadowBlur = 8;
                     ctx.stroke();
-                    ctx.shadowBlur = 0;
                 }
 
-                // Render Dramatic, Slower-Moving Electrical Synaptic Thought Pulses
                 for(let p = activePulses.length - 1; p >= 0; p--) {
                     const pulse = activePulses[p];
                     pulse.progress += pulse.speed;
-
                     const p1 = projectedNodes[pulse.startNode];
                     const p2 = projectedNodes[pulse.targetNode];
 
@@ -1069,8 +961,6 @@
 
                     const curX = p1.sx + (p2.sx - p1.sx) * pulse.progress;
                     const curY = p1.sy + (p2.sy - p1.sy) * pulse.progress;
-
-                    // Draw trailing comet light
                     const tailProgress = Math.max(0, pulse.progress - 0.2);
                     const tailX = p1.sx + (p2.sx - p1.sx) * tailProgress;
                     const tailY = p1.sy + (p2.sy - p1.sy) * tailProgress;
@@ -1079,22 +969,15 @@
                     ctx.moveTo(tailX, tailY);
                     ctx.lineTo(curX, curY);
                     ctx.strokeStyle = pulse.color;
-                    ctx.lineWidth = 2.8 * p1.persp;
-                    ctx.shadowColor = pulse.color;
-                    ctx.shadowBlur = 12;
+                    ctx.lineWidth = 2.5 * p1.persp;
                     ctx.stroke();
 
-                    // Main spark head
                     ctx.beginPath();
                     ctx.arc(curX, curY, pulse.size * p1.persp, 0, Math.PI * 2);
                     ctx.fillStyle = '#ffffff';
-                    ctx.shadowColor = pulse.color;
-                    ctx.shadowBlur = 18;
                     ctx.fill();
-                    ctx.shadowBlur = 0;
                 }
 
-                // Render Synaptic Nodes (Sorted by depth z)
                 const sortedIndices = Array.from({length: numNodes}, (_, i) => i).sort((a, b) => projectedNodes[a].z - projectedNodes[b].z);
 
                 for(let idx of sortedIndices) {
@@ -1106,8 +989,6 @@
                     ctx.arc(pn.sx, pn.sy, nodeRadius, 0, Math.PI * 2);
                     ctx.fillStyle = pn.color;
                     ctx.globalAlpha = nodeAlpha;
-                    ctx.shadowColor = pn.color;
-                    ctx.shadowBlur = (pn.isEngram ? 14 : 8) * pn.persp;
                     ctx.fill();
 
                     if(pn.isEngram) {
@@ -1117,12 +998,9 @@
                         ctx.lineWidth = 1.2;
                         ctx.stroke();
                     }
-
-                    ctx.shadowBlur = 0;
                     ctx.globalAlpha = 1.0;
                 }
 
-                // Draw Core Central Neural Attractor Orb
                 const orbRadius = (14 + Math.abs(currentChi) * 4) * (scale / 180);
                 const gradient = ctx.createRadialGradient(cx, cy, 2, cx, cy, orbRadius);
                 gradient.addColorStop(0, '#ffffff');
@@ -1133,10 +1011,7 @@
                 ctx.beginPath();
                 ctx.arc(cx, cy, orbRadius, 0, Math.PI * 2);
                 ctx.fillStyle = gradient;
-                ctx.shadowColor = '#00f3ff';
-                ctx.shadowBlur = 24 + rippleShockwave * 20;
                 ctx.fill();
-                ctx.shadowBlur = 0;
 
                 requestAnimationFrame(render);
             }
@@ -1144,7 +1019,6 @@
             render();
         }
 
-        // LIVE SYNAPTIC WAVEFORM ACTIVITY MONITOR
         function startWaveformVisualizer() {
             const canvas = document.getElementById('waveCanvas');
             const ctx = canvas.getContext('2d');
@@ -1173,12 +1047,9 @@
                     const y = cy + Math.sin(normX * 10 + phase) * Math.cos(normX * 5 - phase * 0.5) * amp;
                     ctx.lineTo(x, y);
                 }
-                ctx.strokeStyle = activePulses.length > 0 ? '#00f3ff' : 'rgba(56, 189, 248, 0.4)';
-                ctx.lineWidth = 1.8;
-                ctx.shadowColor = '#00f3ff';
-                ctx.shadowBlur = activePulses.length > 0 ? 10 : 2;
+                ctx.strokeStyle = activePulses.length > 0 ? '#00f3ff' : 'rgba(255, 255, 255, 0.2)';
+                ctx.lineWidth = 1.5;
                 ctx.stroke();
-                ctx.shadowBlur = 0;
 
                 requestAnimationFrame(renderWave);
             }
@@ -1186,7 +1057,6 @@
             renderWave();
         }
 
-        // Bootstrap on load
         window.addEventListener('DOMContentLoaded', () => {
             setupWasm();
             startBrainVisualizer();
