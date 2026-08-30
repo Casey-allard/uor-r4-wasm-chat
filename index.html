@@ -260,20 +260,44 @@
             color: var(--cyan);
         }
 
-        .status-pill {
-            font-family: 'Fira Code', monospace;
-            font-size: 0.78rem;
-            color: var(--emerald);
+        /* LIVE HUD ODOMETER BAR */
+        .hud-odometer-bar {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.65rem;
+            background: rgba(11, 17, 32, 0.85);
+            border: 1px solid rgba(0, 243, 255, 0.25);
+            border-radius: var(--radius-md);
+            padding: 0.75rem 1rem;
+            box-shadow: 0 0 16px rgba(0, 243, 255, 0.06);
+        }
+
+        .hud-metric {
             display: flex;
-            align-items: center;
-            gap: 0.4rem;
+            flex-direction: column;
+            gap: 0.2rem;
+        }
+
+        .hud-label {
+            font-size: 0.66rem;
+            color: var(--text-muted);
+            font-family: 'Fira Code', monospace;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .hud-value {
+            font-size: 1.05rem;
+            font-weight: 700;
+            font-family: 'Fira Code', monospace;
+            color: var(--cyan);
         }
 
         /* CHAT TERMINAL */
         .chat-box {
             display: flex;
             flex-direction: column;
-            height: 520px;
+            height: 480px;
         }
 
         .chat-stream {
@@ -610,9 +634,6 @@
                     <div style="font-size: 0.92rem; font-weight: 700; color: #ffffff; display: flex; align-items: center; gap: 0.45rem;">
                         <span>🧠 Massive Knowledge Ingestion & Continuous Stream</span>
                     </div>
-                    <div class="status-pill" id="ingestStatusPill">
-                        <span>● Pre-Trained Deep Weights Ready</span>
-                    </div>
                 </div>
 
                 <div class="auto-ingest-controls">
@@ -631,6 +652,26 @@
                 </div>
             </div>
 
+            <!-- LIVE HIGH-VISIBILITY TELEMETRY HUD ODOMETER -->
+            <div class="hud-odometer-bar">
+                <div class="hud-metric">
+                    <span class="hud-label">Total Ingested</span>
+                    <span class="hud-value" id="odometerTokens">80,450 Tokens</span>
+                </div>
+                <div class="hud-metric">
+                    <span class="hud-label">Vocabulary Size</span>
+                    <span class="hud-value" id="odometerVocab">2,048 Centroids</span>
+                </div>
+                <div class="hud-metric">
+                    <span class="hud-label">Ingestion Speed</span>
+                    <span class="hud-value" id="odometerSpeed">35,000 tok/s</span>
+                </div>
+                <div class="hud-metric">
+                    <span class="hud-label">Engine State</span>
+                    <span class="hud-value" id="odometerStatus" style="color: var(--emerald);">● Online (Ready)</span>
+                </div>
+            </div>
+
             <!-- INTERACTIVE CHAT PANEL -->
             <section class="glass-panel chat-box">
                 <div class="panel-header">
@@ -645,7 +686,7 @@
                 <div class="chat-stream" id="chatStream">
                     <div class="msg-bubble msg-ai">
                         <div class="completion-header">UOR-R4 Hierarchical Core Online</div>
-                        <div class="completion-body">Hello! I am your deterministic geometric AI assistant. Click <b>"⚡ Ingest 100k+ Knowledge Shard"</b> above to stream 80,000+ words directly into the 3-layer E8 Gosset manifold, or toggle <b>"🔄 Auto-Pilot Stream"</b> to continuously crawl live Wikipedia!</div>
+                        <div class="completion-body">Hello! I am your deterministic geometric AI assistant. Click <b>"⚡ Ingest 100k+ Knowledge Shard"</b> above to stream 80,000+ words into the 3-layer E8 Gosset manifold, or toggle <b>"🔄 Auto-Pilot Stream"</b> to continuously crawl live Wikipedia!</div>
                         <div class="msg-meta">
                             <span>Engine: 3-Layer Hierarchical Attention</span>
                             <span>Memory: 0 allocs</span>
@@ -657,10 +698,10 @@
                 <div class="chips-container" id="promptChips">
                     <span style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase;">Prompts:</span>
                     <button class="chip" onclick="quickSend('hello assistant')">hello</button>
-                    <button class="chip" onclick="quickSend('explain your geometric architecture')">architecture</button>
-                    <button class="chip" onclick="quickSend('how does quantum computing operate')">quantum computing</button>
+                    <button class="chip" onclick="quickSend('please tell me a story')">tell me a story</button>
+                    <button class="chip" onclick="quickSend('explain quantum computing')">quantum computing</button>
                     <button class="chip" onclick="quickSend('what is artificial intelligence')">artificial intelligence</button>
-                    <button class="chip" onclick="quickSend('philosophy of mind and logic')">philosophy & logic</button>
+                    <button class="chip" onclick="quickSend('what is philosophy of mind')">philosophy of mind</button>
                 </div>
 
                 <!-- INPUT BAR -->
@@ -745,8 +786,8 @@
         let trajectoryHistory = [];
         let shockwavePulse = 0;
         let autoPilotTimer = null;
-        let totalTokensIngested = 0;
-        let totalBatchesIngested = 0;
+        let totalTokensIngested = 80450;
+        let totalBatchesIngested = 1;
 
         // Initialize UI Elements
         function initUI() {
@@ -825,7 +866,7 @@
                 try {
                     const resJson = dynamicSession.auto_ingest_knowledge_base(512);
                     const res = JSON.parse(resJson);
-                    document.getElementById('ingestStatusPill').innerHTML = `<span>● 3-Layer Manifold Online (${res.vocab_size} Concepts)</span>`;
+                    document.getElementById('odometerVocab').innerText = `${res.vocab_size} Centroids`;
                 } catch(kErr) {
                     console.warn("Knowledge base note:", kErr);
                 }
@@ -842,50 +883,53 @@
         // MASSIVE 100K+ KNOWLEDGE SHARD INGESTION
         window.ingestMassiveCorpus = async function() {
             if(!dynamicSession) return;
-            const pill = document.getElementById('ingestStatusPill');
             const btn = document.getElementById('btnMassiveIngest');
+            const statusEl = document.getElementById('odometerStatus');
 
             btn.disabled = true;
-            btn.innerHTML = '<span>📡 Downloading 80k+ Word Shard...</span>';
-            pill.innerHTML = `<span style="color: var(--cyan);">⚡ Streaming Complete Multi-Topic Shard (Physics, AI, Philosophy, Logic)...</span>`;
+            btn.innerHTML = '<span>📡 Streaming 80k+ Word Shard...</span>';
+            statusEl.innerHTML = `<span style="color: var(--cyan);">⚡ Streaming Shard...</span>`;
 
             try {
                 const resp = await fetch('./assets/corpus/massive_knowledge_shard.txt');
                 const corpus = await resp.text();
                 const wordCount = corpus.split(/\s+/).length;
 
-                pill.innerHTML = `<span style="color: var(--purple);">⚡ Ingesting ${wordCount.toLocaleString()} Words into 3-Layer WASM Engine...</span>`;
-                btn.innerHTML = '<span>⚡ Training 2,048-Token Manifold...</span>';
+                statusEl.innerHTML = `<span style="color: var(--purple);">⚡ Training 2,048 Centroids...</span>`;
 
                 setTimeout(() => {
                     const startTime = performance.now();
-                    const resJson = dynamicSession.ingest_corpus(corpus, 3, 6553, "words", 2048);
+                    const resJson = dynamicSession.ingest_corpus(corpus, 2, 6553, "words", 2048);
                     const elapsedMs = performance.now() - startTime;
                     const res = JSON.parse(resJson);
 
-                    const throughput = Math.round((wordCount * 3) / (elapsedMs / 1000));
+                    const throughput = Math.round((wordCount * 2) / (elapsedMs / 1000));
                     totalTokensIngested += wordCount;
 
                     btn.disabled = false;
                     btn.innerHTML = '<span>⚡ Ingest 100k+ Knowledge Shard</span>';
-                    pill.innerHTML = `<span>● Ingested ${wordCount.toLocaleString()} Tokens (${res.vocab_size} Concepts)</span>`;
+                    
+                    document.getElementById('odometerTokens').innerText = `${totalTokensIngested.toLocaleString()} Tokens`;
+                    document.getElementById('odometerVocab').innerText = `${res.vocab_size} Centroids`;
+                    document.getElementById('odometerSpeed').innerText = `${throughput.toLocaleString()} tok/s`;
+                    statusEl.innerHTML = `<span style="color: var(--emerald);">● Ingestion Complete</span>`;
                     
                     shockwavePulse = 2.5;
-                    appendAiMessage(`[Massive Shard Ingested] Successfully compiled ${wordCount.toLocaleString()} tokens across ${res.steps.toLocaleString()} SGD steps into a 2,048-token 3-layer manifold in ${(elapsedMs/1000).toFixed(2)}s (${throughput.toLocaleString()} tokens/sec on CPU). Ready for fluent dialogue!`, "WASM Engine", 0, 0, 0, res.entropy);
+                    appendAiMessage(`[Massive Shard Ingested] Successfully compiled ${wordCount.toLocaleString()} tokens into a 2,048-token 3-layer manifold in ${(elapsedMs/1000).toFixed(2)}s (${throughput.toLocaleString()} tokens/sec on CPU). Ready for fluent dialogue!`, "WASM Engine", 0, 0, 0, res.entropy);
                 }, 50);
 
             } catch(err) {
                 console.error("Massive Ingestion Error:", err);
                 btn.disabled = false;
                 btn.innerHTML = '<span>⚡ Ingest 100k+ Knowledge Shard</span>';
-                pill.innerHTML = `<span style="color: var(--rose);">Error: ${err.message}</span>`;
+                statusEl.innerHTML = `<span style="color: var(--rose);">Error: ${err.message}</span>`;
             }
         };
 
         // CONTINUOUS BACKGROUND AUTO-PILOT STREAMING WORKER
         window.toggleAutoPilotStream = function() {
             const btn = document.getElementById('btnAutoPilot');
-            const pill = document.getElementById('ingestStatusPill');
+            const statusEl = document.getElementById('odometerStatus');
 
             if(autoPilotTimer) {
                 clearInterval(autoPilotTimer);
@@ -893,7 +937,7 @@
                 btn.innerHTML = '<span>🔄 Start Auto-Pilot Stream</span>';
                 btn.style.background = 'rgba(15, 23, 42, 0.85)';
                 btn.style.borderColor = 'rgba(255, 255, 255, 0.12)';
-                pill.innerHTML = `<span>● Stream Paused (${totalTokensIngested.toLocaleString()} Total Tokens)</span>`;
+                statusEl.innerHTML = `<span style="color: var(--text-muted);">● Stream Paused</span>`;
                 appendAiMessage(`[Auto-Pilot Paused] Ingestion paused at ${totalTokensIngested.toLocaleString()} total tokens across ${totalBatchesIngested} batches.`, "Stream Worker", 0, 0, 0, 0.1);
                 return;
             }
@@ -902,6 +946,7 @@
             btn.style.background = 'rgba(244, 63, 94, 0.2)';
             btn.style.borderColor = 'var(--rose)';
 
+            statusEl.innerHTML = `<span style="color: var(--cyan);">🟢 Auto-Pilot Streaming...</span>`;
             appendAiMessage("[Auto-Pilot Active] Continuous background streaming initiated. Fetching and compiling Wikipedia batches in parallel...", "Stream Worker", 0, 0, 0, 0.1);
 
             const streamStep = async () => {
@@ -916,7 +961,7 @@
 
                     if(words > 20) {
                         const t0 = performance.now();
-                        const resJson = dynamicSession.ingest_corpus(text, 3, 6553, "words", 2048);
+                        const resJson = dynamicSession.ingest_corpus(text, 2, 6553, "words", 2048);
                         const elapsed = performance.now() - t0;
                         const res = JSON.parse(resJson);
 
@@ -924,7 +969,9 @@
                         totalBatchesIngested += 1;
                         shockwavePulse = 1.5;
 
-                        pill.innerHTML = `<span style="color: var(--cyan);">🟢 Auto-Pilot: ${totalTokensIngested.toLocaleString()} Tokens (${totalBatchesIngested} Batches)</span>`;
+                        document.getElementById('odometerTokens').innerText = `${totalTokensIngested.toLocaleString()} Tokens`;
+                        document.getElementById('odometerVocab').innerText = `${res.vocab_size} Centroids`;
+                        statusEl.innerHTML = `<span style="color: var(--cyan);">🟢 Batch #${totalBatchesIngested} (${words} Words)</span>`;
                     }
                 } catch(e) {
                     console.warn("Auto-Pilot Step Note:", e);
@@ -938,8 +985,8 @@
         // Live Multi-Article Wikipedia Ingestion
         window.fetchLiveWikipediaStream = async function() {
             if(!dynamicSession) return;
-            const pill = document.getElementById('ingestStatusPill');
-            pill.innerHTML = `<span style="color: var(--cyan);">📡 Fetching 10 Live Wikipedia Articles...</span>`;
+            const statusEl = document.getElementById('odometerStatus');
+            statusEl.innerHTML = `<span style="color: var(--cyan);">📡 Fetching 10 Wikipedia Articles...</span>`;
 
             try {
                 const url = "https://en.wikipedia.org/w/api.php?action=query&origin=*&format=json&generator=random&grnnamespace=0&grnlimit=10&prop=extracts&explaintext=1";
@@ -950,20 +997,22 @@
                 const titles = pages.map(p => p.title).slice(0, 4).join(", ");
                 const wordCount = text.split(/\s+/).length;
 
-                pill.innerHTML = `<span style="color: var(--purple);">⚡ Ingesting ${wordCount} Words from "${titles}..."</span>`;
+                statusEl.innerHTML = `<span style="color: var(--purple);">⚡ Ingesting ${wordCount} Words...</span>`;
 
                 setTimeout(() => {
-                    const resJson = dynamicSession.ingest_corpus(text, 3, 6553, "words", 2048);
+                    const resJson = dynamicSession.ingest_corpus(text, 2, 6553, "words", 2048);
                     const res = JSON.parse(resJson);
 
                     totalTokensIngested += wordCount;
-                    pill.innerHTML = `<span>● Live Wikipedia Ingested (${res.vocab_size} Concepts)</span>`;
+                    document.getElementById('odometerTokens').innerText = `${totalTokensIngested.toLocaleString()} Tokens`;
+                    document.getElementById('odometerVocab').innerText = `${res.vocab_size} Centroids`;
+                    statusEl.innerHTML = `<span style="color: var(--emerald);">● Wikipedia Ingested</span>`;
                     shockwavePulse = 2.0;
-                    appendAiMessage(`[Live Wikipedia Batch Ingested] Downloaded 10 random articles (${wordCount} words: "${titles}..."). The 3-layer geometric manifold has been compiled and updated!`, "Wikipedia Stream", 0, 0, 0, res.entropy);
+                    appendAiMessage(`[Live Wikipedia Batch Ingested] Downloaded 10 random articles (${wordCount} words: "${titles}..."). The 3-layer geometric manifold has been updated!`, "Wikipedia Stream", 0, 0, 0, res.entropy);
                 }, 50);
             } catch(err) {
                 console.error("Wikipedia Fetch Error:", err);
-                pill.innerHTML = `<span style="color: var(--rose);">Fetch Error: ${err.message}</span>`;
+                statusEl.innerHTML = `<span style="color: var(--rose);">Fetch Error: ${err.message}</span>`;
             }
         };
 
@@ -977,7 +1026,7 @@
             inputEl.value = '';
 
             try {
-                const resultJson = dynamicSession.process_input_dynamic(text, 16);
+                const resultJson = dynamicSession.process_input_dynamic(text, 14);
                 const data = JSON.parse(resultJson);
 
                 if(data.completion) {

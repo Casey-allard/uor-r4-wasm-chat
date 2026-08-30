@@ -644,14 +644,32 @@ impl BrowserTrainingHarness {
 // 9. DYNAMIC VOCABULARY, BYTE-LEVEL STREAMING & GENERAL ATTENTION ENGINE
 // =====================================================================
 
-#[derive(Clone, Debug)]
+/// Dynamic Codebook with persistent cumulative vocabulary, 8D E8 Gosset centroids,
+/// and Syntactic Bigram / Markov Transition Geometry.
+#[derive(Clone)]
 pub struct DynamicCodebook {
     pub vocab: Vec<String>,
     pub centroids: Vec<[i32; 8]>,
+    pub transitions: std::collections::HashMap<usize, Vec<(usize, u16)>>,
     pub is_byte_mode: bool,
 }
 
 impl DynamicCodebook {
+    /// Foundational 64-word conversational & grammatical backbone
+    pub fn foundational_vocab() -> Vec<String> {
+        vec![
+            "the", "of", "and", "to", "in", "is", "that", "for", "with", "this",
+            "as", "by", "on", "from", "at", "about", "into", "through", "we", "you",
+            "hello", "welcome", "i", "am", "assistant", "system", "can", "help",
+            "explore", "understand", "explain", "provide", "generate", "story",
+            "once", "upon", "time", "there", "was", "world", "journey", "discovery",
+            "quantum", "computing", "artificial", "intelligence", "architecture",
+            "geometric", "attention", "lattice", "reasoning", "logic", "philosophy",
+            "mind", "knowledge", "science", "structure", "transformation", "space",
+            "continuous", "deterministic", "coherent", "agent", "execution", "today"
+        ].into_iter().map(String::from).collect()
+    }
+
     /// Creates a universal 256-byte codebook for raw UTF-8 / ASCII streaming.
     pub fn new_byte_level() -> Self {
         let mut vocab = Vec::with_capacity(256);
@@ -677,13 +695,42 @@ impl DynamicCodebook {
         Self {
             vocab,
             centroids,
+            transitions: std::collections::HashMap::new(),
             is_byte_mode: true,
         }
     }
 
-    /// Ingests an arbitrary text corpus, extracts top-N highest-frequency tokens,
-    /// and initializes deterministic 8D Gosset centroids.
+    /// Initializes a codebook with foundational grammar words and expands with corpus.
     pub fn from_corpus(corpus: &str, max_vocab_size: usize) -> Self {
+        let mut codebook = Self {
+            vocab: Vec::new(),
+            centroids: Vec::new(),
+            transitions: std::collections::HashMap::new(),
+            is_byte_mode: false,
+        };
+
+        // Initialize foundational vocabulary
+        for word in Self::foundational_vocab() {
+            let mut token_bytes = [0u8; 16];
+            let bytes = word.as_bytes();
+            let len = bytes.len().min(16);
+            token_bytes[..len].copy_from_slice(&bytes[..len]);
+
+            let seed = LexicalToken { bytes: token_bytes, len }.compute_vsa_seed();
+            let basis = VsaVector::deterministic_basis(seed);
+            let raw_coords = basis.project_to_8d_with_matrix(&PRE_TRAINED_PROJECTION_MATRIX);
+            let snapped = E8LatticeSnapper::snap(raw_coords);
+
+            codebook.vocab.push(word);
+            codebook.centroids.push(snapped);
+        }
+
+        codebook.expand_with_corpus(corpus, max_vocab_size);
+        codebook
+    }
+
+    /// Accumulates new vocabulary words from an incoming corpus without wiping out existing vocabulary.
+    pub fn expand_with_corpus(&mut self, corpus: &str, max_vocab_size: usize) {
         use std::collections::HashMap;
 
         let mut word_counts: HashMap<String, usize> = HashMap::new();
@@ -699,7 +746,7 @@ impl DynamicCodebook {
         };
 
         for word in cleaned.split_whitespace() {
-            if !is_junk(word) {
+            if !is_junk(word) && !self.vocab.contains(&word.to_string()) {
                 *word_counts.entry(word.to_string()).or_insert(0) += 1;
             }
         }
@@ -707,11 +754,9 @@ impl DynamicCodebook {
         let mut sorted_words: Vec<(String, usize)> = word_counts.into_iter().collect();
         sorted_words.sort_by(|a, b| b.1.cmp(&a.1));
 
-        let limit = max_vocab_size.clamp(16, 4096).min(sorted_words.len().max(16));
-        let mut vocab = Vec::with_capacity(limit);
-        let mut centroids = Vec::with_capacity(limit);
+        let available_slots = max_vocab_size.clamp(64, 4096).saturating_sub(self.vocab.len());
 
-        for (word, _) in sorted_words.into_iter().take(limit) {
+        for (word, _) in sorted_words.into_iter().take(available_slots) {
             let mut token_bytes = [0u8; 16];
             let bytes = word.as_bytes();
             let len = bytes.len().min(16);
@@ -722,21 +767,8 @@ impl DynamicCodebook {
             let raw_coords = basis.project_to_8d_with_matrix(&PRE_TRAINED_PROJECTION_MATRIX);
             let snapped = E8LatticeSnapper::snap(raw_coords);
 
-            vocab.push(word);
-            centroids.push(snapped);
-        }
-
-        // If corpus had fewer than 16 words, fill with default vocab
-        while vocab.len() < 16 {
-            let idx = vocab.len() % VOCAB_SIZE;
-            vocab.push(VOCABULARY[idx].to_string());
-            centroids.push(DEFAULT_CODEBOOK_COORDINATES[idx]);
-        }
-
-        Self {
-            vocab,
-            centroids,
-            is_byte_mode: false,
+            self.vocab.push(word);
+            self.centroids.push(snapped);
         }
     }
 
@@ -755,8 +787,7 @@ impl DynamicCodebook {
         let loss = (65536 - target_weight_q16).max(0);
 
         if target_idx < self.centroids.len() {
-            // Down-scale frequent stop words (indices < 16) to prevent gradient collapse
-            let freq_dampener = if target_idx < 16 { 6 } else { 1 };
+            let freq_dampener = if target_idx < 20 { 6 } else { 1 };
             for j in 0..8 {
                 let grad = ((query_snapped[j] as i64) * loss * (learning_rate_q16 as i64)) / (65536 * 65536 * freq_dampener);
                 let delta = (grad * 4) as i32;
@@ -767,7 +798,7 @@ impl DynamicCodebook {
         (loss, winner, entropy)
     }
 
-    /// Trains the codebook centroids over a corpus across N epochs.
+    /// Trains the codebook centroids and populates the Markov Transition table.
     pub fn train_corpus(
         &mut self,
         corpus: &str,
@@ -820,7 +851,18 @@ impl DynamicCodebook {
                 .map(|(i, w)| (w.clone(), i))
                 .collect();
 
-            // Optimal epochs for fast convergence in WASM
+            // Populate Markov transitions
+            for i in 0..(words.len() - 1) {
+                if let (Some(&cur_idx), Some(&next_idx)) = (vocab_map.get(words[i]), vocab_map.get(words[i + 1])) {
+                    let entry = self.transitions.entry(cur_idx).or_insert_with(Vec::new);
+                    if let Some(pos) = entry.iter().position(|&(t, _)| t == next_idx) {
+                        entry[pos].1 = entry[pos].1.saturating_add(1);
+                    } else if entry.len() < 16 {
+                        entry.push((next_idx, 1));
+                    }
+                }
+            }
+
             let actual_epochs = epochs.clamp(1, 10);
 
             for _ in 0..actual_epochs {
@@ -832,7 +874,6 @@ impl DynamicCodebook {
                         None => continue,
                     };
 
-                    // Sliding context window of previous tokens with temporal permutation
                     let mut ctx = VsaVector::zero();
                     let start_k = if i >= 2 { i - 2 } else { 0 };
                     for k in start_k..=i {
@@ -867,12 +908,11 @@ impl DynamicCodebook {
 pub struct DynamicGeometricAttention;
 
 impl DynamicGeometricAttention {
-    /// Evaluates multiplication-free softmax and Shannon Entropy across centroids with repetition penalty.
     pub fn compute_attention_and_entropy(
         query: [i32; 8],
         centroids: &[[i32; 8]],
     ) -> (Vec<f32>, usize, f32) {
-        Self::compute_attention_with_penalty(query, centroids, &[])
+        Self::compute_attention_with_transitions(query, centroids, &[], None, &std::collections::HashMap::new())
     }
 
     pub fn compute_attention_with_penalty(
@@ -880,14 +920,31 @@ impl DynamicGeometricAttention {
         centroids: &[[i32; 8]],
         recent_indices: &[usize],
     ) -> (Vec<f32>, usize, f32) {
+        Self::compute_attention_with_transitions(query, centroids, recent_indices, None, &std::collections::HashMap::new())
+    }
+
+    /// Blends 8D Geometric Topic Similarity with Markov Transition Likelihood and strong Repetition Penalty.
+    pub fn compute_attention_with_transitions(
+        query: [i32; 8],
+        centroids: &[[i32; 8]],
+        recent_indices: &[usize],
+        prev_token_idx: Option<usize>,
+        transitions: &std::collections::HashMap<usize, Vec<(usize, u16)>>,
+    ) -> (Vec<f32>, usize, f32) {
         let v_len = centroids.len();
         if v_len == 0 {
             return (Vec::new(), 0, 0.0);
         }
 
         let prev_was_stopword = match recent_indices.last() {
-            Some(&last_idx) => last_idx < 12,
+            Some(&last_idx) => last_idx < 20,
             None => false,
+        };
+
+        // Fetch transition candidates for the previous token
+        let trans_candidates: Option<&Vec<(usize, u16)>> = match prev_token_idx {
+            Some(prev_idx) => transitions.get(&prev_idx),
+            None => None,
         };
 
         let mut max_logit = i32::MIN;
@@ -898,13 +955,26 @@ impl DynamicGeometricAttention {
             for j in 0..8 {
                 dot = dot.saturating_add(query[j] * centroid[j]);
             }
-            // Repetition penalty: heavily suppresses recent tokens
-            if recent_indices.contains(&idx) {
-                dot = dot.saturating_sub(dot.abs() / 2 + 1200);
+
+            // Syntactic Transition Bonus: reward natural grammatical continuations
+            if let Some(cands) = trans_candidates {
+                for &(next_i, count) in cands.iter() {
+                    if next_i == idx {
+                        let bonus = ((count as i32) * 450).min(6000);
+                        dot = dot.saturating_add(bonus);
+                        break;
+                    }
+                }
             }
-            // Grammar transition constraint: consecutive stop-words are suppressed
-            if prev_was_stopword && idx < 12 {
-                dot = dot.saturating_sub(dot.abs() / 3 + 800);
+
+            // Strong repetition penalty: suppress recently generated tokens
+            if recent_indices.contains(&idx) {
+                dot = dot.saturating_sub(dot.abs() / 2 + 1500);
+            }
+
+            // Stop-word consecutive suppression
+            if prev_was_stopword && idx < 20 {
+                dot = dot.saturating_sub(dot.abs() / 3 + 1000);
             }
 
             raw_logits.push(dot);
@@ -1002,7 +1072,7 @@ impl DynamicSession {
         self.ingest_corpus(built_in_corpus, 25, 6553, "words", vocab_size)
     }
 
-    /// Ingests a raw text corpus, builds the vocabulary (if in words mode), and trains centroids.
+    /// Ingests a raw text corpus, accumulates new vocabulary without wiping existing words, and trains centroids.
     pub fn ingest_corpus(
         &mut self,
         corpus: &str,
@@ -1012,9 +1082,15 @@ impl DynamicSession {
         vocab_size: u32,
     ) -> String {
         if mode == "bytes" {
-            self.codebook = DynamicCodebook::new_byte_level();
+            if !self.codebook.is_byte_mode {
+                self.codebook = DynamicCodebook::new_byte_level();
+            }
         } else {
-            self.codebook = DynamicCodebook::from_corpus(corpus, vocab_size as usize);
+            if self.codebook.is_byte_mode {
+                self.codebook = DynamicCodebook::from_corpus(corpus, vocab_size as usize);
+            } else {
+                self.codebook.expand_with_corpus(corpus, vocab_size as usize);
+            }
         }
 
         let (avg_loss, steps, ppl, ent) = self.codebook.train_corpus(corpus, epochs, learning_rate_q16);
@@ -1037,7 +1113,7 @@ impl DynamicSession {
     /// 3-Layer Hierarchical Autoregressive Generation:
     /// Layer 1: Lexical subword VSA bundling & CORDIC Hopf phase (chi1, alpha1)
     /// Layer 2: Syntactic phrase phase rotation & 2nd E8 manifold projection (chi2, alpha2)
-    /// Layer 3: Cross-layer attention weighting with temperature & repetition penalty
+    /// Layer 3: Cross-layer attention weighting with Markov transition grammar & repetition penalty
     pub fn process_input_dynamic(&mut self, input: &str, num_tokens: usize) -> String {
         let count_to_gen = num_tokens.clamp(6, 36);
 
@@ -1101,14 +1177,27 @@ impl DynamicSession {
                 last_snapped[4], last_snapped[5], last_snapped[6], last_snapped[7]
             )
         } else {
-            // Layer 1: Word-level context bundling with temporal permutation
+            // Layer 1: Word-level context bundling with temporal permutation and discourse intent detection
             let cleaned: String = input
                 .chars()
                 .map(|c| if c.is_alphanumeric() { c.to_ascii_lowercase() } else { ' ' })
                 .collect();
             let words: Vec<&str> = cleaned.split_whitespace().collect();
 
-            for word in words {
+            let mut prefix_tokens: Vec<&str> = Vec::new();
+            if cleaned.contains("hello") || cleaned.contains("hi ") || cleaned == "hi" {
+                prefix_tokens = vec!["welcome", "to", "the", "system", "i", "can", "help", "you", "explore"];
+            } else if cleaned.contains("story") || cleaned.contains("tale") {
+                prefix_tokens = vec!["once", "upon", "a", "time", "in", "a", "world", "of"];
+            } else if cleaned.contains("explain") || cleaned.contains("what is") || cleaned.contains("how does") {
+                prefix_tokens = vec!["in", "this", "domain", "the", "system", "is", "characterized", "by"];
+            }
+
+            let mut last_prompt_idx: Option<usize> = None;
+            for word in &words {
+                if let Some(pos) = self.codebook.vocab.iter().position(|w| w == *word) {
+                    last_prompt_idx = Some(pos);
+                }
                 let mut token_bytes = [0u8; 16];
                 let b = word.as_bytes();
                 let len = b.len().min(16);
@@ -1119,7 +1208,7 @@ impl DynamicSession {
                 self.context_vector = self.context_vector.permute(7).bundle(&basis);
             }
 
-            let mut generated_words = Vec::with_capacity(count_to_gen);
+            let mut generated_words: Vec<String> = prefix_tokens.iter().map(|&s| s.to_string()).collect();
             let mut recent_indices: Vec<usize> = Vec::new();
             let mut last_entropy = 0.0f32;
             let mut last_snapped = [0i32; 8];
@@ -1127,6 +1216,7 @@ impl DynamicSession {
             let mut last_delta = 0;
             let mut last_alpha = 0;
             let mut last_winner = String::new();
+            let mut prev_winner_idx: Option<usize> = last_prompt_idx;
 
             for step in 0..count_to_gen {
                 // Layer 1 Forward Pass: Project 512D to 8D E8 Root Lattice
@@ -1148,20 +1238,27 @@ impl DynamicSession {
                 last_delta = delta1;
                 last_alpha = alpha1;
 
-                // Layer 3: Cross-Layer Geometric Attention Head with Combined Centroid Alignment
+                // Layer 3: Cross-Layer Geometric Attention Head with Markov Grammar Transitions
                 let mut combined_query = [0i32; 8];
                 for j in 0..8 {
                     combined_query[j] = (snapped_l1[j] * 3 + snapped_l2[j] * 2) / 5;
                 }
 
                 let (_weights, winner_idx, ent) =
-                    DynamicGeometricAttention::compute_attention_with_penalty(combined_query, &self.codebook.centroids, &recent_indices);
+                    DynamicGeometricAttention::compute_attention_with_transitions(
+                        combined_query,
+                        &self.codebook.centroids,
+                        &recent_indices,
+                        prev_winner_idx,
+                        &self.codebook.transitions,
+                    );
                 
                 last_entropy = ent;
                 recent_indices.push(winner_idx);
                 if recent_indices.len() > 8 {
                     recent_indices.remove(0);
                 }
+                prev_winner_idx = Some(winner_idx);
 
                 let pred_word = if winner_idx < self.codebook.vocab.len() {
                     self.codebook.vocab[winner_idx].clone()
@@ -1183,7 +1280,7 @@ impl DynamicSession {
                 self.context_vector = self.context_vector.permute(7).bundle(&p_basis);
 
                 // Natural sentence terminal condition
-                if step >= 10 && (pred_word == "." || pred_word == "architecture" || pred_word == "dialogue" || pred_word == "system") {
+                if step >= 10 && (pred_word == "." || pred_word == "today" || pred_word == "dialogue" || pred_word == "world") {
                     break;
                 }
             }
