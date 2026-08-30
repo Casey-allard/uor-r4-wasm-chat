@@ -1,36 +1,52 @@
 #!/bin/bash
 # ==============================================================================
-# UOR-R4 Sovereign AI - macOS Browser Protocol Installer
-# Registers the custom URL scheme 'uor://start' so clicking "Launch Local Bridge"
-# directly inside the web browser spawns the local MCP bridge on demand!
+# UOR-R4 Sovereign AI - macOS 1-Click Protocol & Local MCP Bridge Installer
 # ==============================================================================
 
-PROJECT_DIR="$(cd "$(dirname "$0")" && pwd)"
-APP_DIR="$PROJECT_DIR/UOR Bridge.app"
+INSTALL_DIR="$HOME/.uor-mcp"
+APP_DIR="$INSTALL_DIR/UOR Bridge.app"
 NODE_PATH="$(which node 2>/dev/null || echo "/opt/homebrew/bin/node")"
 
 echo "================================================================"
-echo "  ⚡ Installing UOR Browser-to-Desktop Protocol Handler..."
-echo "  📂 Target Project: $PROJECT_DIR"
-echo "  ⚙️  Node Path: $NODE_PATH"
-echo "  📦 App Destination: $APP_DIR"
+echo "  ⚡ UOR-R4 Sovereign AI - Local MCP Bridge Installer"
+echo "  📦 Destination: $INSTALL_DIR"
+echo "  ⚙️  Node Engine: $NODE_PATH"
 echo "================================================================"
+
+mkdir -p "$INSTALL_DIR"
+
+# If mcp_bridge.js exists locally next to script, copy it; else download from repo
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+if [ -f "$SCRIPT_DIR/mcp_bridge.js" ]; then
+    cp "$SCRIPT_DIR/mcp_bridge.js" "$INSTALL_DIR/mcp_bridge.js"
+else
+    echo "⬇️  Fetching latest mcp_bridge.js from repository..."
+    curl -sSL "https://raw.githubusercontent.com/Casey-allard/uor-r4-wasm-chat/main/mcp_bridge.js" -o "$INSTALL_DIR/mcp_bridge.js"
+fi
+
+# Check Node.js
+if ! command -v "$NODE_PATH" &> /dev/null && ! command -v node &> /dev/null; then
+    echo "❌ Node.js is required. Please install Node.js from https://nodejs.org"
+    read -p "Press Enter to exit..."
+    exit 1
+fi
+
+NODE_BIN="$(which node 2>/dev/null || echo "$NODE_PATH")"
 
 rm -rf "$APP_DIR"
 
-# Create AppleScript runner
+# Create AppleScript protocol handler
 APPLESCRIPT_SRC=$(cat <<EOF
 on open location this_URL
-    do shell script "cd \"$PROJECT_DIR\" && nohup \"$NODE_PATH\" \"$PROJECT_DIR/mcp_bridge.js\" > /dev/null 2>&1 &"
+    do shell script "cd \"$HOME\" && nohup \"$NODE_BIN\" \"$INSTALL_DIR/mcp_bridge.js\" > /dev/null 2>&1 &"
 end open location
 
 on run
-    do shell script "cd \"$PROJECT_DIR\" && nohup \"$NODE_PATH\" \"$PROJECT_DIR/mcp_bridge.js\" > /dev/null 2>&1 &"
+    do shell script "cd \"$HOME\" && nohup \"$NODE_BIN\" \"$INSTALL_DIR/mcp_bridge.js\" > /dev/null 2>&1 &"
 end run
 EOF
 )
 
-# Compile into macOS Application
 echo "$APPLESCRIPT_SRC" | osacompile -o "$APP_DIR"
 
 # Add custom URL scheme 'uor' to Info.plist
@@ -48,8 +64,12 @@ fi
 # Register with macOS LaunchServices
 /System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -f "$APP_DIR" 2>/dev/null || true
 
+# Start the bridge right now so browser connects immediately
+nohup "$NODE_BIN" "$INSTALL_DIR/mcp_bridge.js" > /dev/null 2>&1 &
+
 echo ""
-echo "✅ UOR Protocol Handler ('uor://start') successfully registered!"
-echo "👉 You can now click '⚡ Launch Local Bridge' directly on the webpage anytime to start the bridge automatically."
-echo "💡 The bridge will auto-terminate 60 seconds after your browser tab closes."
+echo "✅ UOR Protocol Handler ('uor://start') is installed and active!"
+echo "🚀 Local MCP Bridge started on localhost:3000"
+echo "👉 You can now click '⚡ Launch Local Bridge' directly on the webpage anytime."
+echo "💡 The bridge auto-terminates 60 seconds after your browser tab closes."
 echo ""
