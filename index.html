@@ -642,6 +642,30 @@
             font-size: 0.86em;
         }
 
+        .katex {
+            font-size: 1.05em;
+            color: #d1fae5;
+        }
+
+        .katex-display {
+            margin: 0.85rem 0;
+            overflow-x: auto;
+            overflow-y: hidden;
+            padding: 0.5rem 0.75rem;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-subtle);
+        }
+
+        .katex-display::-webkit-scrollbar {
+            height: 4px;
+        }
+
+        .katex-display::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 9999px;
+        }
+
         /* CODE BLOCK WINDOW */
         .code-block-wrapper {
             background: #181818;
@@ -1576,14 +1600,87 @@
 
         /* RICH MARKDOWN & KATEX LATEX RENDERING */
         function renderRichMarkdown(targetElement, rawText) {
+            if (!rawText) {
+                targetElement.innerHTML = '';
+                return;
+            }
+
             try {
+                let text = rawText;
+
+                // 1. Normalize parenthesized LaTeX: convert '( \command... )' to '\( \command... \)'
+                text = text.replace(/\(\s*(\\[a-zA-Z]+[^\n()]*)\)/g, (match, p1) => {
+                    return `\\(${p1.trim()}\\)`;
+                });
+                text = text.replace(/\[\s*(\\[a-zA-Z]+[^\n[\]]*?)\]/g, (match, p1) => {
+                    return `\\[${p1.trim()}\\]`;
+                });
+
+                const mathBlocks = [];
+
+                // 2. LaTeX Environments: \begin{...} ... \end{...}
+                text = text.replace(/\\begin\{([a-zA-Z*]+)\}([\s\S]*?)\\end\{\1\}/g, (match) => {
+                    const id = `@@MATH_DISPLAY_${mathBlocks.length}@@`;
+                    mathBlocks.push({ expr: match, display: true, id });
+                    return id;
+                });
+
+                // 3. Display Math: $$...$$ or \[...\]
+                text = text.replace(/\$\$([\s\S]*?)\$\$/g, (match, expr) => {
+                    const id = `@@MATH_DISPLAY_${mathBlocks.length}@@`;
+                    mathBlocks.push({ expr: expr.trim(), display: true, id });
+                    return id;
+                });
+                text = text.replace(/\\\[([\s\S]*?)\\\]/g, (match, expr) => {
+                    const id = `@@MATH_DISPLAY_${mathBlocks.length}@@`;
+                    mathBlocks.push({ expr: expr.trim(), display: true, id });
+                    return id;
+                });
+
+                // 4. Inline Math: \(...\) or $...$
+                text = text.replace(/\\\(([\s\S]*?)\\\)/g, (match, expr) => {
+                    const id = `@@MATH_INLINE_${mathBlocks.length}@@`;
+                    mathBlocks.push({ expr: expr.trim(), display: false, id });
+                    return id;
+                });
+                text = text.replace(/\$([^\$\n]+?)\$/g, (match, expr) => {
+                    if (/^\s*[\d,.]+\s*$/.test(expr)) return match; // ignore currency like $100
+                    const id = `@@MATH_INLINE_${mathBlocks.length}@@`;
+                    mathBlocks.push({ expr: expr.trim(), display: false, id });
+                    return id;
+                });
+
                 marked.setOptions({
                     gfm: true,
                     breaks: true
                 });
 
-                const parsed = marked.parse(rawText || '');
-                targetElement.innerHTML = parsed;
+                let html = marked.parse(text);
+
+                // 5. Re-inject rendered KaTeX HTML
+                mathBlocks.forEach(item => {
+                    let rendered = item.expr;
+                    if (window.katex) {
+                        try {
+                            rendered = katex.renderToString(item.expr, {
+                                displayMode: item.display,
+                                throwOnError: false
+                            });
+                        } catch(err) {
+                            try {
+                                rendered = katex.renderToString(item.expr.replace(/\\/g, '\\\\'), {
+                                    displayMode: item.display,
+                                    throwOnError: false
+                                });
+                            } catch(e2) {
+                                rendered = `<code class="math-raw">${escapeHtml(item.expr)}</code>`;
+                            }
+                        }
+                    }
+                    html = html.split(item.id).join(rendered);
+                });
+
+                targetElement.innerHTML = html;
 
                 // Code block windows with copy buttons
                 targetElement.querySelectorAll('pre code').forEach((codeBlock) => {
@@ -1610,19 +1707,8 @@
                     wrapper.appendChild(pre);
                 });
 
-                // KaTeX LaTeX math auto-renderer
-                if (window.renderMathInElement) {
-                    renderMathInElement(targetElement, {
-                        delimiters: [
-                            {left: '$$', right: '$$', display: true},
-                            {left: '$', right: '$', display: false},
-                            {left: '\\(', right: '\\)', display: false},
-                            {left: '\\[', right: '\\]', display: true}
-                        ],
-                        throwOnError: false
-                    });
-                }
             } catch(e) {
+                console.warn("Markdown render error:", e);
                 targetElement.innerText = rawText;
             }
         }
