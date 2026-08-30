@@ -441,6 +441,57 @@
             color: var(--accent-cyan);
         }
 
+        .tps-speed-meter {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: 0.35rem 0.65rem;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.76rem;
+            color: var(--text-secondary);
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .tps-speed-meter.generating {
+            background: rgba(0, 243, 255, 0.08);
+            border-color: rgba(0, 243, 255, 0.35);
+            color: var(--accent-cyan);
+            box-shadow: 0 0 14px rgba(0, 243, 255, 0.2);
+        }
+
+        .tps-speed-meter .tps-icon {
+            color: #fbbf24;
+            font-size: 0.8rem;
+            transition: transform 0.2s ease;
+        }
+
+        .tps-speed-meter.generating .tps-icon {
+            animation: pulse-speed 0.8s infinite alternate;
+        }
+
+        @keyframes pulse-speed {
+            0% { transform: scale(0.9); opacity: 0.7; }
+            100% { transform: scale(1.25); opacity: 1; filter: drop-shadow(0 0 4px #fbbf24); }
+        }
+
+        .tps-speed-meter .tps-value {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .tps-speed-meter.generating .tps-value {
+            color: var(--accent-cyan);
+        }
+
+        .tps-speed-meter .tps-unit {
+            color: var(--text-muted);
+            font-size: 0.7rem;
+        }
+
         /* CONVERSATION STREAM */
         .chat-scroll-area {
             flex: 1;
@@ -1155,6 +1206,12 @@
             </div>
 
             <div class="nav-right">
+                <div class="tps-speed-meter" id="tpsSpeedMeter" title="Tokens Per Second (Processing Speed)">
+                    <span class="tps-icon">⚡</span>
+                    <span class="tps-value" id="tpsValue">--</span>
+                    <span class="tps-unit">tok/s</span>
+                </div>
+
                 <button class="telemetry-toggle-btn active" id="btnTelemetrySidecar" onclick="toggleSidecar()">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path><path d="M2 12h20"></path></svg>
                     <span>3D Brain Manifold</span>
@@ -2089,6 +2146,11 @@
             }
 
             let fullResponse = "";
+            let generatedTokenCount = 0;
+            const genStartTime = performance.now();
+            let firstTokenTime = null;
+
+            updateSpeedMeter(null, true);
 
             try {
                 const activeConfig = MODEL_INFO[activeModelId] || MODEL_INFO['qwen2.5-0.5b'];
@@ -2101,6 +2163,16 @@
                     skip_prompt: true,
                     callback_function: (chunk) => {
                         fullResponse += chunk;
+                        generatedTokenCount++;
+
+                        const now = performance.now();
+                        if (!firstTokenTime) firstTokenTime = now;
+                        const elapsedSec = (now - genStartTime) / 1000;
+                        if (elapsedSec > 0.05) {
+                            const liveTps = (generatedTokenCount / elapsedSec).toFixed(1);
+                            updateSpeedMeter(liveTps, true);
+                        }
+
                         renderRichMarkdown(contentDiv, fullResponse);
                         scrollDown();
 
@@ -2124,6 +2196,22 @@
                 contentDiv.innerText = "Generation error: " + (err.message || String(err));
             }
 
+            const totalDurationSec = (performance.now() - genStartTime) / 1000;
+            let avgTps = '0.0';
+            if (totalDurationSec > 0 && generatedTokenCount > 0) {
+                avgTps = (generatedTokenCount / totalDurationSec).toFixed(1);
+            }
+            updateSpeedMeter(avgTps, false);
+            try {
+                localStorage.setItem('uor_last_tps', avgTps);
+            } catch(e){}
+
+            const speedBadge = aiRow.querySelector('.ai-meta-speed');
+            if (speedBadge && parseFloat(avgTps) > 0) {
+                speedBadge.style.display = 'inline';
+                speedBadge.innerText = `• ⚡ ${avgTps} tok/s (${generatedTokenCount} tok in ${totalDurationSec.toFixed(1)}s)`;
+            }
+
             contentDiv.classList.remove('typing-cursor');
             if(!fullResponse || fullResponse.trim().length === 0) {
                 renderRichMarkdown(contentDiv, fullResponse || "Thinking completed.");
@@ -2142,6 +2230,20 @@
             sendBtn.disabled = false;
             inputEl.focus();
         };
+
+        function updateSpeedMeter(val, isLive = false) {
+            const meter = document.getElementById('tpsSpeedMeter');
+            const valEl = document.getElementById('tpsValue');
+            if (!meter || !valEl) return;
+            if (val !== null && val !== undefined) {
+                valEl.innerText = val;
+            }
+            if (isLive) {
+                meter.classList.add('generating');
+            } else {
+                meter.classList.remove('generating');
+            }
+        }
 
         function appendUserMessage(text, fileBadges = []) {
             const stream = document.getElementById('chatStream');
@@ -2183,6 +2285,7 @@
                         <span>UOR-R4 Geometric AI</span>
                         <span>•</span>
                         <span>⚡ ${activeName} (${activeDevice === 'webgpu' ? 'WebGPU' : 'CPU SIMD'})</span>
+                        <span class="ai-meta-speed" style="display: none; color: var(--accent-cyan); font-family: 'Fira Code', monospace; margin-left: 2px;"></span>
                     </div>
                     <div class="ai-text"></div>
                 </div>
@@ -2428,6 +2531,12 @@
             loadPersistentState();
             renderConversationsList();
             refreshUiCards();
+
+            const lastTps = localStorage.getItem('uor_last_tps');
+            if (lastTps) {
+                updateSpeedMeter(lastTps, false);
+            }
+
             await initWasmEngine();
             startBrainVisualizer();
             startWaveformVisualizer();
