@@ -14,14 +14,40 @@ const https = require('https');
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
-const { exec } = require('child_process');
+const { exec, execSync } = require('child_process');
 
 const PORT = process.env.PORT || 3000;
 const HOST = process.env.HOST || '127.0.0.1';
 const WORKSPACE_DIR = process.cwd();
 
+// --- GITHUB CREDENTIAL RESOLUTION ---
+function getResolvedGithubToken(explicitToken = '') {
+    if (explicitToken && explicitToken.trim()) return explicitToken.trim();
+    if (process.env.GITHUB_TOKEN) return process.env.GITHUB_TOKEN.trim();
+    if (process.env.GH_TOKEN) return process.env.GH_TOKEN.trim();
+
+    // Check if local machine has 'gh' CLI authenticated
+    try {
+        const token = execSync('gh auth token', { encoding: 'utf8', stdio: ['pipe', 'pipe', 'ignore'] }).trim();
+        if (token) return token;
+    } catch(e){}
+
+    return '';
+}
+
 // --- MCP TOOL DEFINITIONS ---
 const MCP_TOOLS = [
+    {
+        name: 'gh_cli',
+        description: 'Execute GitHub CLI ("gh") commands directly using local machine credentials (e.g. "gh repo view", "gh pr list", "gh issue list", "gh run list").',
+        inputSchema: {
+            type: 'object',
+            properties: {
+                args: { type: 'string', description: 'Arguments for gh (e.g. "repo view", "pr list --state open")' }
+            },
+            required: ['args']
+        }
+    },
     {
         name: 'read_file',
         description: 'Read the text contents of a file from the local workspace.',
@@ -164,6 +190,20 @@ async function handleToolCall(name, args, githubToken = '') {
     const resolvePath = (p) => path.isAbsolute(p) ? p : path.resolve(WORKSPACE_DIR, p);
 
     switch (name) {
+        case 'gh_cli': {
+            return new Promise((resolve) => {
+                exec(`gh ${args.args}`, { cwd: WORKSPACE_DIR, timeout: 30000 }, (error, stdout, stderr) => {
+                    let out = '';
+                    if (stdout) out += stdout;
+                    if (stderr) out += (out ? '\n--- STDERR ---\n' : '') + stderr;
+                    if (error) {
+                        out += `\n[Process exited with code ${error.code || 1}]`;
+                    }
+                    resolve(out || '(No output returned)');
+                });
+            });
+        }
+
         case 'read_file': {
             const target = resolvePath(args.path);
             if (!fs.existsSync(target)) {
@@ -303,12 +343,13 @@ async function handleToolCall(name, args, githubToken = '') {
 
 // GitHub HTTPS Helper
 function githubFetch(urlStr, method = 'GET', body = null, token = '') {
+    const activeToken = getResolvedGithubToken(token);
     return new Promise((resolve, reject) => {
         const url = new URL(urlStr);
         const headers = {
             'User-Agent': 'UOR-R4-MCP-Bridge',
             'Accept': 'application/vnd.github.v3+json',
-            ...(token ? { 'Authorization': `token ${token}` } : {})
+            ...(activeToken ? { 'Authorization': `token ${activeToken}` } : {})
         };
         if (body) headers['Content-Type'] = 'application/json';
 

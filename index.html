@@ -1807,7 +1807,7 @@
             </div>
 
             <div class="modal-body">
-                <!-- SECTION 1: LOCAL PC BRIDGE -->
+                <!-- SECTION 1: LOCAL PC BRIDGE & 1-CLICK LAUNCH -->
                 <div class="mcp-section">
                     <div class="mcp-section-header">
                         <div style="display: flex; align-items: center; gap: 0.5rem;">
@@ -1819,6 +1819,17 @@
                     <p style="font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 0.6rem;">
                         Allows in-browser AI to read/write local project files, execute terminal commands, and inspect git diffs.
                     </p>
+                    
+                    <div style="background: rgba(0, 243, 255, 0.05); border: 1px solid rgba(0, 243, 255, 0.2); border-radius: var(--radius-sm); padding: 0.65rem 0.75rem; margin-bottom: 0.6rem; display: flex; flex-direction: column; gap: 0.4rem;">
+                        <div style="display: flex; align-items: center; justify-content: space-between;">
+                            <span style="font-size: 0.76rem; font-weight: 600; color: var(--accent-cyan);">⚡ 1-Click Launch on macOS</span>
+                            <span style="font-size: 0.68rem; color: var(--text-muted);">Double-click script</span>
+                        </div>
+                        <div style="font-size: 0.73rem; color: var(--text-secondary); line-height: 1.4;">
+                            Run <code>./start_mcp.command</code> or <code>node mcp_bridge.js</code>. The browser connects automatically the moment it starts!
+                        </div>
+                    </div>
+
                     <div class="mcp-input-group">
                         <label>Bridge WebSocket Endpoint</label>
                         <div style="display: flex; gap: 0.5rem;">
@@ -1827,10 +1838,6 @@
                                 Connect
                             </button>
                         </div>
-                    </div>
-                    <div class="mcp-code-hint" style="margin-top: 0.4rem;">
-                        <span>Terminal Command:</span>
-                        <code>node mcp_bridge.js</code>
                     </div>
                 </div>
 
@@ -1841,14 +1848,17 @@
                             <span class="mcp-section-icon">🐙</span>
                             <span style="font-weight: 600; font-size: 0.9rem;">GitHub Integration</span>
                         </div>
-                        <span class="mcp-conn-pill" id="mcpGithubPill">Ready</span>
+                        <span class="mcp-conn-pill" id="mcpGithubPill">Auto-Inherited</span>
                     </div>
-                    <p style="font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 0.6rem;">
+                    <p style="font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 0.4rem;">
                         Enables inspecting repository files, creating commits, opening issues, and submitting Pull Requests.
                     </p>
+                    <div style="font-size: 0.74rem; color: var(--accent-emerald); background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: var(--radius-sm); padding: 0.45rem 0.65rem; margin-bottom: 0.5rem;">
+                        ✓ Automatically inherits your local Mac's authenticated GitHub session (via <code>gh auth login</code> / SSH keys)!
+                    </div>
                     <div class="mcp-input-group">
-                        <label>GitHub Personal Access Token (Optional, stored locally)</label>
-                        <input type="password" id="mcpGithubToken" class="mcp-input" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" onchange="saveMcpSettings()">
+                        <label>Custom GitHub Token (Optional override)</label>
+                        <input type="password" id="mcpGithubToken" class="mcp-input" placeholder="Leave empty to use local gh login" onchange="saveMcpSettings()">
                     </div>
                 </div>
 
@@ -2141,6 +2151,16 @@
                 mcpConnected = false;
                 refreshMcpUi();
             }
+        }
+
+        let mcpAutoConnectTimer = null;
+        function startMcpAutoReconnect() {
+            if (mcpAutoConnectTimer) clearInterval(mcpAutoConnectTimer);
+            mcpAutoConnectTimer = setInterval(() => {
+                if (!mcpConnected) {
+                    connectMcp(true);
+                }
+            }, 3500);
         }
 
         function disconnectMcp() {
@@ -3505,8 +3525,9 @@
             startBrainVisualizer();
             startWaveformVisualizer();
 
-            // Silently try connecting to local MCP bridge on boot
+            // Silently try connecting to local MCP bridge on boot & keep polling
             connectMcp(true);
+            startMcpAutoReconnect();
 
             if (currentConvId) {
                 loadConversation(currentConvId);
