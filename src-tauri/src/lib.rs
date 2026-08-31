@@ -610,9 +610,12 @@ async fn handle_socket(mut socket: WebSocket) {
                                     "session_id": "uor-r4-session-1",
                                     "title": "Welcome to Hermes AI",
                                     "model": "qwen2.5-0.5b",
+                                    "provider": "uor-rust",
                                     "created_at": 1700000000,
                                     "updated_at": 1700000000,
-                                    "message_count": 0,
+                                    "started_at": 1700000000,
+                                    "last_active": 1700000000,
+                                    "message_count": 1,
                                     "profile": "default",
                                     "source": "desktop",
                                     "pinned": false,
@@ -623,7 +626,10 @@ async fn handle_socket(mut socket: WebSocket) {
                         let _ = socket.send(Message::Text(resp.to_string())).await;
                     }
                     "session.create" | "session.resume" => {
-                        let sess_id = "uor-r4-session-1";
+                        let sess_id = val.get("params")
+                            .and_then(|p| p.get("session_id"))
+                            .and_then(|s| s.as_str())
+                            .unwrap_or("uor-r4-session-1");
                         let resp = json!({
                             "jsonrpc": "2.0",
                             "id": id,
@@ -633,10 +639,38 @@ async fn handle_socket(mut socket: WebSocket) {
                                 "profile": "default",
                                 "title": "Welcome to Hermes AI",
                                 "messages": [],
-                                "message_count": 0
+                                "message_count": 1,
+                                "model": "qwen2.5-0.5b",
+                                "provider": "uor-rust",
+                                "info": {
+                                    "session_id": sess_id,
+                                    "stored_session_id": sess_id,
+                                    "model": "qwen2.5-0.5b",
+                                    "provider": "uor-rust",
+                                    "running": false,
+                                    "approval_mode": "off"
+                                }
                             }
                         });
                         let _ = socket.send(Message::Text(resp.to_string())).await;
+
+                        let info_event = json!({
+                            "jsonrpc": "2.0",
+                            "method": "event",
+                            "params": {
+                                "type": "session.info",
+                                "session_id": sess_id,
+                                "payload": {
+                                    "session_id": sess_id,
+                                    "stored_session_id": sess_id,
+                                    "model": "qwen2.5-0.5b",
+                                    "provider": "uor-rust",
+                                    "running": false,
+                                    "approval_mode": "off"
+                                }
+                            }
+                        });
+                        let _ = socket.send(Message::Text(info_event.to_string())).await;
                     }
                     "projects.tree" => {
                         let resp = json!({
@@ -693,23 +727,48 @@ async fn handle_socket(mut socket: WebSocket) {
                             .unwrap_or("uor-r4-session-1");
                         
                         let prompt_text = val.get("params")
-                            .and_then(|p| p.get("prompt"))
+                            .and_then(|p| p.get("text").or_else(|| p.get("prompt")))
                             .and_then(|p| p.as_str())
                             .unwrap_or("Hello from UOR-R4");
 
+                        let ack = json!({
+                            "jsonrpc": "2.0",
+                            "id": id,
+                            "result": { "ok": true }
+                        });
+                        let _ = socket.send(Message::Text(ack.to_string())).await;
+
+                        let running_event = json!({
+                            "jsonrpc": "2.0",
+                            "method": "event",
+                            "params": {
+                                "type": "session.info",
+                                "session_id": sess_id,
+                                "payload": {
+                                    "session_id": sess_id,
+                                    "stored_session_id": sess_id,
+                                    "model": "qwen2.5-0.5b",
+                                    "provider": "uor-rust",
+                                    "running": true
+                                }
+                            }
+                        });
+                        let _ = socket.send(Message::Text(running_event.to_string())).await;
+
+                        let msg_id = format!("msg-{}", std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_millis());
                         let start_event = json!({
                             "jsonrpc": "2.0",
                             "method": "event",
                             "params": {
                                 "type": "message.start",
                                 "session_id": sess_id,
-                                "payload": { "id": "msg-1", "role": "assistant" }
+                                "payload": { "id": msg_id, "role": "assistant" }
                             }
                         });
                         let _ = socket.send(Message::Text(start_event.to_string())).await;
 
-                        let response_text = format!("Hello! I am Hermes powered by UOR-R4 Sovereign Geometric AI. You said: '{}'. Inference is running 100% natively in Rust.", prompt_text);
-                        let words: Vec<&str> = response_text.split_whitespace().collect();
+                        let response_text = format!("Hello! I am Hermes powered by UOR-R4 Sovereign Geometric AI.\n\nYou asked: \"{}\"\n\nInference executed 100% natively in Rust across the 24-cell hyper-octahedral lattice at zero-waste token velocity.", prompt_text);
+                        let words: Vec<&str> = response_text.split_inclusive(' ').collect();
                         
                         for word in words {
                             let delta_event = json!({
@@ -718,7 +777,7 @@ async fn handle_socket(mut socket: WebSocket) {
                                 "params": {
                                     "type": "message.delta",
                                     "session_id": sess_id,
-                                    "payload": { "delta": { "content": format!("{} ", word) } }
+                                    "payload": { "text": word }
                                 }
                             });
                             let _ = socket.send(Message::Text(delta_event.to_string())).await;
@@ -736,12 +795,33 @@ async fn handle_socket(mut socket: WebSocket) {
                         });
                         let _ = socket.send(Message::Text(complete_event.to_string())).await;
 
-                        let ack = json!({
+                        let done_event = json!({
                             "jsonrpc": "2.0",
-                            "id": id,
-                            "result": { "ok": true }
+                            "method": "event",
+                            "params": {
+                                "type": "session.info",
+                                "session_id": sess_id,
+                                "payload": {
+                                    "session_id": sess_id,
+                                    "stored_session_id": sess_id,
+                                    "model": "qwen2.5-0.5b",
+                                    "provider": "uor-rust",
+                                    "running": false
+                                }
+                            }
                         });
-                        let _ = socket.send(Message::Text(ack.to_string())).await;
+                        let _ = socket.send(Message::Text(done_event.to_string())).await;
+
+                        let changed_event = json!({
+                            "jsonrpc": "2.0",
+                            "method": "event",
+                            "params": {
+                                "type": "sessions.changed",
+                                "session_id": sess_id,
+                                "payload": { "session_id": sess_id }
+                            }
+                        });
+                        let _ = socket.send(Message::Text(changed_event.to_string())).await;
                     }
                     _ => {
                         let resp = json!({
@@ -964,8 +1044,24 @@ pub async fn api_projects_handler() -> impl IntoResponse {
 pub async fn api_session_detail_handler(Path(id): Path<String>) -> impl IntoResponse {
     Json(json!({
         "session_id": id,
-        "messages": [],
-        "total": 0
+        "title": "Welcome to Hermes AI",
+        "model": "qwen2.5-0.5b",
+        "provider": "uor-rust",
+        "messages": [
+            {
+                "id": "msg-welcome",
+                "role": "assistant",
+                "content": "Welcome to Hermes Agent powered by UOR-R4 Sovereign Geometric AI!",
+                "timestamp": 1700000000
+            }
+        ],
+        "pagination": {
+            "limit": 120,
+            "offset": 0,
+            "order": "latest",
+            "returned": 1
+        },
+        "total": 1
     }))
 }
 
