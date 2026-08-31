@@ -1357,9 +1357,8 @@
     <script type="module">
         import { pipeline, env, TextStreamer } from 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.3.3';
 
-        env.allowLocalModels = true;
+        env.allowLocalModels = false;
         env.allowRemoteModels = true;
-        env.localModelPath = './models/';
         env.useBrowserCache = true;
 
         if (window.pdfjsLib) {
