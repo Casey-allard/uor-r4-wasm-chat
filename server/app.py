@@ -65,7 +65,7 @@ MODELS_CATALOG = [
         "object": "model",
         "created": 1700000000,
         "owned_by": "uor-r4",
-        "hf_source": "Qwen/Qwen2.5-1.5B-Instruct"
+        "hf_source": "Qwen/Qwen2.5-0.5B-Instruct"
     }
 ]
 
@@ -93,10 +93,18 @@ def get_pipeline(model_id: str):
         tokenizer = AutoTokenizer.from_pretrained(target_hf)
         model = AutoModelForCausalLM.from_pretrained(
             target_hf,
-            torch_dtype=torch.float16 if device != "cpu" else torch.float32,
-            device_map="auto" if device != "cpu" else None
+            torch_dtype=torch.float32,
+            low_cpu_mem_usage=True
         )
-        pipe = pipeline("text-generation", model=model, tokenizer=tokenizer, device=0 if device=="cuda" else -1)
+        if device == "cuda":
+            model = model.cuda()
+        elif device == "mps":
+            try:
+                model = model.to("mps")
+            except Exception:
+                model = model.to("cpu")
+
+        pipe = pipeline("text-generation", model=model, tokenizer=tokenizer)
         _loaded_pipelines[target_hf] = (pipe, tokenizer)
         return _loaded_pipelines[target_hf]
     except Exception as e:
