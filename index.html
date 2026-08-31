@@ -1369,24 +1369,25 @@
         const MODEL_INFO = {
             'qwen2.5-0.5b': {
                 name: 'Qwen 2.5 (0.5B)',
-                source: './models/qwen2.5-0.5b',
+                source: 'onnx-community/Qwen2.5-0.5B-Instruct',
                 fallback: 'onnx-community/Qwen2.5-0.5B-Instruct',
                 sysPrompt: 'You are a helpful, intelligent, and concise AI assistant. Answer directly, naturally, and conversationally. Do not include robotic self-introductions, disclaimers, or mentions of your internal substrate. Format mathematical equations using $$...$$ for display blocks and $...$ for inline terms. Stop when your answer is complete.'
             },
             'gemma4-flash': {
                 name: 'Gemma-4 (Flash)',
-                source: './models/qwen2.5-0.5b',
+                source: 'onnx-community/Qwen2.5-0.5B-Instruct',
                 fallback: 'onnx-community/Qwen2.5-0.5B-Instruct',
                 sysPrompt: 'You are a helpful, thoughtful AI assistant. Answer clearly and concisely without unnecessary self-referential preambles. Format mathematical equations using unified LaTeX $$...$$ blocks and stop when finished.'
             },
             'qwen3.8-flash-next': {
                 name: 'Qwen3.8 (Flash)',
                 source: 'onnx-community/Qwen2.5-Coder-0.5B-Instruct',
+                fallback: 'onnx-community/Qwen2.5-Coder-0.5B-Instruct',
                 sysPrompt: 'You are an expert coding and problem-solving assistant. Answer questions directly with clean code, syntax highlighting, and concise explanations without robotic greetings or unnecessary preambles. Stop when your answer is complete.'
             },
             'glm-5.3-flash': {
                 name: 'GLM-5.3 (Flash)',
-                source: './models/glm5.3-flash',
+                source: 'onnx-community/Qwen2.5-0.5B-Instruct',
                 fallback: 'onnx-community/Qwen2.5-0.5B-Instruct',
                 sysPrompt: 'You are a helpful, intelligent, and concise AI assistant. Answer questions directly, naturally, and proportionally without robotic disclaimers, self-introductions, or mentioning internal substrates. Format equations using unified LaTeX $$...$$ blocks. Stop as soon as your answer is complete.'
             }
