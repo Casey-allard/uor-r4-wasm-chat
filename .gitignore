@@ -1,6 +1,7 @@
-/target
+target/
+**/target/
 /pkg
-/dist
+dist/
 __pycache__/
 *.pyc
 .DS_Store
