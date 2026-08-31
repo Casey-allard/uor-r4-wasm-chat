@@ -9,3 +9,4 @@ __pycache__/
 server/.venv/
 hermes-agent/
 .hermes/
+models/
