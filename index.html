@@ -559,36 +559,6 @@
             color: #f4f4f5;
         }
 
-        /* API SETTINGS MODAL */
-        .api-modal-backdrop {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.75);
-            backdrop-filter: blur(8px);
-            z-index: 9999;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            padding: 1rem;
-        }
-
-        .api-modal-backdrop.show {
-            display: flex;
-        }
-
-        .api-modal-box {
-            background: #18181b;
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: 12px;
-            width: 100%;
-            max-width: 480px;
-            padding: 1.5rem;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
-        }
-
         /* CONVERSATION STREAM */
         .chat-scroll-area {
             flex: 1;
@@ -1325,12 +1295,8 @@
                 <div class="backend-selector-container">
                     <select id="backendModeSelect" class="backend-select" onchange="handleBackendModeChange()">
                         <option value="browser">⚡ In-Browser (WebGPU)</option>
-                        <option value="local">💻 Local API (:8000)</option>
-                        <option value="custom">🌐 Remote Cloud API</option>
+                        <option value="local">💻 Local API (:8000 / Ollama)</option>
                     </select>
-                    <button class="icon-btn" id="btnApiSettings" onclick="openApiSettingsModal()" title="Configure API Endpoint" style="display:none; padding: 0.15rem 0.35rem;">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-                    </button>
                 </div>
 
                 <button class="telemetry-toggle-btn active" id="btnTelemetrySidecar" onclick="toggleSidecar()">
@@ -2784,8 +2750,7 @@
 
         // --- BACKEND API MANAGEMENT ---
         let backendMode = localStorage.getItem('uor_backend_mode') || 'browser';
-        let apiBaseUrl = localStorage.getItem('uor_api_base') || 'http://localhost:8000/v1';
-        let apiKey = localStorage.getItem('uor_api_key') || '';
+        const localApiBaseUrl = 'http://localhost:8000/v1';
 
         function updateModelBadge() {
             const badgeText = document.getElementById('badgeText');
@@ -2794,13 +2759,7 @@
 
             if (backendMode === 'local') {
                 badgeDot.style.color = '#10b981';
-                badgeText.innerText = `Local API (localhost:8000)`;
-                const emptyState = document.getElementById('emptyStatePrompt');
-                if (emptyState) emptyState.remove();
-            } else if (backendMode === 'custom') {
-                badgeDot.style.color = '#00f3ff';
-                const displayHost = apiBaseUrl.replace(/^https?:\/\//, '').split('/')[0] || 'Remote API';
-                badgeText.innerText = `Remote API (${displayHost})`;
+                badgeText.innerText = `Local API (localhost:8000 / Ollama)`;
                 const emptyState = document.getElementById('emptyStatePrompt');
                 if (emptyState) emptyState.remove();
             } else {
@@ -2818,57 +2777,12 @@
             backendMode = select.value;
             localStorage.setItem('uor_backend_mode', backendMode);
 
-            const btnSettings = document.getElementById('btnApiSettings');
-            if (backendMode === 'custom') {
-                btnSettings.style.display = 'inline-flex';
-                openApiSettingsModal();
-            } else if (backendMode === 'local') {
-                btnSettings.style.display = 'inline-flex';
+            if (backendMode === 'local') {
                 updateModelBadge();
                 showToast("💻 Connected to Local API (http://localhost:8000/v1)");
             } else {
-                btnSettings.style.display = 'none';
                 updateModelBadge();
                 showToast("⚡ Switched to 100% In-Browser WebGPU Mode");
-            }
-        };
-
-        window.openApiSettingsModal = function() {
-            document.getElementById('apiBaseUrlInput').value = apiBaseUrl;
-            document.getElementById('apiKeyInput').value = apiKey;
-            document.getElementById('apiSettingsModal').classList.add('show');
-        };
-
-        window.closeApiSettingsModal = function() {
-            document.getElementById('apiSettingsModal').classList.remove('show');
-        };
-
-        window.saveApiSettings = function() {
-            apiBaseUrl = document.getElementById('apiBaseUrlInput').value.trim() || 'http://localhost:8000/v1';
-            apiKey = document.getElementById('apiKeyInput').value.trim();
-            localStorage.setItem('uor_api_base', apiBaseUrl);
-            localStorage.setItem('uor_api_key', apiKey);
-            closeApiSettingsModal();
-            updateModelBadge();
-            showToast(`✅ API Target set to: ${apiBaseUrl}`);
-        };
-
-        window.testApiConnection = async function() {
-            const testUrl = document.getElementById('apiBaseUrlInput').value.trim() || 'http://localhost:8000/v1';
-            const testKey = document.getElementById('apiKeyInput').value.trim();
-            showToast("Pinging API endpoint...");
-            try {
-                const headers = { 'Content-Type': 'application/json' };
-                if (testKey) headers['Authorization'] = `Bearer ${testKey}`;
-                const res = await fetch(`${testUrl.replace(/\/+$/, '')}/models`, { headers });
-                if (res.ok) {
-                    const data = await res.json();
-                    showToast(`✅ Connected! Found ${data.data ? data.data.length : 0} models.`);
-                } else {
-                    showToast(`⚠️ API returned HTTP ${res.status}: ${res.statusText}`);
-                }
-            } catch(err) {
-                showToast(`❌ Connection failed: ${err.message}`);
             }
         };
 
@@ -2880,8 +2794,6 @@
             // Restore Backend Selector state
             const select = document.getElementById('backendModeSelect');
             if (select) select.value = backendMode;
-            const btnSettings = document.getElementById('btnApiSettings');
-            if (btnSettings && backendMode !== 'browser') btnSettings.style.display = 'inline-flex';
 
             const lastTps = localStorage.getItem('uor_last_tps');
             if (lastTps) {
@@ -2911,33 +2823,5 @@
             }
         });
     </script>
-
-    <!-- API SETTINGS MODAL -->
-    <div class="api-modal-backdrop" id="apiSettingsModal">
-        <div class="api-modal-box">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
-                <h3 style="font-size: 1rem; font-weight: 600; color: #fff;">⚙️ Configure API Endpoint</h3>
-                <button class="icon-btn" onclick="closeApiSettingsModal()" style="font-size: 1.1rem;">✕</button>
-            </div>
-            <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 1rem;">
-                Point UOR-R4 to a local FastAPI server (<code style="color:var(--accent-cyan);">http://localhost:8000/v1</code>) or a hosted Hugging Face Space (<code style="color:var(--accent-cyan);">https://&lt;space&gt;.hf.space/v1</code>).
-            </div>
-            
-            <div style="margin-bottom: 0.85rem;">
-                <label style="display:block; font-size:0.75rem; color:var(--text-muted); margin-bottom:0.35rem;">API Base URL</label>
-                <input type="text" id="apiBaseUrlInput" placeholder="http://localhost:8000/v1" style="width:100%; background:#27272a; border:1px solid rgba(255,255,255,0.12); color:#fff; padding:0.5rem 0.65rem; border-radius:6px; font-size:0.82rem; font-family:'Fira Code', monospace; outline:none;">
-            </div>
-
-            <div style="margin-bottom: 1.25rem;">
-                <label style="display:block; font-size:0.75rem; color:var(--text-muted); margin-bottom:0.35rem;">API Key / Bearer Token (Optional)</label>
-                <input type="password" id="apiKeyInput" placeholder="uor-local" style="width:100%; background:#27272a; border:1px solid rgba(255,255,255,0.12); color:#fff; padding:0.5rem 0.65rem; border-radius:6px; font-size:0.82rem; font-family:'Fira Code', monospace; outline:none;">
-            </div>
-
-            <div style="display:flex; gap:0.5rem; justify-content:flex-end;">
-                <button class="compile-btn" style="background:#27272a; color:#fff;" onclick="testApiConnection()"><span>Test Connection</span></button>
-                <button class="compile-btn" style="background:var(--accent-cyan); color:#000;" onclick="saveApiSettings()"><span>Save & Apply</span></button>
-            </div>
-        </div>
-    </div>
 </body>
 </html>
