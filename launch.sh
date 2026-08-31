@@ -40,12 +40,14 @@ fi
 
 # 3. Configure Hermes Environment
 export HERMES_HOME="$DIR/.hermes"
+export HERMES_DESKTOP_PYTHON="$DIR/hermes-agent/.venv/bin/python"
+export HERMES_DESKTOP_HERMES_ROOT="$DIR/hermes-agent"
 export OPENAI_BASE_URL="http://127.0.0.1:8000/v1"
 export OPENAI_API_KEY="uor-local"
 export MODEL_NAME="qwen2.5-0.5b"
 
 # 4. Launch Hermes Desktop GUI
-echo "🖥️  [3/3] Launching Hermes Desktop App connected to GLM-5.3..."
+echo "🖥️  [3/3] Launching Hermes Desktop App connected to Qwen 2.5 / GLM-5.3..."
 cd "$DIR/hermes-agent/apps/desktop"
 npm run dev
 
