@@ -112,11 +112,13 @@ def get_pipeline(model_id: str):
         return None, None
 
 
-# --- Pydantic Data Models (OpenAI Spec) ---
+# --- Pydantic Data Models (OpenAI & Hermes Spec) ---
 class ChatMessage(BaseModel):
     role: str
-    content: str
+    content: Optional[Union[str, List[Any]]] = ""
     name: Optional[str] = None
+    tool_calls: Optional[List[Dict[str, Any]]] = None
+    tool_call_id: Optional[str] = None
 
 class ChatCompletionRequest(BaseModel):
     model: str = "glm5.3-flash"
@@ -126,6 +128,11 @@ class ChatCompletionRequest(BaseModel):
     max_tokens: Optional[int] = 1024
     stream: Optional[bool] = False
     stop: Optional[Union[str, List[str]]] = None
+    tools: Optional[List[Dict[str, Any]]] = None
+    tool_choice: Optional[Union[str, Dict[str, Any]]] = None
+
+    class Config:
+        extra = "allow"
 
 
 # --- API Routes ---
@@ -151,10 +158,35 @@ async def chat_completions(req: ChatCompletionRequest):
     req_id = f"chatcmpl-{int(time.time()*1000)}"
     created_ts = int(time.time())
     
-    # 1. Format messages into ChatML prompt
+    # 1. Format messages into ChatML / Hermes prompt
     prompt = ""
+    if req.tools:
+        tools_json = json.dumps(req.tools, indent=2)
+        tools_system = (
+            "You are a helpful assistant with access to the following tools:\n"
+            f"<tools>\n{tools_json}\n</tools>\n\n"
+            "To call a tool, respond with a JSON object inside <tool_call> tags:\n"
+            "<tool_call>\n"
+            '{"name": "tool_name", "arguments": {"arg1": "value"}}\n'
+            "</tool_call>"
+        )
+        has_system = any(m.role == "system" for m in req.messages)
+        if not has_system:
+            prompt += f"<|im_start|>system\n{tools_system}<|im_end|>\n"
+
     for msg in req.messages:
-        prompt += f"<|im_start|>{msg.role}\n{msg.content}<|im_end|>\n"
+        content_str = msg.content if isinstance(msg.content, str) else (json.dumps(msg.content) if msg.content else "")
+        if msg.role == "system" and req.tools:
+            content_str = f"{content_str}\n\n<tools>\n{json.dumps(req.tools, indent=2)}\n</tools>"
+
+        if msg.role in ["tool", "function"]:
+            prompt += f"<|im_start|>tool\n<tool_response>\n{content_str}\n</tool_response><|im_end|>\n"
+        elif msg.tool_calls:
+            tc_str = json.dumps(msg.tool_calls)
+            prompt += f"<|im_start|>assistant\n<tool_call>\n{tc_str}\n</tool_call><|im_end|>\n"
+        else:
+            prompt += f"<|im_start|>{msg.role}\n{content_str}<|im_end|>\n"
+
     prompt += "<|im_start|>assistant\n"
 
     pipe, tokenizer = get_pipeline(req.model)
