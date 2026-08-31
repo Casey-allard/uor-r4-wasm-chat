@@ -62,31 +62,37 @@ Choose and hot-swap between multiple lightweight, high-performance ONNX neural w
 * Real-time 3D synaptic node projections rotating dynamically as each token is generated.
 * Dynamic synaptic pulses, persistent engram formations, and continuous phase waveform visualization.
 
-### 💾 6. IndexedDB Offline Persistence & Obsidian UI
-* Download models once to browser-isolated IndexedDB; run forever offline without consuming network bandwidth.
-* Session history manager, new chat shortcuts (`Cmd + K`), and one-click copyable code windows with syntax styling.
+### 🔌 7. Dual-Mode Architecture: In-Browser WebGPU + OpenAI-Compatible REST API
+* **⚡ Mode 1 (100% In-Browser WebGPU)**: Zero-install, air-gapped, sovereign client-side intelligence running entirely on your local GPU via WebGPU and WebAssembly.
+* **💻 Mode 2 (Local API Server)**: Run `python server/app.py` to expose a high-performance, standard OpenAI REST API (`http://localhost:8000/v1/chat/completions`) with real-time SSE streaming.
+* **🌐 Mode 3 (Remote Cloud API)**: Connect the Web UI to any hosted Hugging Face Space (`https://<space>.hf.space/v1`) or remote endpoint with one click.
+* **🤖 Hermes Agent & Tool Harness**: Run multi-turn autonomous tool-calling loops using `python harness/uor_hermes_harness.py`, compatible with LangChain, AutoGen, Cursor, and Cline!
 
 ---
 
 ## 🏛️ System Architecture
 
 ```mermaid
-flowchart LR
-    subgraph Browser ["Client-Side Browser Environment (100% Local & Sovereign)"]
-        Docs["Attached Documents<br/>(PDF, Code, Markdown, JSON)"] --> PromptBuilder["Prompt & Context Builder"]
-        UserPrompt["User Prompt"] --> PromptBuilder
+flowchart TD
+    subgraph Storage ["Hosted Artifacts & Weight Distribution"]
+        GHPages["GitHub Pages & Releases<br/>(Static Web UI + Downloadable Weights)"]
+    end
+
+    subgraph BackendAPI ["OpenAI-Compatible API Server (FastAPI + ONNX)"]
+        FastAPI["FastAPI /v1/chat/completions<br/>(Streaming SSE + Models Endpoint)"]
+        Engine["Transformers / ONNX Engine<br/>(Qwen / Gemma / GLM Substrates)"]
+        FastAPI --> Engine
+    end
+
+    subgraph Modes ["Execution & Client Ecosystem"]
+        WebUI["UOR-R4 Web Dashboard<br/>(Obsidian Theme + 3D Brain Sidecar)"]
+        Harness["Hermes / Agent Harness<br/>(LangChain, OpenAI SDK, Cursor, Aider)"]
         
-        PromptBuilder --> WebGPU["WebGPU Neural Transformer Core<br/>(Qwen / Gemma / GLM Substrates)"]
-        WebGPU --> TokenStream["Streaming Token Generation (Up to 512 Tokens)"]
+        WebUI -->|Mode 1: In-Browser| InBrowser["WebGPU & WASM (100% Client-Side)"]
+        WebUI -->|Mode 2: Local Server| BackendAPI
+        WebUI -->|Mode 3: Cloud Space| BackendAPI
         
-        TokenStream --> ChatOutput["Obsidian Chat Interface<br/>(KaTeX LaTeX & Copyable Code Blocks)"]
-        TokenStream --> TPSMeter["Live TPS Speedometer<br/>(Streaming tok/s Telemetry)"]
-        
-        TokenStream --> WASM["UOR-R4 Geometric Core (Rust WASM)"]
-        WASM --> VSA["512D Vector Symbolic Hypervector"]
-        WASM --> CORDIC["64-bit CORDIC Hopf Rotator (χ, δ, α)"]
-        CORDIC --> E8["8D Gosset E8 Lattice Snapper (240 Roots)"]
-        E8 --> Brain["3D Synaptic Brain Hologram & Waveform"]
+        Harness -->|Calls /v1/chat/completions| BackendAPI
     end
 ```
 
@@ -96,13 +102,51 @@ flowchart LR
 
 ### 🌐 Option 1: Instant In-Browser App (Zero Installation)
 1. Open the live app: **[https://casey-allard.github.io/uor-r4-wasm-chat/](https://casey-allard.github.io/uor-r4-wasm-chat/)**
-2. In the left sidebar under **Neural Substrates**, click **Compile** on your preferred model (e.g. `Qwen 2.5` or `GLM-5.3`).
+2. In the left sidebar under **Neural Substrates**, click **Download & Compile** on your preferred model (e.g. `Qwen 2.5` or `GLM-5.3`).
 3. Once downloaded, the model is cached in `IndexedDB` and ready for instant local execution.
 4. Type your prompt, optionally attach files via the **📎** button, and press **Enter**!
 
 ---
 
-### 💻 Option 2: Local Development & Self-Hosting
+### 🔌 Option 2: Running the OpenAI-Compatible API Server
+
+You can host your own local or cloud API server that acts exactly like OpenAI:
+
+```bash
+# 1. Install dependencies
+pip install -r server/requirements.txt
+
+# 2. Start the API server
+python server/app.py
+```
+Your server is now listening at `http://localhost:8000/v1`!
+
+#### Query via Python OpenAI SDK:
+```python
+from openai import OpenAI
+
+client = OpenAI(base_url="http://localhost:8000/v1", api_key="uor-local")
+
+response = client.chat.completions.create(
+    model="glm5.3-flash",
+    messages=[{"role": "user", "content": "Explain 8D Gosset lattice geometry."}],
+    stream=True
+)
+
+for chunk in response:
+    if chunk.choices[0].delta.content:
+        print(chunk.choices[0].delta.content, end="", flush=True)
+print()
+```
+
+#### Run the Hermes Autonomous Tool Harness:
+```bash
+python harness/uor_hermes_harness.py "Calculate the square root of 1337 and read Cargo.toml"
+```
+
+---
+
+### 💻 Option 3: Local Development & Self-Hosting
 
 #### Prerequisites
 * [Rust & Cargo](https://www.rust-lang.org/tools/install) (1.75+ recommended)

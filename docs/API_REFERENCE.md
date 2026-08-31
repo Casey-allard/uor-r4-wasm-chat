@@ -122,6 +122,71 @@ await generator(messages, {
 
 ---
 
+## 3. OpenAI-Compatible REST API (`server/app.py`)
+
+The FastAPI server exposes standard OpenAI REST endpoints allowing integration with external tools, harnesses (Hermes, LangChain, AutoGen, CrewAI), and IDEs (Cursor, Continue.dev, Cline).
+
+### `GET /v1/models`
+Returns the list of available substrate models.
+
+#### Response Example:
+```json
+{
+  "object": "list",
+  "data": [
+    {
+      "id": "glm5.3-flash",
+      "object": "model",
+      "created": 1700000000,
+      "owned_by": "uor-r4"
+    },
+    {
+      "id": "qwen2.5-0.5b",
+      "object": "model",
+      "created": 1700000000,
+      "owned_by": "uor-r4"
+    }
+  ]
+}
+```
+
+### `POST /v1/chat/completions`
+Executes chat completions in either standard JSON or Server-Sent Events (SSE) streaming mode.
+
+#### Request Parameters:
+* **`model`** *(string)*: Model ID (e.g. `"glm5.3-flash"`, `"qwen2.5-0.5b"`).
+* **`messages`** *(array)*: Array of message objects `[{"role": "user", "content": "..."}]`.
+* **`temperature`** *(float, default: 0.35)*: Softmax sampling temperature.
+* **`top_p`** *(float, default: 0.85)*: Nucleus sampling probability.
+* **`max_tokens`** *(int, default: 1024)*: Maximum generation budget.
+* **`stream`** *(bool, default: false)*: Set to `true` for SSE token streaming.
+
+#### Streaming SSE Chunk Example:
+```text
+data: {"id":"chatcmpl-1725060000","object":"chat.completion.chunk","created":1725060000,"model":"glm5.3-flash","choices":[{"index":0,"delta":{"content":"Hello"},"finish_reason":null}]}
+
+data: [DONE]
+```
+
+---
+
+## 4. Hermes Agent Harness (`harness/uor_hermes_harness.py`)
+
+The client harness implements multi-turn agentic tool calling over the OpenAI-compatible endpoint.
+
+```python
+from harness.uor_hermes_harness import run_agent_loop
+
+# Run multi-turn autonomous reasoning loop with tool execution
+run_agent_loop(
+    prompt="Calculate 2^32 and summarize the project architecture.",
+    api_base="http://localhost:8000/v1",
+    model="glm5.3-flash"
+)
+```
+
+---
+
 ## 🤝 Credits & Dependencies
 
 * **[UOR Foundation](https://github.com/uor-foundation)**: Architectural standard for Universal Object Representation, 512D Vector Symbolic hyperdimensional memory, and sovereign geometric AI.

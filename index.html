@@ -532,6 +532,63 @@
             100% { transform: scale(1.25); opacity: 1; filter: drop-shadow(0 0 4px #fbbf24); }
         }
 
+        /* BACKEND MODE SELECTOR */
+        .backend-selector-container {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            padding: 2px 4px;
+        }
+
+        .backend-select {
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            font-size: 0.75rem;
+            font-family: inherit;
+            padding: 0.25rem 0.35rem;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .backend-select option {
+            background: #18181b;
+            color: #f4f4f5;
+        }
+
+        /* API SETTINGS MODAL */
+        .api-modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(8px);
+            z-index: 9999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .api-modal-backdrop.show {
+            display: flex;
+        }
+
+        .api-modal-box {
+            background: #18181b;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 12px;
+            width: 100%;
+            max-width: 480px;
+            padding: 1.5rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+        }
+
         /* CONVERSATION STREAM */
         .chat-scroll-area {
             flex: 1;
@@ -1265,6 +1322,17 @@
             </div>
 
             <div class="nav-right">
+                <div class="backend-selector-container">
+                    <select id="backendModeSelect" class="backend-select" onchange="handleBackendModeChange()">
+                        <option value="browser">⚡ In-Browser (WebGPU)</option>
+                        <option value="local">💻 Local API (:8000)</option>
+                        <option value="custom">🌐 Remote Cloud API</option>
+                    </select>
+                    <button class="icon-btn" id="btnApiSettings" onclick="openApiSettingsModal()" title="Configure API Endpoint" style="display:none; padding: 0.15rem 0.35rem;">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                    </button>
+                </div>
+
                 <button class="telemetry-toggle-btn active" id="btnTelemetrySidecar" onclick="toggleSidecar()">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path><path d="M2 12h20"></path></svg>
                     <span>3D Brain Manifold</span>
@@ -2142,8 +2210,8 @@
                 historyIndex = -1;
             }
 
-            if(!generator) {
-                showToast("⚠️ Please click 'Download & Compile' on a model in the left sidebar first!");
+            if(backendMode === 'browser' && !generator) {
+                showToast("⚠️ In Browser mode, please click 'Download & Compile' on a model in the sidebar, or switch Mode to Local API!");
                 return;
             }
 
@@ -2157,7 +2225,7 @@
                 conversations.unshift({
                     id: currentConvId,
                     title: title,
-                    modelId: activeModelId,
+                    modelId: activeModelId || 'glm5.3-flash',
                     messages: [],
                     timestamp: Date.now()
                 });
@@ -2203,7 +2271,7 @@
             const curConv = conversations.find(c => c.id === currentConvId);
             if(curConv) {
                 curConv.messages.push(userMsg);
-                curConv.modelId = activeModelId;
+                curConv.modelId = activeModelId || 'glm5.3-flash';
                 savePersistentState();
             }
 
@@ -2245,59 +2313,132 @@
                         return cleaned.trim();
                     }
 
-                    let isStreamStopped = false;
-                    const streamer = new TextStreamer(generator.tokenizer, {
-                        skip_prompt: true,
-                        callback_function: (chunk) => {
-                            if (isStreamStopped) return;
-                            
-                            fullResponse += chunk;
-                            
-                            if (
-                                fullResponse.includes('<|im_end|>') || 
-                                fullResponse.includes('<|endoftext|>') || 
-                                fullResponse.includes('<|im_start|>') ||
-                                /--\s*This (?:message|response) was auto/i.test(fullResponse) ||
-                                /\n\s*(?:User|Human|Assistant):/i.test(fullResponse)
-                            ) {
-                                isStreamStopped = true;
-                                fullResponse = cleanAssistantResponse(fullResponse);
+                    if (backendMode === 'browser') {
+                        // --- 100% In-Browser WebGPU / WASM Execution ---
+                        let isStreamStopped = false;
+                        const streamer = new TextStreamer(generator.tokenizer, {
+                            skip_prompt: true,
+                            callback_function: (chunk) => {
+                                if (isStreamStopped) return;
+                                
+                                fullResponse += chunk;
+                                
+                                if (
+                                    fullResponse.includes('<|im_end|>') || 
+                                    fullResponse.includes('<|endoftext|>') || 
+                                    fullResponse.includes('<|im_start|>') ||
+                                    /--\s*This (?:message|response) was auto/i.test(fullResponse) ||
+                                    /\n\s*(?:User|Human|Assistant):/i.test(fullResponse)
+                                ) {
+                                    isStreamStopped = true;
+                                    fullResponse = cleanAssistantResponse(fullResponse);
+                                    renderRichMarkdown(contentDiv, fullResponse);
+                                    return;
+                                }
+
+                                generatedTokenCount++;
+
+                                const now = performance.now();
+                                if (!firstTokenTime) firstTokenTime = now;
+                                const elapsedSec = (now - genStartTime) / 1000;
+                                if (elapsedSec > 0.05) {
+                                    const liveTps = (generatedTokenCount / elapsedSec).toFixed(1);
+                                    updateSpeedMeter(liveTps, true);
+                                }
+
                                 renderRichMarkdown(contentDiv, fullResponse);
-                                return;
+                                scrollDown();
+
+                                if(dynamicSession && chunk.trim().length > 1) {
+                                    try {
+                                        const tRes = JSON.parse(dynamicSession.process_input_dynamic(chunk, 1));
+                                        updateTelemetry(tRes.snapped, tRes.chi, tRes.delta, tRes.alpha, tRes.winner);
+                                    } catch(e){}
+                                }
                             }
+                        });
 
-                            generatedTokenCount++;
+                        await generator(messages, {
+                            max_new_tokens: 1024,
+                            temperature: 0.35,
+                            top_p: 0.85,
+                            repetition_penalty: 1.15,
+                            do_sample: true,
+                            streamer: streamer
+                        });
 
-                            const now = performance.now();
-                            if (!firstTokenTime) firstTokenTime = now;
-                            const elapsedSec = (now - genStartTime) / 1000;
-                            if (elapsedSec > 0.05) {
-                                const liveTps = (generatedTokenCount / elapsedSec).toFixed(1);
-                                updateSpeedMeter(liveTps, true);
-                            }
+                        fullResponse = cleanAssistantResponse(fullResponse);
 
-                            renderRichMarkdown(contentDiv, fullResponse);
-                            scrollDown();
+                    } else {
+                        // --- Local or Remote OpenAI-Compatible REST SSE Stream ---
+                        const targetEndpoint = (backendMode === 'local' ? 'http://localhost:8000/v1' : apiBaseUrl).replace(/\/+$/, '');
+                        const headers = { 'Content-Type': 'application/json' };
+                        if (apiKey) headers['Authorization'] = `Bearer ${apiKey}`;
 
-                            if(dynamicSession && chunk.trim().length > 1) {
+                        const resp = await fetch(`${targetEndpoint}/chat/completions`, {
+                            method: 'POST',
+                            headers: headers,
+                            body: JSON.stringify({
+                                model: activeModelId || 'glm5.3-flash',
+                                messages: messages,
+                                temperature: 0.35,
+                                top_p: 0.85,
+                                max_tokens: 1024,
+                                stream: true
+                            })
+                        });
+
+                        if (!resp.ok) {
+                            throw new Error(`API returned HTTP ${resp.status}: ${resp.statusText}`);
+                        }
+
+                        const reader = resp.body.getReader();
+                        const decoder = new TextDecoder('utf-8');
+                        let buffer = '';
+
+                        while (true) {
+                            const { done, value } = await reader.read();
+                            if (done) break;
+                            buffer += decoder.decode(value, { stream: true });
+                            const lines = buffer.split('\n');
+                            buffer = lines.pop();
+
+                            for (const line of lines) {
+                                const trimmed = line.trim();
+                                if (!trimmed.startsWith('data: ')) continue;
+                                const dataStr = trimmed.substring(6);
+                                if (dataStr === '[DONE]') break;
                                 try {
-                                    const tRes = JSON.parse(dynamicSession.process_input_dynamic(chunk, 1));
-                                    updateTelemetry(tRes.snapped, tRes.chi, tRes.delta, tRes.alpha, tRes.winner);
-                                } catch(e){}
+                                    const parsed = JSON.parse(dataStr);
+                                    const delta = parsed.choices?.[0]?.delta?.content || '';
+                                    if (delta) {
+                                        fullResponse += delta;
+                                        generatedTokenCount++;
+
+                                        const now = performance.now();
+                                        if (!firstTokenTime) firstTokenTime = now;
+                                        const elapsedSec = (now - genStartTime) / 1000;
+                                        if (elapsedSec > 0.05) {
+                                            const liveTps = (generatedTokenCount / elapsedSec).toFixed(1);
+                                            updateSpeedMeter(liveTps, true);
+                                        }
+
+                                        renderRichMarkdown(contentDiv, fullResponse);
+                                        scrollDown();
+
+                                        if(dynamicSession && delta.trim().length > 1) {
+                                            try {
+                                                const tRes = JSON.parse(dynamicSession.process_input_dynamic(delta, 1));
+                                                updateTelemetry(tRes.snapped, tRes.chi, tRes.delta, tRes.alpha, tRes.winner);
+                                            } catch(e){}
+                                        }
+                                    }
+                                } catch(parseErr){}
                             }
                         }
-                    });
 
-                    await generator(messages, {
-                        max_new_tokens: 1024,
-                        temperature: 0.35,
-                        top_p: 0.85,
-                        repetition_penalty: 1.15,
-                        do_sample: true,
-                        streamer: streamer
-                    });
-
-                    fullResponse = cleanAssistantResponse(fullResponse);
+                        fullResponse = cleanAssistantResponse(fullResponse);
+                    }
 
                 } catch(err) {
                     console.error("Generation error:", err);
@@ -2641,10 +2782,106 @@
             renderWave();
         }
 
+        // --- BACKEND API MANAGEMENT ---
+        let backendMode = localStorage.getItem('uor_backend_mode') || 'browser';
+        let apiBaseUrl = localStorage.getItem('uor_api_base') || 'http://localhost:8000/v1';
+        let apiKey = localStorage.getItem('uor_api_key') || '';
+
+        function updateModelBadge() {
+            const badgeText = document.getElementById('badgeText');
+            const badgeDot = document.getElementById('badgeDot');
+            if (!badgeText) return;
+
+            if (backendMode === 'local') {
+                badgeDot.style.color = '#10b981';
+                badgeText.innerText = `Local API (localhost:8000)`;
+                const emptyState = document.getElementById('emptyStatePrompt');
+                if (emptyState) emptyState.remove();
+            } else if (backendMode === 'custom') {
+                badgeDot.style.color = '#00f3ff';
+                const displayHost = apiBaseUrl.replace(/^https?:\/\//, '').split('/')[0] || 'Remote API';
+                badgeText.innerText = `Remote API (${displayHost})`;
+                const emptyState = document.getElementById('emptyStatePrompt');
+                if (emptyState) emptyState.remove();
+            } else {
+                badgeDot.style.color = '#10b981';
+                if (activeModelId && MODEL_INFO[activeModelId]) {
+                    badgeText.innerText = `${MODEL_INFO[activeModelId].name} (${activeDevice === 'webgpu' ? 'WebGPU Accelerated' : 'CPU SIMD Native'})`;
+                } else {
+                    badgeText.innerText = `No Substrate Loaded`;
+                }
+            }
+        }
+
+        window.handleBackendModeChange = function() {
+            const select = document.getElementById('backendModeSelect');
+            backendMode = select.value;
+            localStorage.setItem('uor_backend_mode', backendMode);
+
+            const btnSettings = document.getElementById('btnApiSettings');
+            if (backendMode === 'custom') {
+                btnSettings.style.display = 'inline-flex';
+                openApiSettingsModal();
+            } else if (backendMode === 'local') {
+                btnSettings.style.display = 'inline-flex';
+                updateModelBadge();
+                showToast("💻 Connected to Local API (http://localhost:8000/v1)");
+            } else {
+                btnSettings.style.display = 'none';
+                updateModelBadge();
+                showToast("⚡ Switched to 100% In-Browser WebGPU Mode");
+            }
+        };
+
+        window.openApiSettingsModal = function() {
+            document.getElementById('apiBaseUrlInput').value = apiBaseUrl;
+            document.getElementById('apiKeyInput').value = apiKey;
+            document.getElementById('apiSettingsModal').classList.add('show');
+        };
+
+        window.closeApiSettingsModal = function() {
+            document.getElementById('apiSettingsModal').classList.remove('show');
+        };
+
+        window.saveApiSettings = function() {
+            apiBaseUrl = document.getElementById('apiBaseUrlInput').value.trim() || 'http://localhost:8000/v1';
+            apiKey = document.getElementById('apiKeyInput').value.trim();
+            localStorage.setItem('uor_api_base', apiBaseUrl);
+            localStorage.setItem('uor_api_key', apiKey);
+            closeApiSettingsModal();
+            updateModelBadge();
+            showToast(`✅ API Target set to: ${apiBaseUrl}`);
+        };
+
+        window.testApiConnection = async function() {
+            const testUrl = document.getElementById('apiBaseUrlInput').value.trim() || 'http://localhost:8000/v1';
+            const testKey = document.getElementById('apiKeyInput').value.trim();
+            showToast("Pinging API endpoint...");
+            try {
+                const headers = { 'Content-Type': 'application/json' };
+                if (testKey) headers['Authorization'] = `Bearer ${testKey}`;
+                const res = await fetch(`${testUrl.replace(/\/+$/, '')}/models`, { headers });
+                if (res.ok) {
+                    const data = await res.json();
+                    showToast(`✅ Connected! Found ${data.data ? data.data.length : 0} models.`);
+                } else {
+                    showToast(`⚠️ API returned HTTP ${res.status}: ${res.statusText}`);
+                }
+            } catch(err) {
+                showToast(`❌ Connection failed: ${err.message}`);
+            }
+        };
+
         window.addEventListener('DOMContentLoaded', async () => {
             loadPersistentState();
             renderConversationsList();
             refreshUiCards();
+
+            // Restore Backend Selector state
+            const select = document.getElementById('backendModeSelect');
+            if (select) select.value = backendMode;
+            const btnSettings = document.getElementById('btnApiSettings');
+            if (btnSettings && backendMode !== 'browser') btnSettings.style.display = 'inline-flex';
 
             const lastTps = localStorage.getItem('uor_last_tps');
             if (lastTps) {
@@ -2655,8 +2892,12 @@
             startBrainVisualizer();
             startWaveformVisualizer();
 
-            if (activeModelId && compiledModels.has(activeModelId)) {
-                await activateModel(activeModelId);
+            if (backendMode === 'browser') {
+                if (activeModelId && compiledModels.has(activeModelId)) {
+                    await activateModel(activeModelId);
+                }
+            } else {
+                updateModelBadge();
             }
 
             // Always default to a fresh new chat session on reload
@@ -2670,5 +2911,33 @@
             }
         });
     </script>
+
+    <!-- API SETTINGS MODAL -->
+    <div class="api-modal-backdrop" id="apiSettingsModal">
+        <div class="api-modal-box">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                <h3 style="font-size: 1rem; font-weight: 600; color: #fff;">⚙️ Configure API Endpoint</h3>
+                <button class="icon-btn" onclick="closeApiSettingsModal()" style="font-size: 1.1rem;">✕</button>
+            </div>
+            <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 1rem;">
+                Point UOR-R4 to a local FastAPI server (<code style="color:var(--accent-cyan);">http://localhost:8000/v1</code>) or a hosted Hugging Face Space (<code style="color:var(--accent-cyan);">https://&lt;space&gt;.hf.space/v1</code>).
+            </div>
+            
+            <div style="margin-bottom: 0.85rem;">
+                <label style="display:block; font-size:0.75rem; color:var(--text-muted); margin-bottom:0.35rem;">API Base URL</label>
+                <input type="text" id="apiBaseUrlInput" placeholder="http://localhost:8000/v1" style="width:100%; background:#27272a; border:1px solid rgba(255,255,255,0.12); color:#fff; padding:0.5rem 0.65rem; border-radius:6px; font-size:0.82rem; font-family:'Fira Code', monospace; outline:none;">
+            </div>
+
+            <div style="margin-bottom: 1.25rem;">
+                <label style="display:block; font-size:0.75rem; color:var(--text-muted); margin-bottom:0.35rem;">API Key / Bearer Token (Optional)</label>
+                <input type="password" id="apiKeyInput" placeholder="uor-local" style="width:100%; background:#27272a; border:1px solid rgba(255,255,255,0.12); color:#fff; padding:0.5rem 0.65rem; border-radius:6px; font-size:0.82rem; font-family:'Fira Code', monospace; outline:none;">
+            </div>
+
+            <div style="display:flex; gap:0.5rem; justify-content:flex-end;">
+                <button class="compile-btn" style="background:#27272a; color:#fff;" onclick="testApiConnection()"><span>Test Connection</span></button>
+                <button class="compile-btn" style="background:var(--accent-cyan); color:#000;" onclick="saveApiSettings()"><span>Save & Apply</span></button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

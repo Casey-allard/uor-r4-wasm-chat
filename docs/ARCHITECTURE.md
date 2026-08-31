@@ -84,7 +84,49 @@ The WebAssembly core is compiled using `wasm-pack` with `wasm-opt -O3` optimizat
 
 ---
 
-## 5. Credits & Acknowledgements
+## 5. Dual-Mode & Multi-Backend Architecture
+
+UOR-R4 supports a flexible, decoupled execution topology:
+
+```mermaid
+flowchart TD
+    subgraph Storage ["Hosted Artifacts & Weight Distribution"]
+        GHPages["GitHub Pages & Releases<br/>(Static Web UI + Downloadable Weights)"]
+    end
+
+    subgraph BackendAPI ["OpenAI-Compatible API Server (FastAPI + ONNX)"]
+        FastAPI["FastAPI /v1/chat/completions<br/>(Streaming SSE + Models Endpoint)"]
+        Engine["Transformers / ONNX Engine<br/>(Qwen / Gemma / GLM Substrates)"]
+        FastAPI --> Engine
+    end
+
+    subgraph Modes ["Execution & Client Ecosystem"]
+        WebUI["UOR-R4 Web Dashboard<br/>(Obsidian Theme + 3D Brain Sidecar)"]
+        Harness["Hermes / Agent Harness<br/>(LangChain, OpenAI SDK, Cursor, Aider)"]
+        
+        WebUI -->|Mode 1: In-Browser| InBrowser["WebGPU & WASM (100% Client-Side)"]
+        WebUI -->|Mode 2: Local Server| BackendAPI
+        WebUI -->|Mode 3: Cloud Space| BackendAPI
+        
+        Harness -->|Calls /v1/chat/completions| BackendAPI
+    end
+```
+
+### 1. Mode 1: 100% In-Browser WebGPU (Default)
+Executes directly in the client browser with zero network calls after model caching.
+
+### 2. Mode 2: Local OpenAI API Server (`server/app.py`)
+Spins up a local FastAPI server (`http://localhost:8000/v1`) providing standard OpenAI REST endpoints with streaming SSE.
+
+### 3. Mode 3: Remote Cloud API (Hugging Face Spaces)
+Deployable as a free Docker/FastAPI Space on Hugging Face Spaces for public REST access.
+
+### 4. Mode 4: Hermes Agent & Tool Harness (`harness/uor_hermes_harness.py`)
+An autonomous multi-turn reasoning and tool execution loop for agent workflows, LangChain, and IDE extensions.
+
+---
+
+## 6. Credits & Acknowledgements
 
 * **[UOR Foundation](https://github.com/uor-foundation)**: Architectural standard for Universal Object Representation, 512D Vector Symbolic hyperdimensional memory, and sovereign geometric AI.
 * **HELM Geometric Attention Group**: Pioneers of high-dimensional geometric attention mechanics and non-Euclidean manifold routing.
