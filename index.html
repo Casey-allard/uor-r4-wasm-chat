@@ -1393,11 +1393,16 @@
         };
 
         const compiledModels = new Set();
-        let activeModelId = null;
+        let activeModelId = 'qwen2.5-0.5b';
         let activeDevice = 'wasm';
         let generator = null;
         let dynamicSession = null;
         let isGenerating = false;
+
+        let backendMode = localStorage.getItem('uor_backend_mode') || 'browser';
+        const localApiBaseUrl = 'http://localhost:8000/v1';
+        let apiBaseUrl = 'http://localhost:8000/v1';
+        let apiKey = localStorage.getItem('uor_api_key') || '';
 
         let conversations = [];
         let currentConvId = null;
@@ -2633,29 +2638,28 @@
         }
 
         // --- BACKEND API MANAGEMENT ---
-        let backendMode = localStorage.getItem('uor_backend_mode') || 'browser';
-        const localApiBaseUrl = 'http://localhost:8000/v1';
-
         function updateModelBadge() {
             const badgeText = document.getElementById('badgeText');
             const badgeDot = document.getElementById('badgeDot');
             if (!badgeText) return;
 
-            const curModel = MODEL_INFO[activeModelId] || MODEL_INFO['glm-5.3-flash'] || { name: 'GLM-5.3 (Flash)' };
+            const curModel = MODEL_INFO[activeModelId] || MODEL_INFO['qwen2.5-0.5b'] || { name: 'Qwen 2.5 (0.5B)' };
 
             if (backendMode === 'local') {
-                badgeDot.style.color = '#10b981';
+                if (badgeDot) badgeDot.style.color = '#10b981';
                 badgeText.innerText = `Local API (:8000) • ${curModel.name}`;
             } else {
-                badgeDot.style.color = '#10b981';
+                if (badgeDot) badgeDot.style.color = '#10b981';
                 badgeText.innerText = `Substrate: ${curModel.name} (${activeDevice === 'webgpu' ? 'WebGPU Accelerated' : 'CPU SIMD Native'})`;
             }
         }
 
         window.handleBackendModeChange = function() {
             const select = document.getElementById('backendModeSelect');
-            backendMode = select.value;
-            localStorage.setItem('uor_backend_mode', backendMode);
+            if (select) {
+                backendMode = select.value;
+                localStorage.setItem('uor_backend_mode', backendMode);
+            }
             updateModelBadge();
 
             if (backendMode === 'local') {
@@ -2665,29 +2669,36 @@
             }
         };
 
-        window.addEventListener('DOMContentLoaded', async () => {
-            loadPersistentState();
-            if (!activeModelId) activeModelId = 'glm-5.3-flash';
-            renderConversationsList();
-            refreshUiCards();
-            updateModelBadge();
+        async function initApp() {
+            try {
+                loadPersistentState();
+                if (!activeModelId) activeModelId = 'qwen2.5-0.5b';
+                renderConversationsList();
+                refreshUiCards();
+                updateModelBadge();
 
-            // Restore Backend Selector state
-            const select = document.getElementById('backendModeSelect');
-            if (select) select.value = backendMode;
+                const select = document.getElementById('backendModeSelect');
+                if (select) select.value = backendMode;
 
-            const lastTps = localStorage.getItem('uor_last_tps');
-            if (lastTps) {
-                updateSpeedMeter(lastTps, false);
+                const lastTps = localStorage.getItem('uor_last_tps');
+                if (lastTps) {
+                    updateSpeedMeter(lastTps, false);
+                }
+
+                startBrainVisualizer();
+                startWaveformVisualizer();
+                await initWasmEngine();
+                startNewChat();
+            } catch(err) {
+                console.error("App init error:", err);
             }
+        }
 
-            await initWasmEngine();
-            startBrainVisualizer();
-            startWaveformVisualizer();
-
-            // Always default to a fresh new chat session on reload
-            startNewChat();
-        });
+        if (document.readyState === 'loading') {
+            window.addEventListener('DOMContentLoaded', initApp);
+        } else {
+            initApp();
+        }
 
         window.addEventListener('keydown', (e) => {
             if ((e.metaKey || e.ctrlKey) && e.key === 'k') {

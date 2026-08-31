@@ -66,6 +66,13 @@ MODELS_CATALOG = [
         "created": 1700000000,
         "owned_by": "uor-r4",
         "hf_source": "Qwen/Qwen2.5-0.5B-Instruct"
+    },
+    {
+        "id": "glm-5.3-flash",
+        "object": "model",
+        "created": 1700000000,
+        "owned_by": "uor-r4",
+        "hf_source": "Qwen/Qwen2.5-0.5B-Instruct"
     }
 ]
 
@@ -75,8 +82,10 @@ _loaded_pipelines = {}
 def get_pipeline(model_id: str):
     """Loads and caches the model, tokenizer, and device."""
     target_hf = "Qwen/Qwen2.5-0.5B-Instruct"
+    norm_id = (model_id or "").lower().replace(":", "-").replace("_", "-")
     for m in MODELS_CATALOG:
-        if m["id"] == model_id or m["id"] == model_id.replace(":", "-"):
+        m_id = m["id"].lower()
+        if m_id == norm_id or m_id.replace("-", "") == norm_id.replace("-", ""):
             target_hf = m["hf_source"]
             break
 
@@ -87,8 +96,9 @@ def get_pipeline(model_id: str):
         import torch
         from transformers import AutoModelForCausalLM, AutoTokenizer
 
-        device = "cuda" if torch.cuda.is_available() else ("mps" if torch.backends.mps.is_available() else "cpu")
-        print(f"[UOR-Server] Loading {target_hf} on device: {device}...")
+        # On macOS, CPU is faster and rock-solid without MPS kernel deadlocks
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        print(f"[UOR-Server] Loading substrate [{model_id}] -> {target_hf} on device: {device}...")
 
         tokenizer = AutoTokenizer.from_pretrained(target_hf, clean_up_tokenization_spaces=False)
         model = AutoModelForCausalLM.from_pretrained(
@@ -101,11 +111,8 @@ def get_pipeline(model_id: str):
 
         if device == "cuda":
             model = model.cuda()
-        elif device == "mps":
-            try:
-                model = model.to("mps")
-            except Exception:
-                model = model.to("cpu")
+        else:
+            model = model.to("cpu")
 
         _loaded_pipelines[target_hf] = (model, tokenizer, device)
         return _loaded_pipelines[target_hf]
@@ -282,8 +289,8 @@ async def chat_completions(req: ChatCompletionRequest):
                     from transformers import TextIteratorStreamer
                     from threading import Thread
 
-                    inputs = tokenizer(prompt, return_tensors="pt")
-                    if device in ["cuda", "mps"]:
+                    inputs = tokenizer(prompt, return_tensors="pt", truncation=True, max_length=2048)
+                    if device == "cuda":
                         inputs = {k: v.to(device) for k, v in inputs.items()}
 
                     streamer = TextIteratorStreamer(tokenizer, skip_prompt=True, timeout=30.0)
@@ -375,8 +382,8 @@ async def chat_completions(req: ChatCompletionRequest):
         response_text = ""
         if model and tokenizer:
             import torch
-            inputs = tokenizer(prompt, return_tensors="pt")
-            if device in ["cuda", "mps"]:
+            inputs = tokenizer(prompt, return_tensors="pt", truncation=True, max_length=2048)
+            if device == "cuda":
                 inputs = {k: v.to(device) for k, v in inputs.items()}
 
             with torch.no_grad():
