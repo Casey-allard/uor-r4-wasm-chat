@@ -596,9 +596,12 @@ pub async fn api_status_handler() -> impl IntoResponse {
         "ok": true,
         "status": "ready",
         "model": "qwen2.5-0.5b",
+        "provider": "uor-rust",
         "engine": "uor-r4-rust",
         "ready": true,
-        "uptime": 100
+        "uptime": 100,
+        "desktop_contract": 6,
+        "contract": 6
     }))
 }
 
