@@ -1674,33 +1674,6 @@
             }
         };
 
-        function refreshUiCards() {
-            Object.keys(MODEL_INFO).forEach(id => {
-                const card = document.getElementById(`card-${id}`);
-                const bBox = document.getElementById(`btnbox-${id}`);
-                if (!card || !bBox) return;
-
-                if (id === activeModelId) {
-                    card.classList.add('active');
-                    bBox.innerHTML = `<div class="active-pill">● Active</div>`;
-                } else if (compiledModels.has(id)) {
-                    card.classList.remove('active');
-                    bBox.innerHTML = `
-                        <button class="activate-btn" onclick="activateModel('${id}')">
-                            <span>⚡ Switch</span>
-                        </button>
-                    `;
-                } else {
-                    card.classList.remove('active');
-                    bBox.innerHTML = `
-                        <button class="compile-btn" onclick="requestCompileModel('${id}')">
-                            <span>Compile</span>
-                        </button>
-                    `;
-                }
-            });
-        }
-
         window.toggleSidebar = function() {
             document.getElementById('sidebar').classList.toggle('collapsed');
         };
