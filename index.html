@@ -2758,7 +2758,7 @@
 
         window.openFileInMonaco = function(name, content, ext = 'javascript', fileItem = null) {
             const langMap = { rs: 'rust', py: 'python', js: 'javascript', ts: 'typescript', html: 'html', css: 'css', json: 'json', md: 'markdown' };
-            const language = langMap[ext] || ext;
+            const language = langMap[ext] || ext || 'javascript';
 
             let existingTab = openEditorTabs.find(t => t.name === name);
             if (!existingTab) {
@@ -2766,18 +2766,29 @@
                 openEditorTabs.push(existingTab);
             } else {
                 existingTab.content = content;
+                existingTab.language = language;
             }
 
             activeEditorTab = name;
             renderEditorTabs();
 
-            if (monacoEditorInstance) {
-                const model = monaco.editor.createModel(content, language);
-                monacoEditorInstance.setModel(model);
+            try {
+                if (window.monacoEditorInstance && typeof monaco !== 'undefined') {
+                    let currentModel = monacoEditorInstance.getModel();
+                    if (currentModel) {
+                        monaco.editor.setModelLanguage(currentModel, language);
+                        currentModel.setValue(content || '');
+                    } else {
+                        const newModel = monaco.editor.createModel(content || '', language);
+                        monacoEditorInstance.setModel(newModel);
+                    }
+                }
+            } catch(err) {
+                console.warn("Monaco model set error:", err);
             }
         };
 
-        function renderEditorTabs() {
+                function renderEditorTabs() {
             const bar = document.getElementById('editorTabsBar');
             if (!bar) return;
             bar.innerHTML = '';
@@ -2892,10 +2903,10 @@
 
             let fullHtml = '';
             if (!code || !code.trim()) {
-                fullHtml = `
-                <!DOCTYPE html>
+                fullHtml = `<!DOCTYPE html>
                 <html>
                 <head>
+                    <meta charset="UTF-8">
                     <style>
                         body { margin: 0; padding: 2rem; background: #080a10; color: #fff; font-family: -apple-system, BlinkMacSystemFont, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; box-sizing: border-box; text-align: center; }
                         .hero-card { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 12px; padding: 2rem; max-width: 480px; }
@@ -2910,37 +2921,46 @@
                     </div>
                 </body>
                 </html>`;
-            } else if (lang === 'html' || code.includes('<html') || code.includes('<!DOCTYPE') || code.includes('<div') || code.includes('<canvas')) {
+            } else if (lang === 'html' || code.includes('<html') || code.includes('<!DOCTYPE') || code.includes('<div') || code.includes('<canvas') || code.includes('<body')) {
                 fullHtml = code;
             } else if (lang === 'javascript' || lang === 'js' || lang === 'typescript' || lang === 'ts') {
                 // Auto-wrap pure JavaScript/Canvas scripts in an execution harness
-                fullHtml = `
-                <!DOCTYPE html>
+                fullHtml = `<!DOCTYPE html>
                 <html>
                 <head>
                     <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
                     <style>
-                        body { margin: 0; padding: 0; background: #050608; color: #fff; font-family: sans-serif; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; }
-                        canvas { display: block; border-radius: 8px; box-shadow: 0 0 25px rgba(0, 216, 255, 0.25); }
+                        * { box-sizing: border-box; }
+                        body { margin: 0; padding: 0; background: #050608; color: #fff; font-family: sans-serif; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; width: 100vw; }
+                        canvas { display: block; max-width: 100%; max-height: 100%; border-radius: 8px; box-shadow: 0 0 25px rgba(0, 216, 255, 0.25); }
+                        #app { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
                     </style>
                 </head>
                 <body>
-                    <canvas id="canvas" width="600" height="400"></canvas>
-                    <div id="app"></div>
+                    <div id="app">
+                        <canvas id="canvas"></canvas>
+                    </div>
                     <script>
-                    try {
-                        ${code}
-                    } catch(err) {
-                        console.error("Runtime Error in Live Preview:", err.message);
-                    }
+                    window.addEventListener('DOMContentLoaded', () => {
+                        const canvas = document.getElementById('canvas');
+                        if (canvas && (!canvas.width || canvas.width === 300)) {
+                            canvas.width = window.innerWidth;
+                            canvas.height = window.innerHeight;
+                        }
+                        try {
+                            ${code}
+                        } catch(err) {
+                            console.error("Runtime Error in Live Preview:", err.message);
+                        }
+                    });
                     <\/script>
                 </body>
                 </html>`;
             } else {
-                fullHtml = `
-                <!DOCTYPE html>
+                fullHtml = `<!DOCTYPE html>
                 <html>
-                <head><style>body { background: #0d1117; color: #c9d1d9; font-family: monospace; padding: 1.5rem; white-space: pre-wrap; }</style></head>
+                <head><meta charset="UTF-8"><style>body { background: #0d1117; color: #c9d1d9; font-family: monospace; padding: 1.5rem; white-space: pre-wrap; font-size: 13px; line-height: 1.6; }</style></head>
                 <body>${escapeHtml(code)}</body>
                 </html>`;
             }
@@ -2970,21 +2990,10 @@
             <\/script>`;
 
             iframe.srcdoc = injectedScript + fullHtml;
+            showToast("⚡ Live Preview Updated");
         };
 
-        window.addEventListener('message', (event) => {
-            if (event.data && event.data.type === 'CONSOLE_LOG') {
-                const list = document.getElementById('consoleLogsList');
-                if (!list) return;
-                const entry = document.createElement('div');
-                entry.className = `log-entry ${event.data.level}`;
-                entry.innerText = `[${new Date().toLocaleTimeString()}] ${event.data.msg}`;
-                list.appendChild(entry);
-                list.scrollTop = list.scrollHeight;
-            }
-        });
-
-        window.clearPreviewConsole = function() {
+                window.clearPreviewConsole = function() {
             const list = document.getElementById('consoleLogsList');
             if (list) list.innerHTML = '';
         };
@@ -3464,7 +3473,7 @@
                 modelWorker = new Worker(new URL('./assets/js/uor_model_worker.js', import.meta.url), { type: 'module' });
 
                 modelWorker.onmessage = (e) => {
-                    const { action, id, chunk, fullText, tokenCount, durationSec, tps, storage, error, stage } = e.data;
+                    const { action, id, chunk, fullText, tokenCount, durationSec, tps, storage, error, stage, text, progress } = e.data;
 
                     if (action === 'storage_status_result') {
                         const lbl = document.getElementById('browserCacheUsageLabel');
@@ -3481,53 +3490,41 @@
                         const phaseTag = document.getElementById('activePhaseTag');
                         if (phaseTag) {
                             if (stage === 'compiling') phaseTag.innerText = `⚡ Compiling ONNX Graph...`;
-                            else if (stage === 'ready') phaseTag.innerText = `⚡ Synaptic Ready`;
+                            else if (stage === 'ready') phaseTag.innerText = `⚡ Neural Substrate Ready`;
                             else phaseTag.innerText = `📥 ${progress || 0}%`;
-                        }
-
-                        // Update or create HUD in active AI bubble
-                        let hud = document.getElementById(`hud_${id}`);
-                        if (!hud && isGenerating) {
-                            const aiRow = document.querySelector('.message-row.ai:last-child');
-                            if (aiRow) {
-                                hud = document.createElement('div');
-                                hud.id = `hud_${id}`;
-                                hud.className = 'model-progress-hud-card';
-                                const aiBubble = aiRow.querySelector('.ai-bubble');
-                                if (aiBubble) aiBubble.insertBefore(hud, aiBubble.firstChild);
-                            }
-                        }
-
-                        if (hud) {
-                            const isDone = stage === 'ready';
-                            hud.innerHTML = `
-                                <div class="hud-top-row">
-                                    <span style="color:${isDone ? 'var(--accent-emerald)' : 'var(--accent-cyan)'}">
-                                        ${stage === 'compiling' ? '⚡ Compiling ONNX Tensors' : (isDone ? '✓ Model Ready' : '📥 Downloading Weights')}
-                                    </span>
-                                    <span style="font-family:var(--font-mono); font-size:0.68rem; color:var(--text-muted);">${progress || 0}%</span>
-                                </div>
-                                <div class="hud-progress-track">
-                                    <div class="hud-progress-fill" style="width: ${progress || 0}%;"></div>
-                                </div>
-                                <div class="hud-stage-desc">
-                                    <span>${isDone ? '✓' : '⚡'}</span>
-                                    <span>${escapeHtml(text || 'Processing model substrate...')}</span>
-                                </div>
-                            `;
-
-                            if (isDone) {
-                                setTimeout(() => {
-                                    if (hud) hud.style.display = 'none';
-                                }, 3500);
-                            }
                         }
                     }
 
                     if (action === 'stream_token' && id === activeGenerationId) {
-                        const activeAiText = document.querySelector('.message-row.ai:last-child .ai-text');
-                        if (activeAiText) {
-                            activeAiText.innerText = fullText;
+                        let aiRow = document.getElementById(`msg_row_${id}`);
+                        if (!aiRow) {
+                            // First token arrived -> create the AI response bubble cleanly!
+                            const container = document.getElementById('chatMessagesContainer');
+                            aiRow = document.createElement('div');
+                            aiRow.id = `msg_row_${id}`;
+                            aiRow.className = 'message-row ai';
+                            aiRow.innerHTML = `
+                                <div class="message-avatar ai">🧠</div>
+                                <div class="message-bubble">
+                                    <div class="ai-bubble">
+                                        <div class="ai-text typing-cursor"></div>
+                                        <div class="message-action-toolbar" style="display:none;" id="streamActionToolbar_${id}">
+                                            <button class="msg-action-btn" onclick="copyEntireResponse(this)">
+                                                <span>📋</span> Copy Response
+                                            </button>
+                                            <span style="font-size:0.68rem; color:var(--text-muted); font-family:var(--font-mono); margin-left:auto;">
+                                                ${MODEL_CONFIGS[activeModelId] ? MODEL_CONFIGS[activeModelId].name : 'GLM-5.3'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                            container.appendChild(aiRow);
+                        }
+
+                        const textEl = aiRow.querySelector('.ai-text');
+                        if (textEl) {
+                            textEl.innerText = fullText;
                             scrollDown();
                         }
 
@@ -3545,24 +3542,32 @@
                     }
 
                     if (action === 'generate_complete' && id === activeGenerationId) {
-                        finalizeChatGeneration(fullText, tps);
+                        finalizeChatGeneration(id, fullText, tps);
                     }
 
                     if (action === 'generate_error' && id === activeGenerationId) {
-                        const activeAiText = document.querySelector('.message-row.ai:last-child .ai-text');
-                        if (activeAiText) {
-                            activeAiText.classList.remove('typing-cursor');
-                            activeAiText.innerText = `Error: ${error}`;
+                        let aiRow = document.getElementById(`msg_row_${id}`);
+                        if (!aiRow) {
+                            const container = document.getElementById('chatMessagesContainer');
+                            aiRow = document.createElement('div');
+                            aiRow.id = `msg_row_${id}`;
+                            aiRow.className = 'message-row ai';
+                            aiRow.innerHTML = `
+                                <div class="message-avatar ai">🧠</div>
+                                <div class="message-bubble"><div class="ai-bubble"><div class="ai-text"></div></div></div>
+                            `;
+                            container.appendChild(aiRow);
                         }
+                        const textEl = aiRow.querySelector('.ai-text');
+                        if (textEl) textEl.innerText = `Generation Error: ${error}`;
+
                         isGenerating = false;
                         document.getElementById('btnSendChat').disabled = false;
                         setEegRestingState();
                     }
                 };
 
-                // Request initial storage status
                 modelWorker.postMessage({ action: 'get_storage_status' });
-                // Prewarm model inside the background worker thread without touching the UI thread!
                 modelWorker.postMessage({ action: 'prewarm', modelId: activeModelId });
 
             } catch(err) {
@@ -3625,27 +3630,6 @@
 
             appendMessageToDom('user', userPrompt);
 
-            const aiRow = document.createElement('div');
-            aiRow.className = 'message-row ai';
-            aiRow.innerHTML = `
-                <div class="message-avatar ai">🧠</div>
-                <div class="message-bubble">
-                    <div class="ai-bubble">
-                        <div class="ai-text typing-cursor"></div>
-                        <div class="message-action-toolbar" style="display:none;" id="streamActionToolbar">
-                            <button class="msg-action-btn" onclick="copyEntireResponse(this)">
-                                <span>📋</span> Copy Response
-                            </button>
-                            <span style="font-size:0.68rem; color:var(--text-muted); font-family:var(--font-mono); margin-left:auto;">
-                                ${meta.name}
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            `;
-            container.appendChild(aiRow);
-            scrollDown();
-
             const phaseTag = document.getElementById('activePhaseTag');
             if (phaseTag) phaseTag.innerText = '⚡ Processing...';
 
@@ -3692,29 +3676,46 @@
                     }
                 });
             }
-        };        function finalizeChatGeneration(fullResponse, avgTps) {
-            const aiRow = document.querySelector('.message-row.ai:last-child');
-            if (!aiRow) return;
+        };
 
-            const textDiv = aiRow.querySelector('.ai-text');
-            const toolbar = aiRow.querySelector('.message-action-toolbar');
-
-            if (textDiv) {
-                textDiv.classList.remove('typing-cursor');
-                renderRichMarkdown(textDiv, fullResponse);
+        function finalizeChatGeneration(genId, fullResponse, avgTps) {
+            let aiRow = document.getElementById(`msg_row_${genId}`);
+            if (!aiRow) {
+                aiRow = document.querySelector('.message-row.ai:last-child');
             }
-            if (toolbar) toolbar.style.display = 'flex';
+
+            if (aiRow) {
+                const textDiv = aiRow.querySelector('.ai-text');
+                const toolbar = aiRow.querySelector('.message-action-toolbar') || document.getElementById(`streamActionToolbar_${genId}`);
+
+                if (textDiv) {
+                    textDiv.classList.remove('typing-cursor');
+                    renderRichMarkdown(textDiv, fullResponse);
+                }
+                if (toolbar) toolbar.style.display = 'flex';
+            }
             scrollDown();
 
-            // Auto-detect code blocks to sync with Monaco and Live Preview
-            const codeBlockMatch = fullResponse.match(/```(html|javascript|js|css|svg)([\s\S]*?)```/i);
+            // Extract code blocks and automatically load into Monaco Editor and Live Preview
+            const codeBlockMatch = fullResponse.match(/```([a-zA-Z0-9_-]*)
+([\s\S]*?)```/);
             if (codeBlockMatch) {
-                const lang = codeBlockMatch[1].toLowerCase();
-                const code = codeBlockMatch[2].trim();
+                let lang = (codeBlockMatch[1] || '').toLowerCase().trim();
+                let code = codeBlockMatch[2].trim();
+
+                if (!lang || lang === 'code') {
+                    if (code.includes('<html') || code.includes('<!DOCTYPE') || code.includes('<div') || code.includes('<canvas')) {
+                        lang = 'html';
+                    } else {
+                        lang = 'javascript';
+                    }
+                }
+
                 const fileName = (lang === 'html') ? 'index.html' : `app.${getExtForLang(lang)}`;
                 
                 openFileInMonaco(fileName, code, lang);
                 refreshLivePreview(code, lang);
+                showToast(`🚀 Generated ${fileName} & loaded in Live Preview!`);
             }
 
             const tpsEl = document.getElementById('eegTpsMeter');
