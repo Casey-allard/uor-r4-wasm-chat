@@ -1,16 +1,16 @@
 {
   "$schema": "https://raw.githubusercontent.com/tauri-apps/tauri/dev/tooling/cli/schema.json",
-  "productName": "UOR-R4 Hermes Studio",
+  "productName": "UOR-R4 Sovereign Studio",
   "version": "2.0.0",
-  "identifier": "com.uor.hermes.studio",
+  "identifier": "com.uor.sovereign.studio",
   "build": {
-    "frontendDist": "../hermes-agent/apps/desktop/dist"
+    "frontendDist": "../dist"
   },
   "app": {
     "withGlobalTauri": true,
     "windows": [
       {
-        "title": "UOR-R4 Sovereign AI & Hermes Studio",
+        "title": "UOR-R4 Sovereign AI Studio",
         "width": 1380,
         "height": 900,
         "minWidth": 900,

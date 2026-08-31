@@ -5,60 +5,62 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "$DIR"
 
 echo "==========================================================="
-echo "⚡ UOR-R4 Geometric Engine + Nous Research Hermes Desktop ☤"
+echo "⚡ UOR-R4 Sovereign AI Studio & Geometric Engine ⚡"
 echo "==========================================================="
 
-# 1. Start Native Rust UOR-R4 API Server in background
-echo "🚀 [1/3] Starting UOR-R4 100% Pure Native Rust Server..."
+MODE="${1:-web}"
+
+# Ensure dist/index.html is synchronized with index.html
+mkdir -p "$DIR/dist"
+cp "$DIR/index.html" "$DIR/dist/index.html"
+
+# Ensure native Rust release binary is compiled
 if [ ! -f "$DIR/target/release/uor_server" ]; then
-    echo "🔨 Compiling native Rust release binary..."
+    echo "🔨 Compiling native Rust release binary (uor_server)..."
     cargo build --release --bin uor_server
 fi
 
-"$DIR/target/release/uor_server" &
-SERVER_PID=$!
-
-cleanup() {
-    echo ""
-    echo "🛑 Shutting down UOR-R4 Rust server (PID: $SERVER_PID)..."
-    kill "$SERVER_PID" 2>/dev/null || true
-    wait "$SERVER_PID" 2>/dev/null || true
-    echo "✨ Clean shutdown complete."
-}
-trap cleanup EXIT INT TERM
-
-# 2. Wait for server to become healthy
-echo "⏳ [2/3] Waiting for API server to become ready on http://127.0.0.1:8000/v1..."
-READY=0
-for i in {1..20}; do
-    if curl -s "http://127.0.0.1:8000/health" | grep -q "healthy"; then
-        READY=1
-        echo "✅ API Server is live and healthy!"
-        break
-    fi
-    sleep 1
-done
-
-if [ "$READY" -ne 1 ]; then
-    echo "⚠️ Server took longer than expected to start, proceeding to launch..."
-fi
-
-# 3. Configure Hermes Environment
-export HERMES_HOME="$DIR/.hermes"
-export HERMES_DESKTOP_PYTHON="$DIR/hermes-agent/.venv/bin/python"
-export HERMES_DESKTOP_HERMES_ROOT="$DIR/hermes-agent"
-export OPENAI_BASE_URL="http://127.0.0.1:8000/v1"
-export OPENAI_API_KEY="uor-local"
-export MODEL_NAME="qwen2.5-0.5b"
-
-# 4. Launch Hermes Desktop Studio
-if [ "$1" == "electron" ] || [ "$1" == "--electron" ]; then
-    echo "🖥️  [3/3] Launching Legacy Electron Hermes Desktop..."
-    cd "$DIR/hermes-agent/apps/desktop"
-    npm run dev
-else
-    echo "🦀 [3/3] Launching Pure Native Rust Tauri v2 Hermes Studio..."
+if [ "$MODE" == "desktop" ] || [ "$MODE" == "tauri" ]; then
+    echo "🦀 Launching Native Tauri v2 Sovereign Desktop Studio..."
     cargo run --release --manifest-path "$DIR/src-tauri/Cargo.toml"
+elif [ "$MODE" == "server" ] || [ "$MODE" == "--server" ]; then
+    echo "🚀 Starting UOR-R4 Headless API Server on http://0.0.0.0:8000..."
+    exec "$DIR/target/release/uor_server"
+else
+    # Default: Web Studio Mode
+    echo "🚀 [1/2] Starting UOR-R4 Sovereign Engine & Web Server..."
+    "$DIR/target/release/uor_server" &
+    SERVER_PID=$!
+
+    cleanup() {
+        echo ""
+        echo "🛑 Shutting down UOR-R4 server (PID: $SERVER_PID)..."
+        kill "$SERVER_PID" 2>/dev/null || true
+        wait "$SERVER_PID" 2>/dev/null || true
+        echo "✨ Clean shutdown complete."
+    }
+    trap cleanup EXIT INT TERM
+
+    echo "⏳ [2/2] Waiting for server to become ready on http://localhost:8000..."
+    READY=0
+    for i in {1..20}; do
+        if curl -s "http://127.0.0.1:8000/health" | grep -q "healthy"; then
+            READY=1
+            echo "✅ Sovereign Web Studio is live at: http://localhost:8000"
+            break
+        fi
+        sleep 0.5
+    done
+
+    # Open default browser on macOS/Linux
+    if command -v open >/dev/null 2>&1; then
+        open "http://localhost:8000"
+    elif command -v xdg-open >/dev/null 2>&1; then
+        xdg-open "http://localhost:8000"
+    fi
+
+    echo "🌐 Studio running in foreground. Press Ctrl+C to stop."
+    wait "$SERVER_PID"
 fi
 
 

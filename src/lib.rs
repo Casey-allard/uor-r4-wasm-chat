@@ -548,6 +548,90 @@ impl InteractiveChatSession {
             last_word
         )
     }
+
+    /// Ingests a new prompt or token string into the active 512D VSA context vector.
+    pub fn ingest_token(&mut self, token_str: &str) {
+        let (tokens, count) = UnicodeLexicalParser::parse_runs(token_str);
+        for i in 0..count {
+            let seed = tokens[i].compute_vsa_seed();
+            let basis = VsaVector::deterministic_basis(seed);
+            self.context_vector = self.context_vector.bundle(&basis);
+        }
+    }
+
+    /// Scores candidate token strings against the active E8 lattice state.
+    /// Returns a JSON string representing [f32; N] containing normalized dot-product
+    /// geometric alignment scores in [-1.0, 1.0].
+    pub fn score_candidates_json(&mut self, candidates_json: &str) -> String {
+        let raw_coords = self.context_vector.project_to_8d_with_matrix(&self.projection_matrix);
+        let mut warped_coords = raw_coords;
+        let warp_factor = (self.last_phase_alpha as i64 * 4) as i32;
+        for j in 0..8 {
+            if j % 2 == 0 {
+                warped_coords[j] = warped_coords[j].saturating_add(warp_factor);
+            } else {
+                warped_coords[j] = warped_coords[j].saturating_sub(warp_factor);
+            }
+        }
+        let snapped = E8LatticeSnapper::snap(warped_coords);
+        let (_chi, _delta, alpha) = CordicHopfEngine::project_to_hopf(snapped);
+        self.last_phase_alpha = alpha;
+
+        let mut query_mag_sq = 0f32;
+        for j in 0..8 {
+            query_mag_sq += (snapped[j] as f32) * (snapped[j] as f32);
+        }
+        let query_norm = if query_mag_sq > 0.0 { query_mag_sq.sqrt() } else { 1.0 };
+
+        let candidates: Vec<String> = match serde_json::from_str(candidates_json) {
+            Ok(c) => c,
+            Err(_) => return "[]".to_string(),
+        };
+
+        let mut scores = Vec::with_capacity(candidates.len());
+        for cand in candidates {
+            let trimmed = cand.trim().to_lowercase();
+            if trimmed.is_empty() {
+                scores.push(0.0f32);
+                continue;
+            }
+
+            let mut cand_coord: Option<[i32; 8]> = None;
+            for (idx, &word) in VOCABULARY.iter().enumerate() {
+                if word == trimmed {
+                    cand_coord = Some(self.codebook[idx]);
+                    break;
+                }
+            }
+
+            let coord = cand_coord.unwrap_or_else(|| {
+                let mut token_bytes = [0u8; 16];
+                let b = trimmed.as_bytes();
+                let len = b.len().min(16);
+                token_bytes[..len].copy_from_slice(&b[..len]);
+                let seed = LexicalToken { bytes: token_bytes, len }.compute_vsa_seed();
+                let basis = VsaVector::deterministic_basis(seed);
+                let raw = basis.project_to_8d_with_matrix(&self.projection_matrix);
+                E8LatticeSnapper::snap(raw)
+            });
+
+            let mut dot = 0f32;
+            let mut cand_mag_sq = 0f32;
+            for j in 0..8 {
+                dot += (snapped[j] as f32) * (coord[j] as f32);
+                cand_mag_sq += (coord[j] as f32) * (coord[j] as f32);
+            }
+            let cand_norm = if cand_mag_sq > 0.0 { cand_mag_sq.sqrt() } else { 1.0 };
+            let cos_sim = if query_mag_sq > 0.0 && cand_mag_sq > 0.0 {
+                (dot / (query_norm * cand_norm)).clamp(-1.0, 1.0)
+            } else {
+                0.0
+            };
+            scores.push(cos_sim);
+        }
+
+        serde_json::to_string(&scores).unwrap_or_else(|_| "[]".to_string())
+    }
 }
 
 // =====================================================================
@@ -1626,5 +1710,21 @@ mod tests {
         let res6 = session.process_input_dynamic("tell me a story", 25);
         println!("Prompt: 'tell me a story' -> Output: {}", res6);
         assert!(res6.contains("manifold"));
+    }
+
+    #[test]
+    fn test_geometric_candidate_scoring_normalized_biases() {
+        let mut session = InteractiveChatSession::new();
+        session.ingest_token("quantum computing superposition entanglement");
+
+        let candidates = r#"["quantum", "entanglement", "routing", "hello", "random"]"#;
+        let scores_json = session.score_candidates_json(candidates);
+        let scores: Vec<f32> = serde_json::from_str(&scores_json).expect("Must parse as f32 array");
+        println!("SCORES: {:?}", scores);
+
+        assert_eq!(scores.len(), 5);
+        for &s in &scores {
+            assert!(s >= -1.0 && s <= 1.0, "Cosine score {} must be within [-1.0, 1.0]", s);
+        }
     }
 }

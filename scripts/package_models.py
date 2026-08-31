@@ -12,35 +12,19 @@ os.makedirs(V1_DIR, exist_ok=True)
 
 MODELS_CATALOG = [
     {
-        "id": "qwen2.5-0.5b",
-        "object": "model",
-        "name": "Qwen 2.5 (0.5B)",
-        "owned_by": "uor-r4",
-        "hosted_source": "onnx-community/Qwen2.5-0.5B-Instruct",
-        "status": "ready"
-    },
-    {
         "id": "glm5.3-flash",
         "object": "model",
-        "name": "GLM-5.3 (Flash)",
+        "name": "GLM-5.3 (SOTA Logic 0.5B)",
         "owned_by": "uor-r4",
         "hosted_source": "onnx-community/Qwen2.5-0.5B-Instruct",
         "status": "ready"
     },
     {
-        "id": "gemma4-flash",
+        "id": "qwen2.5-0.5b",
         "object": "model",
-        "name": "Gemma-4 (Flash)",
+        "name": "Qwen 2.5 (0.5B Instruct)",
         "owned_by": "uor-r4",
         "hosted_source": "onnx-community/Qwen2.5-0.5B-Instruct",
-        "status": "ready"
-    },
-    {
-        "id": "qwen3.8-flash-next",
-        "object": "model",
-        "name": "Qwen3.8 (Flash)",
-        "owned_by": "uor-r4",
-        "hosted_source": "onnx-community/Qwen2.5-Coder-0.5B-Instruct",
         "status": "ready"
     }
 ]
