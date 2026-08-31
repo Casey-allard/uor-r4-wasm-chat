@@ -603,15 +603,41 @@ pub async fn api_status_handler() -> impl IntoResponse {
 }
 
 pub async fn api_profiles_handler() -> impl IntoResponse {
-    Json(json!([
-        {
-            "id": "default",
-            "name": "Default Profile",
-            "active": true,
-            "model": "qwen2.5-0.5b",
-            "provider": "uor-rust"
-        }
-    ]))
+    Json(json!({
+        "profiles": [
+            {
+                "name": "default",
+                "display_name": "Default Profile",
+                "is_default": true,
+                "has_env": false,
+                "path": "",
+                "model": "qwen2.5-0.5b",
+                "provider": "uor-rust",
+                "skill_count": 0
+            }
+        ]
+    }))
+}
+
+pub async fn api_active_profile_handler() -> impl IntoResponse {
+    Json(json!({
+        "name": "default",
+        "display_name": "Default Profile",
+        "current": "default",
+        "is_default": true
+    }))
+}
+
+pub async fn api_cron_jobs_handler() -> impl IntoResponse {
+    Json(json!([]))
+}
+
+pub async fn api_cron_runs_handler() -> impl IntoResponse {
+    Json(json!({ "runs": [] }))
+}
+
+pub async fn api_cron_delivery_targets_handler() -> impl IntoResponse {
+    Json(json!([]))
 }
 
 pub async fn api_sidebar_sessions_handler() -> impl IntoResponse {
@@ -1151,6 +1177,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         // Hermes Gateway Compatibility Routes
         .route("/api/status", get(api_status_handler))
         .route("/api/profiles", get(api_profiles_handler))
+        .route("/api/profiles/active", get(api_active_profile_handler))
         .route("/api/profiles/sessions/sidebar", get(api_sidebar_sessions_handler))
         .route("/api/profiles/sessions", get(api_sessions_handler))
         .route("/api/profiles/sessions/pull-requests", post(api_pull_requests_handler))
@@ -1176,6 +1203,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .route("/api/skills", get(api_skills_handler))
         .route("/api/tools", get(api_tools_handler))
         .route("/api/cron", get(api_cron_handler))
+        .route("/api/cron/jobs", get(api_cron_jobs_handler))
+        .route("/api/cron/jobs/:id", get(api_cron_jobs_handler))
+        .route("/api/cron/jobs/:id/runs", get(api_cron_runs_handler))
+        .route("/api/cron/delivery-targets", get(api_cron_delivery_targets_handler))
         .route("/api/plugins", get(api_plugins_handler))
         // Hermes Gateway WebSocket Handlers
         .route("/api/ws", get(ws_handler))
