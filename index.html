@@ -734,7 +734,56 @@
             padding: 0.35rem 0;
         }
 
-        /* CODE BLOCK WITH COPY BUTTON HEADER */
+        /* COMPILATION & DOWNLOAD PROGRESS HUD */
+        .model-progress-hud-card {
+            background: rgba(16, 19, 29, 0.98);
+            border: 1.5px solid rgba(0, 216, 255, 0.4);
+            border-radius: var(--radius-md);
+            padding: 0.65rem 0.85rem;
+            margin: 0.5rem 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6), 0 0 15px rgba(0, 216, 255, 0.15);
+            animation: fadeIn 0.2s ease-out;
+        }
+
+        .hud-top-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .hud-progress-track {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .hud-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00d8ff, #00ff88);
+            border-radius: 4px;
+            transition: width 0.2s ease;
+            box-shadow: 0 0 10px rgba(0, 216, 255, 0.5);
+        }
+
+        .hud-stage-desc {
+            font-size: 0.68rem;
+            font-family: var(--font-mono);
+            color: var(--accent-cyan);
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+                /* CODE BLOCK WITH COPY BUTTON HEADER */
         .code-block-container {
             background: #080a10;
             border: 1px solid var(--border);
@@ -3308,9 +3357,51 @@
                         if (lbl && storage) lbl.innerText = `Storage: ${storage.usageMB} MB`;
                     }
 
-                    if (action === 'compile_progress') {
+                    if (action === 'compile_stage') {
                         const phaseTag = document.getElementById('activePhaseTag');
-                        if (phaseTag) phaseTag.innerText = `⚡ ${stage || 'Loading...'}`;
+                        if (phaseTag) {
+                            if (stage === 'compiling') phaseTag.innerText = `⚡ Compiling ONNX Graph...`;
+                            else if (stage === 'ready') phaseTag.innerText = `⚡ Synaptic Ready`;
+                            else phaseTag.innerText = `📥 ${progress || 0}%`;
+                        }
+
+                        // Update or create HUD in active AI bubble
+                        let hud = document.getElementById(`hud_${id}`);
+                        if (!hud && isGenerating) {
+                            const aiRow = document.querySelector('.message-row.ai:last-child');
+                            if (aiRow) {
+                                hud = document.createElement('div');
+                                hud.id = `hud_${id}`;
+                                hud.className = 'model-progress-hud-card';
+                                const aiBubble = aiRow.querySelector('.ai-bubble');
+                                if (aiBubble) aiBubble.insertBefore(hud, aiBubble.firstChild);
+                            }
+                        }
+
+                        if (hud) {
+                            const isDone = stage === 'ready';
+                            hud.innerHTML = `
+                                <div class="hud-top-row">
+                                    <span style="color:${isDone ? 'var(--accent-emerald)' : 'var(--accent-cyan)'}">
+                                        ${stage === 'compiling' ? '⚡ Compiling ONNX Tensors' : (isDone ? '✓ Model Ready' : '📥 Downloading Weights')}
+                                    </span>
+                                    <span style="font-family:var(--font-mono); font-size:0.68rem; color:var(--text-muted);">${progress || 0}%</span>
+                                </div>
+                                <div class="hud-progress-track">
+                                    <div class="hud-progress-fill" style="width: ${progress || 0}%;"></div>
+                                </div>
+                                <div class="hud-stage-desc">
+                                    <span>${isDone ? '✓' : '⚡'}</span>
+                                    <span>${escapeHtml(text || 'Processing model substrate...')}</span>
+                                </div>
+                            `;
+
+                            if (isDone) {
+                                setTimeout(() => {
+                                    if (hud) hud.style.display = 'none';
+                                }, 3500);
+                            }
+                        }
                     }
 
                     if (action === 'stream_token' && id === activeGenerationId) {

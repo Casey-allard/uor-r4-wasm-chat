@@ -1,6 +1,6 @@
 // =====================================================================
 // UOR-R4 SOVEREIGN IN-BROWSER MODEL WORKER (Web Worker)
-// Non-blocking Hugging Face ONNX Download, Compilation & Causal Inference
+// Multi-Stage Progress Reporting: Download -> Compilation -> Inference
 // =====================================================================
 
 import { pipeline, env, TextStreamer } from 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.3.3';
@@ -77,7 +77,9 @@ async function getOrLoadPipeline(modelId, onProgress) {
     const pipe = await pipeline('text-generation', model.source, {
         dtype: model.dtype || 'q4',
         device: device,
-        progress_callback: onProgress
+        progress_callback: (p) => {
+            if (onProgress) onProgress(p);
+        }
     });
 
     loadedPipelines[modelId] = pipe;
@@ -107,7 +109,9 @@ self.onmessage = async function(e) {
 
         case 'prewarm': {
             try {
-                await getOrLoadPipeline(modelId || 'glm5.3-flash');
+                await getOrLoadPipeline(modelId || 'glm5.3-flash', (p) => {
+                    handleProgressCallback(p, id, modelId || 'glm5.3-flash');
+                });
                 self.postMessage({ action: 'prewarm_complete', id, modelId });
             } catch(err) {
                 self.postMessage({ action: 'prewarm_error', id, modelId, error: err.message || String(err) });
@@ -126,16 +130,16 @@ self.onmessage = async function(e) {
 
             try {
                 const pipe = await getOrLoadPipeline(targetModelId, (p) => {
-                    if (p.status === 'progress') {
-                        const pct = Math.min(99, Math.round(p.progress || 0));
-                        self.postMessage({
-                            action: 'compile_progress',
-                            id,
-                            modelId: targetModelId,
-                            progress: pct,
-                            stage: `Downloading model weights (${pct}%)`
-                        });
-                    }
+                    handleProgressCallback(p, id, targetModelId);
+                });
+
+                self.postMessage({
+                    action: 'compile_stage',
+                    id,
+                    modelId: targetModelId,
+                    stage: 'ready',
+                    progress: 100,
+                    text: '✓ Neural Substrate Ready. Streaming tokens...'
                 });
 
                 const streamer = new TextStreamer(pipe.tokenizer, {
@@ -213,3 +217,57 @@ self.onmessage = async function(e) {
         }
     }
 };
+
+function handleProgressCallback(p, id, targetModelId) {
+    if (p.status === 'initiate') {
+        self.postMessage({
+            action: 'compile_stage',
+            id,
+            modelId: targetModelId,
+            stage: 'initiate',
+            progress: 2,
+            text: `Connecting to Hugging Face for ${p.file || 'model files'}...`,
+            file: p.file
+        });
+    } else if (p.status === 'progress') {
+        const pct = Math.min(99, Math.round(p.progress || 0));
+        const loadedMB = ((p.loaded || 0) / (1024 * 1024)).toFixed(1);
+        const totalMB = ((p.total || 280 * 1024 * 1024) / (1024 * 1024)).toFixed(1);
+        
+        let text = `📥 Downloading ${p.file || 'ONNX weights'} (${pct}% • ${loadedMB}MB / ${totalMB}MB)`;
+        if (pct >= 99) {
+            text = `⚡ Compiling ONNX execution graph & allocating WebGPU/WASM tensors...`;
+        }
+
+        self.postMessage({
+            action: 'compile_stage',
+            id,
+            modelId: targetModelId,
+            stage: pct >= 99 ? 'compiling' : 'downloading',
+            progress: pct,
+            loadedMB,
+            totalMB,
+            text: text,
+            file: p.file
+        });
+    } else if (p.status === 'done') {
+        self.postMessage({
+            action: 'compile_stage',
+            id,
+            modelId: targetModelId,
+            stage: 'compiling',
+            progress: 99,
+            text: `⚡ Allocating WebGPU/WASM tensors & building ONNX execution graph...`,
+            file: p.file
+        });
+    } else if (p.status === 'ready') {
+        self.postMessage({
+            action: 'compile_stage',
+            id,
+            modelId: targetModelId,
+            stage: 'ready',
+            progress: 100,
+            text: `✓ Model Substrate Compiled & Active in Memory`
+        });
+    }
+}
