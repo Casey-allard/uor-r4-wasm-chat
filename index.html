@@ -2164,7 +2164,44 @@
             return map[lang] || 'txt';
         }
 
-        // Custom Marked Renderer
+        // Custom Marked Renderer with 1-Click IDE Actions
+        window.openCodeInLivePreview = function(btn) {
+            const container = btn.closest('.code-block-container');
+            if (!container) return;
+            const codeEl = container.querySelector('code');
+            if (!codeEl) return;
+            const code = codeEl.innerText;
+            const langClass = Array.from(codeEl.classList).find(c => c.startsWith('language-'));
+            const lang = langClass ? langClass.replace('language-', '') : 'html';
+
+            const tabName = (lang === 'html') ? 'index.html' : `app.${getExtForLang(lang)}`;
+            openFileInMonaco(tabName, code, lang);
+            switchStudioView('preview');
+            refreshLivePreview(code, lang);
+            showToast(`🚀 Running in Live Preview!`);
+        };
+
+        window.openCodeInDiffViewer = function(btn) {
+            const container = btn.closest('.code-block-container');
+            if (!container) return;
+            const codeEl = container.querySelector('code');
+            if (!codeEl) return;
+            const code = codeEl.innerText;
+            const langClass = Array.from(codeEl.classList).find(c => c.startsWith('language-'));
+            const lang = langClass ? langClass.replace('language-', '') : 'javascript';
+
+            const activeTab = openEditorTabs.find(t => t.name === activeEditorTab);
+            const tabName = activeTab ? activeTab.name : `code.${getExtForLang(lang)}`;
+            
+            // Set proposed code as modified against existing original
+            openFileInMonaco(tabName, code, lang);
+            if (!isDiffModeActive) {
+                toggleMonacoDiffView();
+            }
+            switchStudioView('editor');
+            showToast(`⚖️ Viewing Code Diff`);
+        };
+
         if (typeof marked !== 'undefined') {
             const renderer = new marked.Renderer();
             renderer.code = function(arg1, arg2) {
@@ -2178,15 +2215,24 @@
                     language = (arg2 || 'code').trim();
                 }
                 const escapedCode = escapeHtml(rawCode);
+                const isPreviewable = ['html', 'htm', 'js', 'javascript', 'ts', 'css', 'svg'].includes(language.toLowerCase());
+
                 return `
                 <div class="code-block-container">
                     <div class="code-block-header">
                         <span class="code-lang-label">${escapeHtml(language)}</span>
                         <div class="code-action-group">
-                            <button class="code-editor-btn" onclick="openCodeInEditor(this)">
+                            ${isPreviewable ? `
+                            <button class="code-editor-btn" style="color:var(--accent-cyan);" onclick="openCodeInLivePreview(this)" title="Run in Live Preview Sandbox">
+                                <span>👁</span> Run Preview
+                            </button>` : ''}
+                            <button class="code-editor-btn" onclick="openCodeInDiffViewer(this)" title="Compare Diff in Monaco">
+                                <span>⚖️</span> Diff
+                            </button>
+                            <button class="code-editor-btn" onclick="openCodeInEditor(this)" title="Edit in Monaco">
                                 <span>💻</span> Edit
                             </button>
-                            <button class="code-copy-btn" onclick="copyCodeBlock(this)">
+                            <button class="code-copy-btn" onclick="copyCodeBlock(this)" title="Copy Code">
                                 <span>📋</span> Copy
                             </button>
                         </div>
@@ -2195,9 +2241,7 @@
                 </div>`;
             };
             marked.use({ renderer: renderer });
-        }
-
-        // --- MODEL DEFINITIONS ---
+        }        // --- MODEL DEFINITIONS ---
         window.MODEL_CONFIGS = {
             'glm5.3-flash': {
                 id: 'glm5.3-flash',
@@ -2667,7 +2711,7 @@
             }
         };
 
-                // --- PHASE 3: MONACO CODE EDITOR & DIFF ENGINE ---
+                // --- PHASE 3: MONACO CODE EDITOR, PROFESSIONAL DIFF & LIVE PREVIEW ---
         let monacoEditorInstance = null;
         let monacoDiffInstance = null;
         let isDiffModeActive = false;
@@ -2678,21 +2722,33 @@
 
             require(['vs/editor/editor.main'], function() {
                 monacoEditorInstance = monaco.editor.create(document.getElementById('monacoEditorRoot'), {
-                    value: '// Sovereign AI Studio - Monaco Editor\n// Open a local file or snippet to begin editing.\n',
+                    value: '// Sovereign AI Studio - Monaco Editor\n// Open a local file or generate code to begin.\n',
                     language: 'javascript',
                     theme: 'vs-dark',
                     automaticLayout: true,
-                    fontSize: 13,
+                    fontSize: 11.5,
+                    lineHeight: 18,
                     fontFamily: 'Fira Code, monospace',
-                    minimap: { enabled: true }
+                    fontLigatures: true,
+                    minimap: { enabled: true, scale: 1 },
+                    scrollBeyondLastLine: false,
+                    smoothScrolling: true,
+                    cursorBlinking: 'smooth',
+                    renderWhitespace: 'selection',
+                    padding: { top: 8, bottom: 8 }
                 });
 
                 monacoDiffInstance = monaco.editor.createDiffEditor(document.getElementById('monacoDiffRoot'), {
                     theme: 'vs-dark',
                     automaticLayout: true,
-                    fontSize: 13,
+                    fontSize: 11.5,
+                    lineHeight: 18,
                     fontFamily: 'Fira Code, monospace',
-                    renderSideBySide: true
+                    fontLigatures: true,
+                    renderSideBySide: true,
+                    scrollBeyondLastLine: false,
+                    readOnly: false,
+                    originalEditable: false
                 });
 
                 window.monacoEditorInstance = monacoEditorInstance;
@@ -2704,9 +2760,12 @@
             const langMap = { rs: 'rust', py: 'python', js: 'javascript', ts: 'typescript', html: 'html', css: 'css', json: 'json', md: 'markdown' };
             const language = langMap[ext] || ext;
 
-            const existingTab = openEditorTabs.find(t => t.name === name);
+            let existingTab = openEditorTabs.find(t => t.name === name);
             if (!existingTab) {
-                openEditorTabs.push({ name, content, language, originalContent: content, fileItem });
+                existingTab = { name, content, language, originalContent: content, fileItem };
+                openEditorTabs.push(existingTab);
+            } else {
+                existingTab.content = content;
             }
 
             activeEditorTab = name;
@@ -2765,8 +2824,8 @@
 
                 const currentTab = openEditorTabs.find(t => t.name === activeEditorTab);
                 if (currentTab && monacoDiffInstance) {
-                    const originalModel = monaco.editor.createModel(currentTab.originalContent || '', currentTab.language);
-                    const modifiedModel = monaco.editor.createModel(monacoEditorInstance.getValue(), currentTab.language);
+                    const originalModel = monaco.editor.createModel(currentTab.originalContent || currentTab.content, currentTab.language);
+                    const modifiedModel = monaco.editor.createModel(monacoEditorInstance ? monacoEditorInstance.getValue() : currentTab.content, currentTab.language);
                     monacoDiffInstance.setModel({ original: originalModel, modified: modifiedModel });
                 }
             } else {
@@ -2776,20 +2835,31 @@
             }
         };
 
+        window.acceptAllDiffChanges = function() {
+            const currentTab = openEditorTabs.find(t => t.name === activeEditorTab);
+            if (currentTab && monacoEditorInstance) {
+                currentTab.content = monacoEditorInstance.getValue();
+                currentTab.originalContent = currentTab.content;
+                toggleMonacoDiffView();
+                refreshLivePreview(currentTab.content, currentTab.language);
+                showToast("✓ Accepted changes & synced to Live Preview!");
+            }
+        };
+
         window.saveActiveFileToDisk = async function() {
             const currentTab = openEditorTabs.find(t => t.name === activeEditorTab);
             if (!currentTab) return;
 
             const updatedContent = monacoEditorInstance ? monacoEditorInstance.getValue() : currentTab.content;
             currentTab.content = updatedContent;
+            currentTab.originalContent = updatedContent;
 
             if (currentTab.fileItem && currentTab.fileItem.handle) {
                 try {
                     const writable = await currentTab.fileItem.handle.createWritable();
                     await writable.write(updatedContent);
                     await writable.close();
-                    currentTab.originalContent = updatedContent;
-                    showToast(`💾 Saved ${currentTab.name} to local disk!`);
+                    showToast(`💾 Saved ${currentTab.name} to disk!`);
                 } catch(e) {
                     showToast(`Save error: ${e.message}`);
                 }
@@ -2798,34 +2868,80 @@
             }
         };
 
-        // --- LIVE PREVIEW SANDBOX ENGINE ---
-        window.refreshLivePreview = function() {
+        // --- AUTOMATED LIVE PREVIEW SANDBOX ENGINE ---
+        window.refreshLivePreview = function(overrideCode = null, overrideLang = null) {
             const iframe = document.getElementById('sandboxIframe');
             if (!iframe) return;
 
-            let htmlContent = '';
-            const htmlTab = openEditorTabs.find(t => t.name.endsWith('.html'));
-            if (htmlTab) {
-                htmlContent = htmlTab.content;
-            } else {
-                htmlContent = `
+            let code = overrideCode;
+            let lang = overrideLang;
+
+            if (!code) {
+                const currentTab = openEditorTabs.find(t => t.name === activeEditorTab);
+                if (currentTab) {
+                    code = monacoEditorInstance ? monacoEditorInstance.getValue() : currentTab.content;
+                    lang = currentTab.language;
+                } else {
+                    const htmlTab = openEditorTabs.find(t => t.name.endsWith('.html'));
+                    if (htmlTab) {
+                        code = htmlTab.content;
+                        lang = 'html';
+                    }
+                }
+            }
+
+            let fullHtml = '';
+            if (!code || !code.trim()) {
+                fullHtml = `
                 <!DOCTYPE html>
                 <html>
                 <head>
                     <style>
-                        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; background: #0c1017; color: #ffffff; }
-                        .card { background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 2rem; text-align: center; box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
-                        h1 { color: #58a6ff; margin-bottom: 0.5rem; }
-                        button { background: #238636; color: white; border: none; padding: 0.6rem 1.2rem; border-radius: 6px; font-weight: bold; cursor: pointer; }
+                        body { margin: 0; padding: 2rem; background: #080a10; color: #fff; font-family: -apple-system, BlinkMacSystemFont, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; box-sizing: border-box; text-align: center; }
+                        .hero-card { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 12px; padding: 2rem; max-width: 480px; }
+                        h2 { color: #00d8ff; margin-bottom: 0.5rem; }
+                        p { color: #94a3b8; font-size: 0.85rem; line-height: 1.5; }
                     </style>
                 </head>
                 <body>
-                    <div class="card">
-                        <h1>⚡ Sovereign App Live Sandbox</h1>
-                        <p>Open or generate an HTML/JS file to preview interactive applications live.</p>
-                        <button onclick="console.log('Sandbox Interactive Event Triggered at ' + new Date().toLocaleTimeString())">Interactive Event</button>
+                    <div class="hero-card">
+                        <h2>⚡ Sovereign Live Sandbox</h2>
+                        <p>Ask the AI to build an interactive application, or open an HTML/JS file in Monaco to preview it live.</p>
                     </div>
                 </body>
+                </html>`;
+            } else if (lang === 'html' || code.includes('<html') || code.includes('<!DOCTYPE') || code.includes('<div') || code.includes('<canvas')) {
+                fullHtml = code;
+            } else if (lang === 'javascript' || lang === 'js' || lang === 'typescript' || lang === 'ts') {
+                // Auto-wrap pure JavaScript/Canvas scripts in an execution harness
+                fullHtml = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="UTF-8">
+                    <style>
+                        body { margin: 0; padding: 0; background: #050608; color: #fff; font-family: sans-serif; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; }
+                        canvas { display: block; border-radius: 8px; box-shadow: 0 0 25px rgba(0, 216, 255, 0.25); }
+                    </style>
+                </head>
+                <body>
+                    <canvas id="canvas" width="600" height="400"></canvas>
+                    <div id="app"></div>
+                    <script>
+                    try {
+                        ${code}
+                    } catch(err) {
+                        console.error("Runtime Error in Live Preview:", err.message);
+                    }
+                    <\/script>
+                </body>
+                </html>`;
+            } else {
+                fullHtml = `
+                <!DOCTYPE html>
+                <html>
+                <head><style>body { background: #0d1117; color: #c9d1d9; font-family: monospace; padding: 1.5rem; white-space: pre-wrap; }</style></head>
+                <body>${escapeHtml(code)}</body>
                 </html>`;
             }
 
@@ -2847,10 +2963,13 @@
                         window.parent.postMessage({ type: 'CONSOLE_LOG', level: 'warn', msg: args.join(' ') }, '*');
                         origWarn.apply(console, args);
                     };
+                    window.onerror = function(msg, url, line) {
+                        window.parent.postMessage({ type: 'CONSOLE_LOG', level: 'error', msg: msg + ' (Line ' + line + ')' }, '*');
+                    };
                 })();
             <\/script>`;
 
-            iframe.srcdoc = injectedScript + htmlContent;
+            iframe.srcdoc = injectedScript + fullHtml;
         };
 
         window.addEventListener('message', (event) => {
@@ -2871,16 +2990,17 @@
         };
 
         window.sendPreviewToChat = function() {
-            const logs = Array.from(document.querySelectorAll('.log-entry')).map(el => el.innerText).join('\n');
+            const activeTab = openEditorTabs.find(t => t.name === activeEditorTab);
+            const activeCode = monacoEditorInstance ? monacoEditorInstance.getValue() : (activeTab ? activeTab.content : '');
+            const rawLogs = Array.from(document.querySelectorAll('.log-entry')).map(el => el.innerText).filter(l => !l.includes('[Ready]')).join('\n');
+
             const input = document.getElementById('chatInput');
             if (input) {
-                input.value = `Here are the latest runtime logs from the sandbox preview:\n\`\`\`\n${logs}\n\`\`\`\nPlease analyze and optimize.`;
+                input.value = `I am testing the live preview. Here is the active code and runtime logs:\n\n\`\`\`${activeTab ? activeTab.language : 'html'}\n${activeCode.slice(0, 3000)}\n\`\`\`\n\nRuntime Logs:\n\`\`\`\n${rawLogs || 'No errors logged'}\n\`\`\`\n\nPlease analyze any issues, optimize the implementation, and output the complete revised code block.`;
                 switchStudioView('chat');
                 autoResizeTextarea(input);
             }
-        };
-
-        // --- PHASE 4: IN-BROWSER MCP TOOLS & REASONING ENGINE ---
+        };        // --- PHASE 4: IN-BROWSER MCP TOOLS & REASONING ENGINE ---
         window.executeMcpToolCall = async function(toolName, args) {
             logToolExecutionCard(toolName, args, 'running');
 
@@ -3467,6 +3587,15 @@
             const meta = MODEL_CONFIGS[activeModelId] || MODEL_CONFIGS['glm5.3-flash'];
 
             let fullContext = userPrompt;
+
+            // 1. Automatically inject Active Monaco Editor File context if relevant
+            const activeTab = openEditorTabs.find(t => t.name === activeEditorTab);
+            const activeCode = monacoEditorInstance ? monacoEditorInstance.getValue() : (activeTab ? activeTab.content : '');
+            if (activeTab && activeCode && activeCode.trim() && !userPrompt.includes(activeCode.slice(0, 50))) {
+                fullContext += `\n\n--- Active Editor File (${activeTab.name}) ---\n\`\`\`${activeTab.language || 'text'}\n${activeCode.slice(0, 4000)}\n\`\`\`\n`;
+            }
+
+            // 2. Automatically inject attached workspace files
             if (attachedFiles.length > 0) {
                 fullContext += "\n\n--- Context from attached workspace documents ---\n";
                 attachedFiles.forEach(f => {
@@ -3494,7 +3623,7 @@
             const hero = container.querySelector('.empty-hero');
             if (hero) hero.remove();
 
-            appendMessageToDom('user', fullContext);
+            appendMessageToDom('user', userPrompt);
 
             const aiRow = document.createElement('div');
             aiRow.className = 'message-row ai';
@@ -3533,7 +3662,7 @@
 
             const systemMsg = {
                 role: 'system',
-                content: 'You are a sovereign software engineer and AI coding assistant. Format mathematical expressions using standard LaTeX syntax enclosed in $$...$$ for display math and $...$ for inline math. Write clean, modular, production-ready code with appropriate language tags.'
+                content: 'You are an autonomous senior software engineer and AI coding assistant embedded directly inside the Sovereign Developer Studio with live access to the editor and live preview sandbox. When asked to write, fix, or optimize code, always output the full, complete, production-ready code in clean markdown code blocks with the correct language identifier (e.g. ```html or ```javascript or ```rust). Format mathematical equations using standard KaTeX LaTeX syntax ($...$ and $$...$$).'
             };
 
             const recentHistory = curConv.messages.slice(-6);
@@ -3563,9 +3692,7 @@
                     }
                 });
             }
-        };
-
-        function finalizeChatGeneration(fullResponse, avgTps) {
+        };        function finalizeChatGeneration(fullResponse, avgTps) {
             const aiRow = document.querySelector('.message-row.ai:last-child');
             if (!aiRow) return;
 
@@ -3579,10 +3706,15 @@
             if (toolbar) toolbar.style.display = 'flex';
             scrollDown();
 
-            const htmlMatch = fullResponse.match(/```html([\s\S]*?)```/);
-            if (htmlMatch) {
-                const htmlCode = htmlMatch[1].trim();
-                openFileInMonaco('index.html', htmlCode, 'html');
+            // Auto-detect code blocks to sync with Monaco and Live Preview
+            const codeBlockMatch = fullResponse.match(/```(html|javascript|js|css|svg)([\s\S]*?)```/i);
+            if (codeBlockMatch) {
+                const lang = codeBlockMatch[1].toLowerCase();
+                const code = codeBlockMatch[2].trim();
+                const fileName = (lang === 'html') ? 'index.html' : `app.${getExtForLang(lang)}`;
+                
+                openFileInMonaco(fileName, code, lang);
+                refreshLivePreview(code, lang);
             }
 
             const tpsEl = document.getElementById('eegTpsMeter');
