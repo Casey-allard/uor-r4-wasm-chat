@@ -1,0 +1,21 @@
+{
+  "name": "uor_r4_wasm_bridge",
+  "type": "module",
+  "description": "UOR-R4 Geometric Cognitive AI: In-Browser WebGPU Neural Substrate with 8D Gosset E8 Lattice & Hopf Phase Telemetry",
+  "version": "2.0.0",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Casey-allard/uor-r4-wasm-chat"
+  },
+  "files": [
+    "uor_r4_wasm_bridge_bg.wasm",
+    "uor_r4_wasm_bridge.js",
+    "uor_r4_wasm_bridge.d.ts"
+  ],
+  "main": "uor_r4_wasm_bridge.js",
+  "types": "uor_r4_wasm_bridge.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}

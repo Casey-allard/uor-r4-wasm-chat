@@ -1,6 +1,5 @@
 target/
 **/target/
-/pkg
 dist/
 __pycache__/
 *.pyc

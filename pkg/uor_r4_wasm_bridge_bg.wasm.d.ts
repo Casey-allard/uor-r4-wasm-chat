@@ -1,0 +1,28 @@
+/* tslint:disable */
+/* eslint-disable */
+export const memory: WebAssembly.Memory;
+export const __wbg_browsertrainingharness_free: (a: number, b: number) => void;
+export const __wbg_dynamicsession_free: (a: number, b: number) => void;
+export const __wbg_interactivechatsession_free: (a: number, b: number) => void;
+export const browsertrainingharness_new: () => number;
+export const browsertrainingharness_train_on_corpus: (a: number, b: number, c: number, d: number, e: number) => [number, number];
+export const dynamicsession_auto_ingest_knowledge_base: (a: number, b: number) => [number, number];
+export const dynamicsession_evaluate_sensitivity: (a: number, b: number, c: number, d: number, e: number) => [number, number];
+export const dynamicsession_export_codebook_json: (a: number) => [number, number];
+export const dynamicsession_get_vocab_size: (a: number) => number;
+export const dynamicsession_ingest_corpus: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number) => [number, number];
+export const dynamicsession_is_byte_mode: (a: number) => number;
+export const dynamicsession_new: (a: number, b: number, c: number) => number;
+export const dynamicsession_process_input_dynamic: (a: number, b: number, c: number, d: number) => [number, number];
+export const dynamicsession_reset: (a: number) => void;
+export const interactivechatsession_ingest_token: (a: number, b: number, c: number) => void;
+export const interactivechatsession_load_custom_codebook: (a: number, b: number, c: number) => number;
+export const interactivechatsession_new: () => number;
+export const interactivechatsession_process_input_run: (a: number, b: number, c: number) => [number, number];
+export const interactivechatsession_reset: (a: number) => void;
+export const interactivechatsession_score_candidates_json: (a: number, b: number, c: number) => [number, number];
+export const __wbindgen_externrefs: WebAssembly.Table;
+export const __wbindgen_malloc: (a: number, b: number) => number;
+export const __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;
+export const __wbindgen_free: (a: number, b: number, c: number) => void;
+export const __wbindgen_start: () => void;

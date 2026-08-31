@@ -4127,48 +4127,51 @@
             if (phaseTag) phaseTag.innerText = `⚡ Synaptic Ready`;
         }
 
-        // --- INITIALIZATION ---
-        window.addEventListener('DOMContentLoaded', async () => {
-            try {
-                const wasmModule = await import('./pkg/uor_r4_wasm_bridge.js').catch(() => null);
-                if (wasmModule) {
-                    init = wasmModule.default;
-                    InteractiveChatSession = wasmModule.InteractiveChatSession;
-                    if (typeof init === 'function') {
-                        await init();
-                        if (typeof InteractiveChatSession !== 'undefined') {
-                            window.wasmChatSession = new InteractiveChatSession();
-                        }
-                    }
-                }
-            } catch(wasmErr) {
-                console.warn("WASM bridge initialized in fallback mode:", wasmErr);
-            }
-            initThreeVisualizer();
-            initEegOscilloscope();
-            initMonacoEditor();
-            loadPersistentState();
-            updateInputModelDisplay();
-            initModelWorker();
-
-            // Check stored GitHub PAT
-            const storedPat = localStorage.getItem('uor_github_pat');
-            if (storedPat) {
-                try {
-                    const { Octokit } = await import('https://esm.sh/@octokit/rest');
-                    const octokit = new Octokit({ auth: storedPat });
-                    window.octokitClient = octokit;
-                    const { data: user } = await octokit.rest.users.getAuthenticated();
-                    document.getElementById('githubAuthLabel').innerText = `@${user.login}`;
-                    document.getElementById('btnGithubAuth').classList.add('connected');
-                } catch(e) {}
-            }
+        // --- INITIALIZATION (INSTANT SYNCHRONOUS UI STARTUP) ---
+        window.addEventListener('DOMContentLoaded', () => {
+            // 1. Instantly and synchronously render all UI components (0ms delay)
+            try { initThreeVisualizer(); } catch(e) { console.warn("Three.js init error:", e); }
+            try { initEegOscilloscope(); } catch(e) { console.warn("EEG init error:", e); }
+            try { initMonacoEditor(); } catch(e) { console.warn("Monaco init error:", e); }
+            try { loadPersistentState(); } catch(e) { console.warn("Persistent state error:", e); }
+            try { updateInputModelDisplay(); } catch(e) { console.warn("Model display error:", e); }
+            try { initModelWorker(); } catch(e) { console.warn("Model worker init error:", e); }
 
             window.savePersistentState = savePersistentState;
             window.renderConversationsList = renderConversationsList;
             window.renderCurrentChatMessages = renderCurrentChatMessages;
             window.renderRichMarkdown = renderRichMarkdown;
-            checkOAuthCallbackUrl();
+
+            // 2. Asynchronously connect stored GitHub credentials
+            const storedPat = localStorage.getItem('uor_github_pat');
+            if (storedPat) {
+                (async () => {
+                    try {
+                        const user = await callGithubApi('/user', storedPat).catch(() => null);
+                        if (user && user.login) {
+                            document.getElementById('githubAuthLabel').innerText = `@${user.login}`;
+                            document.getElementById('btnGithubAuth').classList.add('connected');
+                        }
+                    } catch(e) {}
+                })();
+            }
+
+            // 3. Asynchronously load Rust WASM Geometric Bridge in background without blocking UI
+            (async () => {
+                try {
+                    const wasmModule = await import('./pkg/uor_r4_wasm_bridge.js');
+                    if (wasmModule && typeof wasmModule.default === 'function') {
+                        await wasmModule.default();
+                        if (typeof wasmModule.InteractiveChatSession !== 'undefined') {
+                            window.wasmChatSession = new wasmModule.InteractiveChatSession();
+                            console.log("⚡ Rust WASM Geometric Bridge active!");
+                        }
+                    }
+                } catch(wasmErr) {
+                    console.warn("WASM bridge loaded in fallback mode:", wasmErr);
+                }
+            })();
+
             console.log("⚡ UOR-R4 Sovereign AI Developer Studio Initialized.");
         });
     </script>
