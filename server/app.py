@@ -248,13 +248,34 @@ async def chat_completions(req: ChatCompletionRequest):
         elif role == "system":
             has_system = True
             if len(content_str) > 600:
-                # Condense verbose agent checklists to keep small 0.5B model focused on the user
-                content_str = "You are a helpful, direct, and intelligent AI assistant. Answer user queries clearly, naturally, and concisely."
+                content_str = "You are Hermes AI Agent with full agency. When asked to inspect files, execute commands, or create PRs, call tools directly."
 
         if content_str:
             conv_messages.append({"role": role, "content": content_str})
 
-    if not has_system:
+    # 2. Extract tools and build agency system prompt if tools are present
+    tool_names = []
+    if req.tools:
+        for t in req.tools:
+            if isinstance(t, dict):
+                fn = t.get("function", {})
+                if fn and fn.get("name"):
+                    tool_names.append(fn.get("name"))
+
+    if tool_names:
+        tools_system = (
+            "You are Hermes AI Agent with full agency and tool access.\n"
+            f"Available tools: {', '.join(tool_names)}\n\n"
+            "When the user asks you to perform an action (e.g. check local files, run git/terminal commands, read directories, submit PRs, or modify code), "
+            "DO NOT just describe the steps in text or ask what to do next. "
+            "CALL the appropriate tool directly using this XML format:\n"
+            "<tool_call>\n"
+            '{"name": "<tool_name>", "arguments": {"<arg>": "<val>"}}\n'
+            "</tool_call>\n"
+            "Always act by calling tools to accomplish the user's request."
+        )
+        conv_messages = [{"role": "system", "content": tools_system}] + [m for m in conv_messages if m["role"] != "system"]
+    elif not has_system:
         conv_messages.insert(0, {
             "role": "system",
             "content": "You are a helpful, direct, and intelligent AI assistant. Answer user queries clearly, naturally, and concisely."
@@ -263,7 +284,7 @@ async def chat_completions(req: ChatCompletionRequest):
     model, tokenizer, device = get_pipeline(req.model)
     max_new_tokens = min(req.max_tokens or 1024, 2048)
 
-    # 2. Apply tokenizer's official ChatML template
+    # 3. Apply tokenizer's official ChatML template
     if tokenizer and hasattr(tokenizer, "apply_chat_template"):
         try:
             prompt = tokenizer.apply_chat_template(conv_messages, tokenize=False, add_generation_prompt=True)
@@ -285,6 +306,8 @@ async def chat_completions(req: ChatCompletionRequest):
         if im_end_id:
             eos_token_ids.append(im_end_id)
 
+    tool_call_regex = re.compile(r'<tool_call>\s*(\{.*?\})\s*</tool_call>', re.DOTALL)
+
     if req.stream:
         # Server-Sent Events (SSE) Stream Generator
         async def event_generator():
@@ -299,6 +322,7 @@ async def chat_completions(req: ChatCompletionRequest):
                 }
                 yield f"data: {json.dumps(initial_chunk)}\n\n"
 
+                accumulated_text = ""
                 if model and tokenizer:
                     import torch
                     from transformers import TextIteratorStreamer
@@ -312,7 +336,7 @@ async def chat_completions(req: ChatCompletionRequest):
                     gen_kwargs = dict(
                         **inputs,
                         max_new_tokens=max_new_tokens,
-                        temperature=max(req.temperature or 0.7, 0.2),
+                        temperature=max(req.temperature or 0.3, 0.1),
                         top_p=req.top_p or 0.9,
                         repetition_penalty=1.15,
                         do_sample=True,
@@ -333,18 +357,11 @@ async def chat_completions(req: ChatCompletionRequest):
 
                         if "<|im_end|>" in chunk or "<|endoftext|>" in chunk:
                             chunk = chunk.replace("<|im_end|>", "").replace("<|endoftext|>", "")
-                            if chunk:
-                                payload = {
-                                    "id": req_id,
-                                    "object": "chat.completion.chunk",
-                                    "created": created_ts,
-                                    "model": req.model,
-                                    "choices": [{"index": 0, "delta": {"content": chunk}, "finish_reason": None}]
-                                }
-                                yield f"data: {json.dumps(payload)}\n\n"
+                            accumulated_text += chunk
                             break
 
                         if chunk:
+                            accumulated_text += chunk
                             payload = {
                                 "id": req_id,
                                 "object": "chat.completion.chunk",
@@ -357,6 +374,7 @@ async def chat_completions(req: ChatCompletionRequest):
 
                 else:
                     sample_reply = f"Hello from UOR-R4 API Server! Connected to substrate [{req.model}]."
+                    accumulated_text = sample_reply
                     for w in sample_reply.split(" "):
                         payload = {
                             "id": req_id,
@@ -368,13 +386,17 @@ async def chat_completions(req: ChatCompletionRequest):
                         yield f"data: {json.dumps(payload)}\n\n"
                         await asyncio.sleep(0.03)
 
+                # Check if tool calls were emitted in stream
+                matches = tool_call_regex.findall(accumulated_text)
+                finish_reason = "tool_calls" if matches else "stop"
+
                 # Final STOP chunk
                 final_chunk = {
                     "id": req_id,
                     "object": "chat.completion.chunk",
                     "created": created_ts,
                     "model": req.model,
-                    "choices": [{"index": 0, "delta": {}, "finish_reason": "stop"}]
+                    "choices": [{"index": 0, "delta": {}, "finish_reason": finish_reason}]
                 }
                 yield f"data: {json.dumps(final_chunk)}\n\n"
                 yield "data: [DONE]\n\n"
@@ -395,7 +417,7 @@ async def chat_completions(req: ChatCompletionRequest):
         )
 
     else:
-        # Non-streaming JSON response
+        # Non-streaming JSON response with tool calling extraction
         response_text = ""
         if model and tokenizer:
             import torch
@@ -407,7 +429,7 @@ async def chat_completions(req: ChatCompletionRequest):
                 out_ids = model.generate(
                     **inputs,
                     max_new_tokens=max_new_tokens,
-                    temperature=max(req.temperature or 0.7, 0.2),
+                    temperature=max(req.temperature or 0.3, 0.1),
                     top_p=req.top_p or 0.9,
                     repetition_penalty=1.15,
                     do_sample=True,
@@ -419,6 +441,36 @@ async def chat_completions(req: ChatCompletionRequest):
         else:
             response_text = f"UOR-R4 Server non-streaming response for model [{req.model}]."
 
+        matches = tool_call_regex.findall(response_text)
+        parsed_tool_calls = []
+        for i, m in enumerate(matches):
+            try:
+                data = json.loads(m)
+                fn_name = data.get("name", "")
+                fn_args = data.get("arguments", {})
+                args_str = json.dumps(fn_args) if isinstance(fn_args, dict) else str(fn_args)
+                if fn_name:
+                    parsed_tool_calls.append({
+                        "id": f"call_{i}_{int(time.time()*1000)}",
+                        "type": "function",
+                        "function": {
+                            "name": fn_name,
+                            "arguments": args_str
+                        }
+                    })
+            except Exception:
+                pass
+
+        cleaned_content = tool_call_regex.sub("", response_text).strip()
+        finish_reason = "tool_calls" if parsed_tool_calls else "stop"
+
+        msg_payload = {
+            "role": "assistant",
+            "content": cleaned_content if (cleaned_content or not parsed_tool_calls) else None
+        }
+        if parsed_tool_calls:
+            msg_payload["tool_calls"] = parsed_tool_calls
+
         return {
             "id": req_id,
             "object": "chat.completion",
@@ -427,11 +479,8 @@ async def chat_completions(req: ChatCompletionRequest):
             "choices": [
                 {
                     "index": 0,
-                    "message": {
-                        "role": "assistant",
-                        "content": response_text
-                    },
-                    "finish_reason": "stop"
+                    "message": msg_payload,
+                    "finish_reason": finish_reason
                 }
             ],
             "usage": {
