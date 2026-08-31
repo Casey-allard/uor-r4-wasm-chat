@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::convert::Infallible;
 use std::net::SocketAddr;
 use std::sync::Arc;
@@ -83,9 +84,36 @@ pub struct ModelListResponse {
     pub data: Vec<ModelInfo>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ChatMessageItem {
+    pub id: String,
+    pub role: String,
+    pub content: String,
+    pub timestamp: u64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SessionRecord {
+    pub id: String,
+    pub session_id: String,
+    pub title: String,
+    pub model: String,
+    pub provider: String,
+    pub created_at: u64,
+    pub updated_at: u64,
+    pub started_at: u64,
+    pub last_active: u64,
+    pub profile: String,
+    pub source: String,
+    pub pinned: bool,
+    pub archived: bool,
+    pub messages: Vec<ChatMessageItem>,
+}
+
 #[derive(Debug, Clone)]
 pub struct AppState {
     pub models: Vec<ModelInfo>,
+    pub sessions: Arc<tokio::sync::Mutex<HashMap<String, SessionRecord>>>,
 }
 
 fn current_timestamp() -> u64 {
@@ -428,9 +456,46 @@ async fn start_background_server() {
             created: 1700000000,
             owned_by: "uor-r4-rust".to_string(),
         },
+        ModelInfo {
+            id: "qwen3.8-flash".to_string(),
+            object: "model".to_string(),
+            created: 1700000000,
+            owned_by: "uor-r4-rust".to_string(),
+        },
     ];
 
-    let state = Arc::new(AppState { models });
+    let mut initial_sessions = HashMap::new();
+    initial_sessions.insert(
+        "uor-r4-session-1".to_string(),
+        SessionRecord {
+            id: "uor-r4-session-1".to_string(),
+            session_id: "uor-r4-session-1".to_string(),
+            title: "Welcome to Hermes AI".to_string(),
+            model: "qwen2.5-0.5b".to_string(),
+            provider: "uor-rust".to_string(),
+            created_at: 1700000000,
+            updated_at: 1700000000,
+            started_at: 1700000000,
+            last_active: 1700000000,
+            profile: "default".to_string(),
+            source: "desktop".to_string(),
+            pinned: false,
+            archived: false,
+            messages: vec![
+                ChatMessageItem {
+                    id: "msg-welcome".to_string(),
+                    role: "assistant".to_string(),
+                    content: "Welcome to Hermes Agent powered by UOR-R4 Sovereign Geometric AI!".to_string(),
+                    timestamp: 1700000000,
+                }
+            ],
+        },
+    );
+
+    let state = Arc::new(AppState {
+        models,
+        sessions: Arc::new(tokio::sync::Mutex::new(initial_sessions)),
+    });
 
     let cors = CorsLayer::new()
         .allow_origin(Any)
@@ -470,11 +535,21 @@ async fn start_background_server() {
         .route("/api/logs", get(api_logs_handler))
         .route("/api/skills", get(api_skills_handler))
         .route("/api/tools", get(api_tools_handler))
+        .route("/api/toolsets", get(api_toolsets_handler))
+        .route("/api/mcp/servers", get(api_mcp_servers_handler).post(api_mcp_servers_handler))
+        .route("/api/mcp/catalog", get(api_mcp_catalog_handler))
+        .route("/api/artifacts", get(api_artifacts_handler))
+        .route("/api/starmap", get(api_starmap_handler))
+        .route("/api/memories", get(api_memories_handler))
+        .route("/api/providers/oauth", get(api_oauth_providers_handler))
+        .route("/api/providers/custom-endpoints", get(api_custom_endpoints_handler))
+        .route("/api/providers/validate", post(api_providers_validate_handler))
         .route("/api/cron", get(api_cron_handler))
         .route("/api/cron/jobs", get(api_cron_jobs_handler))
         .route("/api/cron/jobs/:id", get(api_cron_jobs_handler))
         .route("/api/cron/jobs/:id/runs", get(api_cron_runs_handler))
         .route("/api/cron/delivery-targets", get(api_cron_delivery_targets_handler))
+        .route("/api/cron/blueprints", get(api_cron_blueprints_handler))
         .route("/api/plugins", get(api_plugins_handler))
         .route("/api/ws", get(ws_handler))
         .route("/ws", get(ws_handler))
@@ -490,11 +565,14 @@ async fn start_background_server() {
     }
 }
 
-pub async fn ws_handler(ws: WebSocketUpgrade) -> impl IntoResponse {
-    ws.on_upgrade(handle_socket)
+pub async fn ws_handler(
+    ws: WebSocketUpgrade,
+    State(state): State<Arc<AppState>>,
+) -> impl IntoResponse {
+    ws.on_upgrade(move |socket| handle_socket(socket, state))
 }
 
-async fn handle_socket(mut socket: WebSocket) {
+async fn handle_socket(mut socket: WebSocket, state: Arc<AppState>) {
     let ready_event = json!({
         "jsonrpc": "2.0",
         "method": "event",
@@ -502,7 +580,8 @@ async fn handle_socket(mut socket: WebSocket) {
             "type": "gateway.ready",
             "payload": {
                 "version": "2.0.0",
-                "ready": true
+                "ready": true,
+                "desktop_contract": 6
             }
         }
     });
@@ -519,7 +598,22 @@ async fn handle_socket(mut socket: WebSocket) {
                         let resp = json!({
                             "jsonrpc": "2.0",
                             "id": id,
-                            "result": { "ok": true }
+                            "result": { "pong": true, "ok": true }
+                        });
+                        let _ = socket.send(Message::Text(resp.to_string())).await;
+                    }
+                    "status" | "gateway.status" => {
+                        let resp = json!({
+                            "jsonrpc": "2.0",
+                            "id": id,
+                            "result": {
+                                "ready": true,
+                                "desktop_contract": 6,
+                                "contract": 6,
+                                "model": "qwen2.5-0.5b",
+                                "provider": "uor-rust",
+                                "version": "2.0.0"
+                            }
                         });
                         let _ = socket.send(Message::Text(resp.to_string())).await;
                     }
@@ -554,8 +648,8 @@ async fn handle_socket(mut socket: WebSocket) {
                             "jsonrpc": "2.0",
                             "id": id,
                             "result": {
-                                "provider": "uor-rust",
                                 "model": "qwen2.5-0.5b",
+                                "provider": "uor-rust",
                                 "providers": [
                                     {
                                         "slug": "uor-rust",
@@ -601,27 +695,30 @@ async fn handle_socket(mut socket: WebSocket) {
                         let _ = socket.send(Message::Text(resp.to_string())).await;
                     }
                     "session.list" => {
+                        let sessions_map = state.sessions.lock().await;
+                        let sessions: Vec<Value> = sessions_map.values().map(|s| {
+                            json!({
+                                "id": s.id,
+                                "session_id": s.session_id,
+                                "title": s.title,
+                                "model": s.model,
+                                "provider": s.provider,
+                                "created_at": s.created_at,
+                                "updated_at": s.updated_at,
+                                "started_at": s.started_at,
+                                "last_active": s.last_active,
+                                "message_count": s.messages.len(),
+                                "profile": s.profile,
+                                "source": s.source,
+                                "pinned": s.pinned,
+                                "archived": s.archived,
+                            })
+                        }).collect();
+
                         let resp = json!({
                             "jsonrpc": "2.0",
                             "id": id,
-                            "result": [
-                                {
-                                    "id": "uor-r4-session-1",
-                                    "session_id": "uor-r4-session-1",
-                                    "title": "Welcome to Hermes AI",
-                                    "model": "qwen2.5-0.5b",
-                                    "provider": "uor-rust",
-                                    "created_at": 1700000000,
-                                    "updated_at": 1700000000,
-                                    "started_at": 1700000000,
-                                    "last_active": 1700000000,
-                                    "message_count": 1,
-                                    "profile": "default",
-                                    "source": "desktop",
-                                    "pinned": false,
-                                    "archived": false
-                                }
-                            ]
+                            "result": sessions
                         });
                         let _ = socket.send(Message::Text(resp.to_string())).await;
                     }
@@ -630,6 +727,50 @@ async fn handle_socket(mut socket: WebSocket) {
                             .and_then(|p| p.get("session_id"))
                             .and_then(|s| s.as_str())
                             .unwrap_or("uor-r4-session-1");
+                        
+                        let now = std::time::SystemTime::now()
+                            .duration_since(std::time::UNIX_EPOCH)
+                            .unwrap_or_default()
+                            .as_secs();
+
+                        let mut sessions_map = state.sessions.lock().await;
+                        let session = sessions_map.entry(sess_id.to_string()).or_insert_with(|| {
+                            SessionRecord {
+                                id: sess_id.to_string(),
+                                session_id: sess_id.to_string(),
+                                title: "Welcome to Hermes AI".to_string(),
+                                model: "qwen2.5-0.5b".to_string(),
+                                provider: "uor-rust".to_string(),
+                                created_at: now,
+                                updated_at: now,
+                                started_at: now,
+                                last_active: now,
+                                profile: "default".to_string(),
+                                source: "desktop".to_string(),
+                                pinned: false,
+                                archived: false,
+                                messages: vec![
+                                    ChatMessageItem {
+                                        id: "msg-welcome".to_string(),
+                                        role: "assistant".to_string(),
+                                        content: "Welcome to Hermes Agent powered by UOR-R4 Sovereign Geometric AI!".to_string(),
+                                        timestamp: now,
+                                    }
+                                ],
+                            }
+                        });
+
+                        let msgs_val: Vec<Value> = session.messages.iter().map(|m| {
+                            json!({
+                                "id": m.id,
+                                "role": m.role,
+                                "content": m.content,
+                                "timestamp": m.timestamp,
+                            })
+                        }).collect();
+                        let count = msgs_val.len();
+                        let title = session.title.clone();
+
                         let resp = json!({
                             "jsonrpc": "2.0",
                             "id": id,
@@ -637,18 +778,20 @@ async fn handle_socket(mut socket: WebSocket) {
                                 "session_id": sess_id,
                                 "stored_session_id": sess_id,
                                 "profile": "default",
-                                "title": "Welcome to Hermes AI",
-                                "messages": [],
-                                "message_count": 1,
+                                "title": title,
+                                "messages": msgs_val,
+                                "message_count": count,
                                 "model": "qwen2.5-0.5b",
                                 "provider": "uor-rust",
+                                "desktop_contract": 6,
                                 "info": {
                                     "session_id": sess_id,
                                     "stored_session_id": sess_id,
                                     "model": "qwen2.5-0.5b",
                                     "provider": "uor-rust",
                                     "running": false,
-                                    "approval_mode": "off"
+                                    "approval_mode": "off",
+                                    "desktop_contract": 6
                                 }
                             }
                         });
@@ -666,7 +809,8 @@ async fn handle_socket(mut socket: WebSocket) {
                                     "model": "qwen2.5-0.5b",
                                     "provider": "uor-rust",
                                     "running": false,
-                                    "approval_mode": "off"
+                                    "approval_mode": "off",
+                                    "desktop_contract": 6
                                 }
                             }
                         });
@@ -731,6 +875,46 @@ async fn handle_socket(mut socket: WebSocket) {
                             .and_then(|p| p.as_str())
                             .unwrap_or("Hello from UOR-R4");
 
+                        let now_ms = std::time::SystemTime::now()
+                            .duration_since(std::time::UNIX_EPOCH)
+                            .unwrap_or_default()
+                            .as_millis();
+                        let now_secs = (now_ms / 1000) as u64;
+
+                        // Append user message to session
+                        {
+                            let mut sessions_map = state.sessions.lock().await;
+                            let session = sessions_map.entry(sess_id.to_string()).or_insert_with(|| {
+                                SessionRecord {
+                                    id: sess_id.to_string(),
+                                    session_id: sess_id.to_string(),
+                                    title: "Welcome to Hermes AI".to_string(),
+                                    model: "qwen2.5-0.5b".to_string(),
+                                    provider: "uor-rust".to_string(),
+                                    created_at: now_secs,
+                                    updated_at: now_secs,
+                                    started_at: now_secs,
+                                    last_active: now_secs,
+                                    profile: "default".to_string(),
+                                    source: "desktop".to_string(),
+                                    pinned: false,
+                                    archived: false,
+                                    messages: Vec::new(),
+                                }
+                            });
+                            session.messages.push(ChatMessageItem {
+                                id: format!("msg-user-{}", now_ms),
+                                role: "user".to_string(),
+                                content: prompt_text.to_string(),
+                                timestamp: now_secs,
+                            });
+                            session.last_active = now_secs;
+                            session.updated_at = now_secs;
+                            if session.title == "Welcome to Hermes AI" || session.title.is_empty() {
+                                session.title = prompt_text.chars().take(30).collect();
+                            }
+                        }
+
                         let ack = json!({
                             "jsonrpc": "2.0",
                             "id": id,
@@ -749,20 +933,21 @@ async fn handle_socket(mut socket: WebSocket) {
                                     "stored_session_id": sess_id,
                                     "model": "qwen2.5-0.5b",
                                     "provider": "uor-rust",
-                                    "running": true
+                                    "running": true,
+                                    "desktop_contract": 6
                                 }
                             }
                         });
                         let _ = socket.send(Message::Text(running_event.to_string())).await;
 
-                        let msg_id = format!("msg-{}", std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_millis());
+                        let msg_id = format!("msg-asst-{}", now_ms);
                         let start_event = json!({
                             "jsonrpc": "2.0",
                             "method": "event",
                             "params": {
                                 "type": "message.start",
                                 "session_id": sess_id,
-                                "payload": { "id": msg_id, "role": "assistant" }
+                                "payload": { "id": msg_id.clone(), "role": "assistant" }
                             }
                         });
                         let _ = socket.send(Message::Text(start_event.to_string())).await;
@@ -781,7 +966,7 @@ async fn handle_socket(mut socket: WebSocket) {
                                 }
                             });
                             let _ = socket.send(Message::Text(delta_event.to_string())).await;
-                            tokio::time::sleep(Duration::from_millis(20)).await;
+                            tokio::time::sleep(Duration::from_millis(15)).await;
                         }
 
                         let complete_event = json!({
@@ -795,6 +980,21 @@ async fn handle_socket(mut socket: WebSocket) {
                         });
                         let _ = socket.send(Message::Text(complete_event.to_string())).await;
 
+                        // Append assistant message to session
+                        {
+                            let mut sessions_map = state.sessions.lock().await;
+                            if let Some(session) = sessions_map.get_mut(sess_id) {
+                                session.messages.push(ChatMessageItem {
+                                    id: msg_id,
+                                    role: "assistant".to_string(),
+                                    content: response_text,
+                                    timestamp: now_secs,
+                                });
+                                session.last_active = now_secs;
+                                session.updated_at = now_secs;
+                            }
+                        }
+
                         let done_event = json!({
                             "jsonrpc": "2.0",
                             "method": "event",
@@ -806,7 +1006,8 @@ async fn handle_socket(mut socket: WebSocket) {
                                     "stored_session_id": sess_id,
                                     "model": "qwen2.5-0.5b",
                                     "provider": "uor-rust",
-                                    "running": false
+                                    "running": false,
+                                    "desktop_contract": 6
                                 }
                             }
                         });
@@ -889,26 +1090,37 @@ pub async fn api_cron_delivery_targets_handler() -> impl IntoResponse {
     Json(json!([]))
 }
 
-pub async fn api_sidebar_sessions_handler() -> impl IntoResponse {
+pub async fn api_sidebar_sessions_handler(
+    State(state): State<Arc<AppState>>,
+) -> impl IntoResponse {
+    let sessions_map = state.sessions.lock().await;
+    let mut sessions: Vec<Value> = sessions_map.values().map(|s| {
+        json!({
+            "id": s.id,
+            "session_id": s.session_id,
+            "title": s.title,
+            "model": s.model,
+            "provider": s.provider,
+            "created_at": s.created_at,
+            "updated_at": s.updated_at,
+            "started_at": s.started_at,
+            "last_active": s.last_active,
+            "message_count": s.messages.len(),
+            "profile": s.profile,
+            "source": s.source,
+            "pinned": s.pinned,
+            "archived": s.archived,
+        })
+    }).collect();
+    sessions.sort_by(|a, b| {
+        let ts_a = a.get("last_active").and_then(|v| v.as_u64()).unwrap_or(0);
+        let ts_b = b.get("last_active").and_then(|v| v.as_u64()).unwrap_or(0);
+        ts_b.cmp(&ts_a)
+    });
+
     Json(json!({
         "recents": {
-            "sessions": [
-                {
-                    "id": "uor-r4-session-1",
-                    "session_id": "uor-r4-session-1",
-                    "title": "Welcome to Hermes AI",
-                    "model": "qwen2.5-0.5b",
-                    "created_at": 1700000000,
-                    "updated_at": 1700000000,
-                    "started_at": 1700000000,
-                    "last_active": 1700000000,
-                    "message_count": 1,
-                    "profile": "default",
-                    "source": "desktop",
-                    "pinned": false,
-                    "archived": false
-                }
-            ],
+            "sessions": sessions,
             "profiles_truncated": { "default": false },
             "profiles_usage": { "default": { "cost_usd": 0.0, "tokens": 0 } }
         },
@@ -917,29 +1129,41 @@ pub async fn api_sidebar_sessions_handler() -> impl IntoResponse {
     }))
 }
 
-pub async fn api_sessions_handler() -> impl IntoResponse {
+pub async fn api_sessions_handler(
+    State(state): State<Arc<AppState>>,
+) -> impl IntoResponse {
+    let sessions_map = state.sessions.lock().await;
+    let mut sessions: Vec<Value> = sessions_map.values().map(|s| {
+        json!({
+            "id": s.id,
+            "session_id": s.session_id,
+            "title": s.title,
+            "model": s.model,
+            "provider": s.provider,
+            "created_at": s.created_at,
+            "updated_at": s.updated_at,
+            "started_at": s.started_at,
+            "last_active": s.last_active,
+            "message_count": s.messages.len(),
+            "profile": s.profile,
+            "source": s.source,
+            "pinned": s.pinned,
+            "archived": s.archived,
+        })
+    }).collect();
+    sessions.sort_by(|a, b| {
+        let ts_a = a.get("last_active").and_then(|v| v.as_u64()).unwrap_or(0);
+        let ts_b = b.get("last_active").and_then(|v| v.as_u64()).unwrap_or(0);
+        ts_b.cmp(&ts_a)
+    });
+    let count = sessions.len();
+
     Json(json!({
         "limit": 40,
         "offset": 0,
-        "total": 1,
-        "sessions": [
-            {
-                "id": "uor-r4-session-1",
-                "session_id": "uor-r4-session-1",
-                "title": "Welcome to Hermes AI",
-                "model": "qwen2.5-0.5b",
-                "created_at": 1700000000,
-                "updated_at": 1700000000,
-                "started_at": 1700000000,
-                "last_active": 1700000000,
-                "message_count": 1,
-                "profile": "default",
-                "source": "desktop",
-                "pinned": false,
-                "archived": false
-            }
-        ],
-        "profile_totals": { "default": 1 },
+        "total": count,
+        "sessions": sessions,
+        "profile_totals": { "default": count },
         "has_more": false
     }))
 }
@@ -1044,27 +1268,64 @@ pub async fn api_projects_handler() -> impl IntoResponse {
     Json(json!([]))
 }
 
-pub async fn api_session_detail_handler(Path(id): Path<String>) -> impl IntoResponse {
+pub async fn api_session_detail_handler(
+    State(state): State<Arc<AppState>>,
+    Path(id): Path<String>,
+) -> impl IntoResponse {
+    let mut sessions_map = state.sessions.lock().await;
+    let session = sessions_map.entry(id.clone()).or_insert_with(|| {
+        let now = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_secs();
+        SessionRecord {
+            id: id.clone(),
+            session_id: id.clone(),
+            title: "Welcome to Hermes AI".to_string(),
+            model: "qwen2.5-0.5b".to_string(),
+            provider: "uor-rust".to_string(),
+            created_at: now,
+            updated_at: now,
+            started_at: now,
+            last_active: now,
+            profile: "default".to_string(),
+            source: "desktop".to_string(),
+            pinned: false,
+            archived: false,
+            messages: vec![
+                ChatMessageItem {
+                    id: "msg-welcome".to_string(),
+                    role: "assistant".to_string(),
+                    content: "Welcome to Hermes Agent powered by UOR-R4 Sovereign Geometric AI!".to_string(),
+                    timestamp: now,
+                }
+            ],
+        }
+    });
+
+    let msgs_val: Vec<Value> = session.messages.iter().map(|m| {
+        json!({
+            "id": m.id,
+            "role": m.role,
+            "content": m.content,
+            "timestamp": m.timestamp,
+        })
+    }).collect();
+    let total = msgs_val.len();
+
     Json(json!({
-        "session_id": id,
-        "title": "Welcome to Hermes AI",
-        "model": "qwen2.5-0.5b",
-        "provider": "uor-rust",
-        "messages": [
-            {
-                "id": "msg-welcome",
-                "role": "assistant",
-                "content": "Welcome to Hermes Agent powered by UOR-R4 Sovereign Geometric AI!",
-                "timestamp": 1700000000
-            }
-        ],
+        "session_id": session.session_id,
+        "title": session.title,
+        "model": session.model,
+        "provider": session.provider,
+        "messages": msgs_val,
         "pagination": {
             "limit": 120,
             "offset": 0,
             "order": "latest",
-            "returned": 1
+            "returned": total
         },
-        "total": 1
+        "total": total
     }))
 }
 
@@ -1082,6 +1343,46 @@ pub async fn api_skills_handler() -> impl IntoResponse {
 }
 
 pub async fn api_tools_handler() -> impl IntoResponse {
+    Json(json!([]))
+}
+
+pub async fn api_toolsets_handler() -> impl IntoResponse {
+    Json(json!([]))
+}
+
+pub async fn api_mcp_servers_handler() -> impl IntoResponse {
+    Json(json!([]))
+}
+
+pub async fn api_mcp_catalog_handler() -> impl IntoResponse {
+    Json(json!({ "servers": [] }))
+}
+
+pub async fn api_artifacts_handler() -> impl IntoResponse {
+    Json(json!([]))
+}
+
+pub async fn api_starmap_handler() -> impl IntoResponse {
+    Json(json!({ "nodes": [], "edges": [] }))
+}
+
+pub async fn api_memories_handler() -> impl IntoResponse {
+    Json(json!([]))
+}
+
+pub async fn api_oauth_providers_handler() -> impl IntoResponse {
+    Json(json!([]))
+}
+
+pub async fn api_custom_endpoints_handler() -> impl IntoResponse {
+    Json(json!([]))
+}
+
+pub async fn api_providers_validate_handler() -> impl IntoResponse {
+    Json(json!({ "valid": true }))
+}
+
+pub async fn api_cron_blueprints_handler() -> impl IntoResponse {
     Json(json!([]))
 }
 

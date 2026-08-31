@@ -58,7 +58,7 @@ if [ "$1" == "electron" ] || [ "$1" == "--electron" ]; then
     npm run dev
 else
     echo "🦀 [3/3] Launching Pure Native Rust Tauri v2 Hermes Studio..."
-    cargo run --manifest-path "$DIR/src-tauri/Cargo.toml"
+    cargo run --release --manifest-path "$DIR/src-tauri/Cargo.toml"
 fi
 
 
