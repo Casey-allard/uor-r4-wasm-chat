@@ -9,16 +9,16 @@
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
     <!-- MARKED.JS, KATEX, PDF.JS & THREE.JS -->
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"><\/script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"><\/script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"><\/script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"><\/script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"><\/script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"><\/script>
 
     <!-- MONACO EDITOR LOADER -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.min.js"><\/script>
 
     <style>
         :root {
@@ -3617,7 +3617,7 @@
 
             const systemMsg = {
                 role: 'system',
-                content: 'You are an autonomous senior software engineer and AI coding assistant embedded directly inside the Sovereign Developer Studio with live access to the editor and live preview sandbox. When asked to write, fix, or optimize code, always output the full, complete, production-ready code in clean markdown code blocks with the correct language identifier (e.g. ```html or ```javascript or ```rust). Format mathematical equations using standard KaTeX LaTeX syntax ($...$ and $$...$$).'
+                content: 'You are an autonomous senior software engineer and AI coding assistant embedded directly inside the Sovereign Developer Studio. When generating web applications, interactive simulations, or UI components, always write complete, self-contained, single-file HTML applications with all styles inside inline <style>...</style> and all JavaScript inside inline <script>...<\/script> tags. Never reference external missing .js or .css files. Always output the full, runnable code block in clean markdown code blocks (```html). Format mathematical equations using standard KaTeX LaTeX ($...$ and $$...$$).'
             };
 
             const recentHistory = curConv.messages.slice(-6);
@@ -4174,6 +4174,6 @@
 
             console.log("⚡ UOR-R4 Sovereign AI Developer Studio Initialized.");
         });
-    </script>
+    <\/script>
 </body>
 </html>
