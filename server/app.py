@@ -73,7 +73,7 @@ MODELS_CATALOG = [
 _loaded_pipelines = {}
 
 def get_pipeline(model_id: str):
-    """Loads and caches the Hugging Face transformers pipeline."""
+    """Loads and caches the transformers pipeline."""
     target_hf = "Qwen/Qwen2.5-0.5B-Instruct"
     for m in MODELS_CATALOG:
         if m["id"] == model_id:
@@ -90,10 +90,10 @@ def get_pipeline(model_id: str):
         device = "cuda" if torch.cuda.is_available() else ("mps" if torch.backends.mps.is_available() else "cpu")
         print(f"[UOR-Server] Loading {target_hf} on device: {device}...")
 
-        tokenizer = AutoTokenizer.from_pretrained(target_hf)
+        tokenizer = AutoTokenizer.from_pretrained(target_hf, clean_up_tokenization_spaces=False)
         model = AutoModelForCausalLM.from_pretrained(
             target_hf,
-            torch_dtype=torch.float32,
+            dtype=torch.float32,
             low_cpu_mem_usage=True
         )
         if device == "cuda":
@@ -146,11 +146,80 @@ def health_check():
         "models_count": len(MODELS_CATALOG)
     }
 
+@app.get("/version")
+@app.get("/api/version")
+def get_version():
+    return {"version": "0.1.32"}
+
+@app.get("/props")
+@app.get("/v1/props")
+def get_props():
+    return {"ready": True, "engine": "uor-r4"}
+
 @app.get("/v1/models")
+@app.get("/api/v1/models")
 def list_models():
     return {
         "object": "list",
         "data": MODELS_CATALOG
+    }
+
+@app.get("/v1/models/{model_id}")
+def get_single_model(model_id: str):
+    for m in MODELS_CATALOG:
+        if m["id"] == model_id or m["id"] == model_id.replace(":", "-"):
+            return m
+    return {
+        "id": model_id,
+        "object": "model",
+        "created": 1700000000,
+        "owned_by": "uor-r4"
+    }
+
+@app.get("/api/tags")
+@app.get("/api/models")
+def ollama_tags():
+    """Ollama-compatible /api/tags endpoint for Hermes / Ollama desktop probes."""
+    return {
+        "models": [
+            {
+                "name": f"{m['id']}:latest",
+                "model": f"{m['id']}:latest",
+                "modified_at": "2026-08-31T00:00:00Z",
+                "size": 310000000,
+                "digest": "sha256:uor-r4-sovereign-digest",
+                "details": {
+                    "format": "gguf",
+                    "family": "qwen2",
+                    "parameter_size": "0.5B",
+                    "quantization_level": "Q4_K_M"
+                }
+            }
+            for m in MODELS_CATALOG
+        ]
+    }
+
+@app.post("/api/show")
+async def ollama_show(request: Request):
+    """Ollama-compatible /api/show endpoint."""
+    try:
+        data = await request.json()
+        model_name = data.get("name", "qwen2.5-0.5b")
+    except Exception:
+        model_name = "qwen2.5-0.5b"
+
+    return {
+        "license": "Apache-2.0",
+        "modelfile": f"FROM {model_name}\nPARAMETER temperature 0.35\nSYSTEM You are UOR-R4 Sovereign AI.",
+        "parameters": "temperature 0.35\ntop_p 0.85",
+        "template": "{{ .System }}\n{{ .Prompt }}",
+        "system": "You are UOR-R4 Sovereign AI with full tool-calling capabilities.",
+        "details": {
+            "format": "gguf",
+            "family": "qwen2",
+            "parameter_size": "0.5B",
+            "quantization_level": "Q4_K_M"
+        }
     }
 
 @app.post("/v1/chat/completions")
