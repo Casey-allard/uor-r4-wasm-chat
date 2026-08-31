@@ -279,6 +279,29 @@
             color: var(--accent-emerald);
         }
 
+        .progress-box {
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+            margin-top: 0.25rem;
+        }
+
+        .progress-bar-bg {
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 9999px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--accent-cyan), var(--accent-emerald));
+            border-radius: 9999px;
+            transition: width 0.15s ease;
+        }
+
         .cli-quickref-card {
             background: rgba(0, 0, 0, 0.35);
             border: 1px solid var(--border-subtle);
@@ -1141,11 +1164,18 @@
                         <span style="color: var(--accent-cyan);">⚡</span>
                         <span>Qwen 2.5 (0.5B)</span>
                     </div>
-                    <span class="model-tier-badge">Default • 280MB</span>
+                    <span class="model-tier-badge">280MB</span>
                 </div>
                 <div class="model-card-sub">
                     <span class="model-id-tag">qwen2.5-0.5b</span>
-                    <span class="model-status-tag">● Active</span>
+                    <span class="model-status-tag" id="statustag-qwen2.5-0.5b">● Active</span>
+                </div>
+                <div class="progress-box" id="progbox-qwen2.5-0.5b" style="display: none;">
+                    <div class="progress-bar-bg"><div class="progress-bar-fill" id="bar-qwen2.5-0.5b"></div></div>
+                    <div style="display:flex; justify-content:space-between; font-size:0.6rem; color:var(--text-muted); font-family:'Fira Code',monospace;">
+                        <span id="stage-qwen2.5-0.5b">Ready</span>
+                        <span id="pct-qwen2.5-0.5b">0%</span>
+                    </div>
                 </div>
             </div>
 
@@ -1160,7 +1190,14 @@
                 </div>
                 <div class="model-card-sub">
                     <span class="model-id-tag">glm5.3-flash</span>
-                    <span class="model-status-tag">☁️ Hosted (Ready)</span>
+                    <span class="model-status-tag" id="statustag-glm-5.3-flash">○ Switch</span>
+                </div>
+                <div class="progress-box" id="progbox-glm-5.3-flash" style="display: none;">
+                    <div class="progress-bar-bg"><div class="progress-bar-fill" id="bar-glm-5.3-flash"></div></div>
+                    <div style="display:flex; justify-content:space-between; font-size:0.6rem; color:var(--text-muted); font-family:'Fira Code',monospace;">
+                        <span id="stage-glm-5.3-flash">Ready</span>
+                        <span id="pct-glm-5.3-flash">0%</span>
+                    </div>
                 </div>
             </div>
 
@@ -1175,7 +1212,14 @@
                 </div>
                 <div class="model-card-sub">
                     <span class="model-id-tag">gemma4-flash</span>
-                    <span class="model-status-tag">☁️ Hosted (Ready)</span>
+                    <span class="model-status-tag" id="statustag-gemma4-flash">○ Switch</span>
+                </div>
+                <div class="progress-box" id="progbox-gemma4-flash" style="display: none;">
+                    <div class="progress-bar-bg"><div class="progress-bar-fill" id="bar-gemma4-flash"></div></div>
+                    <div style="display:flex; justify-content:space-between; font-size:0.6rem; color:var(--text-muted); font-family:'Fira Code',monospace;">
+                        <span id="stage-gemma4-flash">Ready</span>
+                        <span id="pct-gemma4-flash">0%</span>
+                    </div>
                 </div>
             </div>
 
@@ -1190,7 +1234,14 @@
                 </div>
                 <div class="model-card-sub">
                     <span class="model-id-tag">qwen3.8-flash</span>
-                    <span class="model-status-tag">☁️ Hosted (Ready)</span>
+                    <span class="model-status-tag" id="statustag-qwen3.8-flash-next">○ Switch</span>
+                </div>
+                <div class="progress-box" id="progbox-qwen3.8-flash-next" style="display: none;">
+                    <div class="progress-bar-bg"><div class="progress-bar-fill" id="bar-qwen3.8-flash-next"></div></div>
+                    <div style="display:flex; justify-content:space-between; font-size:0.6rem; color:var(--text-muted); font-family:'Fira Code',monospace;">
+                        <span id="stage-qwen3.8-flash-next">Ready</span>
+                        <span id="pct-qwen3.8-flash-next">0%</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1973,7 +2024,10 @@
             }
         }
 
-        window.selectModel = function(modelId) {
+        let isModelLoading = false;
+        let modelLoadingPromise = null;
+
+        window.selectModel = async function(modelId) {
             if (!MODEL_INFO[modelId]) return;
             activeModelId = modelId;
             savePersistentState();
@@ -1983,20 +2037,102 @@
             const cliModelName = document.getElementById('cliModelName');
             if (cliModelName) cliModelName.innerText = modelId;
 
-            showToast(`⚡ Selected Substrate: ${MODEL_INFO[modelId].name}`);
+            if (backendMode === 'browser') {
+                await activateBrowserModel(modelId);
+            } else {
+                showToast(`⚡ Selected Substrate: ${MODEL_INFO[modelId].name}`);
+            }
         };
+
+        async function activateBrowserModel(modelId) {
+            if (!MODEL_INFO[modelId]) return;
+            if (generator && generator._activeId === modelId) return;
+
+            const model = MODEL_INFO[modelId];
+            const badgeText = document.getElementById('badgeText');
+            if (badgeText) badgeText.innerText = `Loading ${model.name}...`;
+
+            const progBox = document.getElementById(`progbox-${modelId}`);
+            const bar = document.getElementById(`bar-${modelId}`);
+            const stage = document.getElementById(`stage-${modelId}`);
+            const pct = document.getElementById(`pct-${modelId}`);
+            if (progBox) progBox.style.display = 'flex';
+
+            let device = 'wasm';
+            let label = 'CPU SIMD Native';
+            if (navigator.gpu) {
+                try {
+                    const adapter = await navigator.gpu.requestAdapter();
+                    if (adapter) {
+                        device = 'webgpu';
+                        label = 'WebGPU Accelerated';
+                    }
+                } catch(e) {}
+            }
+            activeDevice = device;
+
+            isModelLoading = true;
+            modelLoadingPromise = (async () => {
+                try {
+                    generator = await pipeline('text-generation', model.source, {
+                        dtype: 'q4',
+                        device: device,
+                        progress_callback: (p) => {
+                            if (p.status === 'initiate') {
+                                if (stage) stage.innerText = `Starting...`;
+                            } else if (p.status === 'download') {
+                                if (stage) stage.innerText = `Downloading...`;
+                            } else if (p.status === 'progress') {
+                                const loadedPct = Math.round(p.progress || 0);
+                                if (bar) bar.style.width = `${loadedPct}%`;
+                                if (pct) pct.innerText = `${loadedPct}%`;
+                                if (p.loaded && p.total && stage) {
+                                    stage.innerText = `${(p.loaded / (1024*1024)).toFixed(1)} MB / ${(p.total / (1024*1024)).toFixed(1)} MB`;
+                                }
+                            } else if (p.status === 'done') {
+                                if (bar) bar.style.width = `100%`;
+                                if (pct) pct.innerText = `100%`;
+                                if (stage) stage.innerText = `Ready`;
+                            }
+                        }
+                    });
+                    generator._activeId = modelId;
+                    compiledModels.add(modelId);
+                    savePersistentState();
+
+                    if (progBox) progBox.style.display = 'none';
+                    refreshUiCards();
+                    updateModelBadge();
+                    showToast(`✨ ${model.name} is warm in WebGPU memory!`);
+                } catch(err) {
+                    console.error("Model activation error:", err);
+                    if (stage) stage.innerText = "Load error";
+                    showToast(`❌ Error activating ${model.name}: ` + (err.message || String(err)));
+                } finally {
+                    isModelLoading = false;
+                }
+            })();
+
+            await modelLoadingPromise;
+        }
 
         function refreshUiCards() {
             Object.keys(MODEL_INFO).forEach(id => {
                 const card = document.getElementById(`card-${id}`);
+                const statusTag = document.getElementById(`statustag-${id}`);
                 if (card) {
-                    const statusTag = card.querySelector('.model-status-tag');
                     if (id === activeModelId) {
                         card.classList.add('active');
                         if (statusTag) statusTag.innerText = '● Active';
                     } else {
                         card.classList.remove('active');
-                        if (statusTag) statusTag.innerText = '● Hosted';
+                        if (statusTag) {
+                            if (compiledModels.has(id)) {
+                                statusTag.innerText = '⚡ Cached';
+                            } else {
+                                statusTag.innerText = '○ Switch';
+                            }
+                        }
                     }
                 }
             });
@@ -2023,26 +2159,6 @@
 
             const activeConfig = MODEL_INFO[activeModelId] || MODEL_INFO['glm-5.3-flash'] || MODEL_INFO['qwen2.5-0.5b'];
 
-            if (backendMode === 'browser' && (!generator || generator._activeId !== activeModelId)) {
-                showToast(`⚡ Initializing ${activeConfig.name} on ${activeDevice === 'webgpu' ? 'WebGPU' : 'CPU SIMD'}...`);
-                try {
-                    generator = await pipeline('text-generation', activeConfig.source, {
-                        dtype: 'q4',
-                        device: activeDevice
-                    });
-                } catch(cdnErr) {
-                    if (activeConfig.fallback) {
-                        generator = await pipeline('text-generation', activeConfig.fallback, {
-                            dtype: 'q4',
-                            device: activeDevice
-                        });
-                    } else {
-                        throw cdnErr;
-                    }
-                }
-                generator._activeId = activeModelId;
-            }
-
             const emptyState = document.getElementById('emptyStatePrompt');
             if(emptyState) emptyState.remove();
 
@@ -2053,7 +2169,7 @@
                 conversations.unshift({
                     id: currentConvId,
                     title: title,
-                    modelId: activeModelId || 'glm5.3-flash',
+                    modelId: activeModelId || 'qwen2.5-0.5b',
                     messages: [],
                     timestamp: Date.now()
                 });
@@ -2087,7 +2203,7 @@
             let aiRow = createAiMessageElement();
             let contentDiv = aiRow.querySelector('.ai-text');
             contentDiv.classList.add('typing-cursor');
-            contentDiv.innerHTML = '<div style="display:flex; align-items:center; gap:0.5rem; color:var(--text-muted); font-size:0.84rem; padding:0.2rem 0;"><span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--accent-cyan); box-shadow:0 0 8px var(--accent-cyan);"></span><span>Thinking...</span></div>';
+            contentDiv.innerHTML = '<div style="display:flex; align-items:center; gap:0.5rem; color:var(--text-muted); font-size:0.84rem; padding:0.2rem 0;"><span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--accent-cyan); box-shadow:0 0 8px var(--accent-cyan); animation:pulse 1s infinite alternate;"></span><span>Thinking...</span></div>';
 
             const userMsg = { 
                 role: 'user', 
@@ -2100,7 +2216,7 @@
             const curConv = conversations.find(c => c.id === currentConvId);
             if(curConv) {
                 curConv.messages.push(userMsg);
-                curConv.modelId = activeModelId || 'glm5.3-flash';
+                curConv.modelId = activeModelId || 'qwen2.5-0.5b';
                 savePersistentState();
             }
 
@@ -2120,6 +2236,17 @@
                 let firstTokenTime = null;
                 let lastRenderTime = 0;
                 let streamRenderTimer = null;
+
+                // If in browser mode and model is still initializing, wait for it with visual feedback
+                if (backendMode === 'browser' && (!generator || generator._activeId !== activeModelId || isModelLoading)) {
+                    contentDiv.innerHTML = '<div style="display:flex; align-items:center; gap:0.5rem; color:var(--text-muted); font-size:0.84rem; padding:0.2rem 0;"><span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--accent-cyan); box-shadow:0 0 8px var(--accent-cyan); animation:pulse 1s infinite alternate;"></span><span>Warming up WebGPU neural substrate in browser...</span></div>';
+                    if (modelLoadingPromise) {
+                        await modelLoadingPromise;
+                    } else {
+                        await activateBrowserModel(activeModelId);
+                    }
+                    contentDiv.innerHTML = '<div style="display:flex; align-items:center; gap:0.5rem; color:var(--text-muted); font-size:0.84rem; padding:0.2rem 0;"><span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--accent-cyan); box-shadow:0 0 8px var(--accent-cyan); animation:pulse 1s infinite alternate;"></span><span>Thinking...</span></div>';
+                }
 
                 function scheduleStreamRender(isFinal = false) {
                     if (isFinal) {
@@ -2703,6 +2830,12 @@
                 startBrainVisualizer();
                 startWaveformVisualizer();
                 await initWasmEngine();
+
+                // Pre-warm active model in background if in browser mode so it is immediately warm and ready when typing!
+                if (backendMode === 'browser' && activeModelId) {
+                    activateBrowserModel(activeModelId);
+                }
+
                 startNewChat();
             } catch(err) {
                 console.error("App init error:", err);
