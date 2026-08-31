@@ -13,12 +13,30 @@ path = "src/lib.rs"
 
 [dependencies]
 wasm-bindgen = "0.2.92"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tokio = { version = "1", features = ["full"] }
+axum = { version = "0.7", features = ["macros"] }
+tower-http = { version = "0.5", features = ["cors", "trace", "fs"] }
+tower = "0.4"
+regex = "1.10"
+futures = "0.3"
+async-stream = "0.3"
+chrono = "0.4"
+
+[[bin]]
+name = "uor_server"
+path = "src/bin/uor_server.rs"
+
+[[bin]]
+name = "uor_chatbot"
+path = "src/bin/uor_chatbot.rs"
 
 [profile.release]
-opt-level = "z"      # Optimize specifically for minimal binary footprint
-lto = true           # Enable Link-Time Optimization
-codegen-units = 1    # Force single code-generation unit to allow compiler vectorisation
-panic = "abort"      # Strip stack trace unwinding code
+opt-level = 3          # High performance native optimization
+lto = true             # Enable Link-Time Optimization
+codegen-units = 1      # Force single code-generation unit for vectorisation
+panic = "abort"        # Minimal binary footprint
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }

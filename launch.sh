@@ -8,14 +8,19 @@ echo "==========================================================="
 echo "⚡ UOR-R4 Geometric Engine + Nous Research Hermes Desktop ☤"
 echo "==========================================================="
 
-# 1. Start Local UOR-R4 API Server in background
-echo "🚀 [1/3] Starting UOR-R4 FastAPI Server (GLM-5.3 Substrate)..."
-"$DIR/server/.venv/bin/python" "$DIR/server/app.py" &
+# 1. Start Native Rust UOR-R4 API Server in background
+echo "🚀 [1/3] Starting UOR-R4 100% Pure Native Rust Server..."
+if [ ! -f "$DIR/target/release/uor_server" ]; then
+    echo "🔨 Compiling native Rust release binary..."
+    cargo build --release --bin uor_server
+fi
+
+"$DIR/target/release/uor_server" &
 SERVER_PID=$!
 
 cleanup() {
     echo ""
-    echo "🛑 Shutting down UOR-R4 server (PID: $SERVER_PID)..."
+    echo "🛑 Shutting down UOR-R4 Rust server (PID: $SERVER_PID)..."
     kill "$SERVER_PID" 2>/dev/null || true
     wait "$SERVER_PID" 2>/dev/null || true
     echo "✨ Clean shutdown complete."
