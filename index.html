@@ -1134,33 +1134,33 @@
 
         <!-- MODEL SELECTOR CARDS -->
         <div class="model-library-container" id="modelCardsContainer">
-            <!-- Model 1: GLM-5.3 Flash -->
-            <div class="model-card active" id="card-glm-5.3-flash" onclick="selectModel('glm-5.3-flash')">
-                <div class="model-card-header">
-                    <div class="model-name">
-                        <span style="color: #ec4899;">🧬</span>
-                        <span>GLM-5.3 (Flash)</span>
-                    </div>
-                    <span class="model-tier-badge">Default</span>
-                </div>
-                <div class="model-card-sub">
-                    <span class="model-id-tag">glm5.3-flash</span>
-                    <span class="model-status-tag">● Active</span>
-                </div>
-            </div>
-
-            <!-- Model 2: Qwen 2.5 0.5B -->
-            <div class="model-card" id="card-qwen2.5-0.5b" onclick="selectModel('qwen2.5-0.5b')">
+            <!-- Model 1: Qwen 2.5 0.5B (Default Lightweight) -->
+            <div class="model-card active" id="card-qwen2.5-0.5b" onclick="selectModel('qwen2.5-0.5b')">
                 <div class="model-card-header">
                     <div class="model-name">
                         <span style="color: var(--accent-cyan);">⚡</span>
                         <span>Qwen 2.5 (0.5B)</span>
                     </div>
-                    <span class="model-tier-badge">280MB</span>
+                    <span class="model-tier-badge">Default • 280MB</span>
                 </div>
                 <div class="model-card-sub">
                     <span class="model-id-tag">qwen2.5-0.5b</span>
-                    <span class="model-status-tag">● Hosted</span>
+                    <span class="model-status-tag">● Active</span>
+                </div>
+            </div>
+
+            <!-- Model 2: GLM-5.3 Flash -->
+            <div class="model-card" id="card-glm-5.3-flash" onclick="selectModel('glm-5.3-flash')">
+                <div class="model-card-header">
+                    <div class="model-name">
+                        <span style="color: #ec4899;">🧬</span>
+                        <span>GLM-5.3 (Flash)</span>
+                    </div>
+                    <span class="model-tier-badge">380MB</span>
+                </div>
+                <div class="model-card-sub">
+                    <span class="model-id-tag">glm5.3-flash</span>
+                    <span class="model-status-tag">☁️ Hosted (Ready)</span>
                 </div>
             </div>
 
@@ -1175,7 +1175,7 @@
                 </div>
                 <div class="model-card-sub">
                     <span class="model-id-tag">gemma4-flash</span>
-                    <span class="model-status-tag">● Hosted</span>
+                    <span class="model-status-tag">☁️ Hosted (Ready)</span>
                 </div>
             </div>
 
@@ -1190,7 +1190,7 @@
                 </div>
                 <div class="model-card-sub">
                     <span class="model-id-tag">qwen3.8-flash</span>
-                    <span class="model-status-tag">● Hosted</span>
+                    <span class="model-status-tag">☁️ Hosted (Ready)</span>
                 </div>
             </div>
         </div>
@@ -1205,7 +1205,7 @@
                 <span style="color:var(--text-muted);">$</span> <span style="color:var(--accent-cyan);">curl</span> /v1/models
             </div>
             <div class="cli-command-desc">
-                Select substrate via <code>model: "<span id="cliModelName">glm5.3-flash</span>"</code> or run Hermes Desktop locally via <code>./launch.sh</code>.
+                Pass <code>model: "<span id="cliModelName">qwen2.5-0.5b</span>"</code> in requests or run Hermes Desktop via <code>./launch.sh</code>.
             </div>
         </div>
 

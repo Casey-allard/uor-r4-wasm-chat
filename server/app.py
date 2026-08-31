@@ -121,7 +121,7 @@ class ChatMessage(BaseModel):
     tool_call_id: Optional[str] = None
 
 class ChatCompletionRequest(BaseModel):
-    model: str = "glm5.3-flash"
+    model: str = "qwen2.5-0.5b"
     messages: List[ChatMessage]
     temperature: Optional[float] = 0.35
     top_p: Optional[float] = 0.85
