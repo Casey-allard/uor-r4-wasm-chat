@@ -1080,6 +1080,154 @@
             border: 1px solid var(--border-subtle);
         }
 
+        /* CHATGPT-CODEX CANVAS & STUDIO TABS */
+        .studio-tabs-bar {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            background: rgba(255, 255, 255, 0.04);
+            padding: 3px;
+            border-radius: 8px;
+            border: 1px solid var(--border-subtle);
+        }
+
+        .studio-tab-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 0.72rem;
+            font-weight: 500;
+            padding: 0.25rem 0.55rem;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            transition: all 0.15s ease;
+        }
+
+        .studio-tab-btn:hover {
+            color: var(--text-primary);
+        }
+
+        .studio-tab-btn.active {
+            background: var(--bg-surface);
+            color: var(--accent-cyan);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        }
+
+        .canvas-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.6rem 0.85rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .canvas-file-title {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.76rem;
+            color: var(--accent-cyan);
+        }
+
+        .canvas-action-btn {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-primary);
+            padding: 0.25rem 0.55rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            transition: all 0.15s ease;
+        }
+
+        .canvas-action-btn:hover {
+            background: rgba(0, 243, 255, 0.15);
+            border-color: var(--accent-cyan);
+            color: var(--accent-cyan);
+        }
+
+        .canvas-editor-area {
+            flex: 1;
+            display: flex;
+            position: relative;
+            background: #0d0f14;
+        }
+
+        .canvas-code-textarea {
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            border: none;
+            color: #ececec;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.82rem;
+            line-height: 1.5;
+            padding: 0.85rem;
+            outline: none;
+            resize: none;
+            white-space: pre;
+        }
+
+        .canvas-preview-container {
+            height: 45%;
+            border-top: 1px solid var(--border-subtle);
+            display: flex;
+            flex-direction: column;
+            background: #fff;
+        }
+
+        .canvas-preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #1e1e24;
+            color: #fff;
+            padding: 0.35rem 0.65rem;
+            font-size: 0.7rem;
+            font-family: 'Fira Code', monospace;
+        }
+
+        .canvas-preview-close {
+            background: transparent;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        #canvasSandboxFrame {
+            width: 100%;
+            flex: 1;
+            border: none;
+            background: #fff;
+        }
+
+        .substrate-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            padding: 0.75rem 0.9rem;
+        }
+
+        .substrate-card-title {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.25rem;
+        }
+
+        .substrate-card-val {
+            font-size: 0.82rem;
+            color: var(--text-primary);
+            font-family: 'Fira Code', monospace;
+        }
+
         .typing-cursor::after {
             content: '▍';
             animation: blink 0.8s infinite;
@@ -1347,59 +1495,123 @@
 
     </main>
 
-    <!-- 3D NEURAL BRAIN SIDECAR DRAWER -->
+    <!-- CHATGPT-CODEX CANVAS & 3D NEURAL BRAIN STUDIO SIDECAR -->
     <aside class="telemetry-sidecar" id="telemetrySidecar">
         <div class="sidecar-header">
-            <div class="sidecar-title">
-                <svg width="15" height="15" fill="var(--accent-cyan)" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" stroke="currentColor" stroke-width="2"/></svg>
-                <span>3D Synaptic Brain Manifold</span>
+            <div class="studio-tabs-bar">
+                <button class="studio-tab-btn active" id="tabBtnBrain" onclick="switchStudioTab('brain')">
+                    <svg width="13" height="13" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" stroke="currentColor" stroke-width="2"/></svg>
+                    <span>3D Brain</span>
+                </button>
+                <button class="studio-tab-btn" id="tabBtnCanvas" onclick="switchStudioTab('canvas')">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+                    <span>Canvas</span>
+                </button>
+                <button class="studio-tab-btn" id="tabBtnSubstrate" onclick="switchStudioTab('substrate')">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"></rect><rect x="9" y="9" width="6" height="6"></rect><line x1="9" y1="1" x2="9" y2="4"></line><line x1="15" y1="1" x2="15" y2="4"></line><line x1="9" y1="20" x2="9" y2="23"></line><line x1="15" y1="20" x2="15" y2="23"></line></svg>
+                    <span>Substrate</span>
+                </button>
             </div>
             <button class="icon-btn" onclick="toggleSidecar()" title="Close sidecar">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
             </button>
         </div>
 
-        <div class="brain-box">
-            <canvas id="brainCanvas"></canvas>
-            <div class="brain-overlay">
-                <span id="overlayEngrams">Engrams: 0 Formed</span>
-                <span id="overlaySynapses">Synapses: 112 Active</span>
+        <!-- TAB 1: 3D BRAIN & TELEMETRY -->
+        <div class="studio-tab-content" id="tabContentBrain" style="display: flex; flex-direction: column; height: 100%;">
+            <div class="brain-box">
+                <canvas id="brainCanvas"></canvas>
+                <div class="brain-overlay">
+                    <span id="overlayEngrams">Engrams: 0 Formed</span>
+                    <span id="overlaySynapses">Synapses: 112 Active</span>
+                </div>
+            </div>
+
+            <div class="sidecar-body">
+                <div class="tps-speed-card" id="tpsSpeedMeter" title="Tokens Per Second (Processing Speed)">
+                    <div class="tps-speed-header">
+                        <span style="display:flex; align-items:center; gap:0.35rem;">
+                            <span class="tps-icon">⚡</span>
+                            <span>Inference Speed</span>
+                        </span>
+                        <span class="tps-live-badge" id="tpsLiveBadge">IDLE</span>
+                    </div>
+                    <div class="tps-speed-display">
+                        <span class="tps-value" id="tpsValue">--</span>
+                        <span class="tps-unit">tok/sec</span>
+                    </div>
+                </div>
+
+                <div style="font-size: 0.72rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 0.85rem;">Live Synaptic Waveform</div>
+                <div class="wave-box">
+                    <canvas id="waveCanvas"></canvas>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 0.4rem; font-size: 0.74rem; font-family: 'Fira Code', monospace; color: var(--text-secondary); margin-top: 0.5rem;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>Lattice Coordinate:</span>
+                        <span id="coordVal" style="color: var(--accent-cyan);">[0, 0, 0, 0]</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>Hopf Phase (χ₁, α₂):</span>
+                        <span id="phaseVal" style="color: var(--accent-cyan);">0.000, 0.000</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>Semantic Attractor:</span>
+                        <span id="attractorVal" style="color: var(--accent-purple);">quantum</span>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <div class="sidecar-body">
-            <div class="tps-speed-card" id="tpsSpeedMeter" title="Tokens Per Second (Processing Speed)">
-                <div class="tps-speed-header">
-                    <span style="display:flex; align-items:center; gap:0.35rem;">
-                        <span class="tps-icon">⚡</span>
-                        <span>Inference Speed</span>
-                    </span>
-                    <span class="tps-live-badge" id="tpsLiveBadge">IDLE</span>
-                </div>
-                <div class="tps-speed-display">
-                    <span class="tps-value" id="tpsValue">--</span>
-                    <span class="tps-unit">tok/sec</span>
+        <!-- TAB 2: CODE CANVAS & ARTIFACTS (ChatGPT Codex style) -->
+        <div class="studio-tab-content" id="tabContentCanvas" style="display: none; height: 100%; flex-direction: column;">
+            <div class="canvas-toolbar">
+                <span class="canvas-file-title" id="canvasFileTitle">sandbox.html</span>
+                <div style="display: flex; gap: 0.4rem;">
+                    <button class="canvas-action-btn" onclick="runCanvasCode()" title="Run Code in Sandbox">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                        <span>Run</span>
+                    </button>
+                    <button class="canvas-action-btn" onclick="copyCanvasCode()" title="Copy Code">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                        <span>Copy</span>
+                    </button>
                 </div>
             </div>
-
-            <div style="font-size: 0.72rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 0.85rem;">Live Synaptic Waveform</div>
-            <div class="wave-box">
-                <canvas id="waveCanvas"></canvas>
+            <div class="canvas-editor-area">
+                <textarea id="canvasEditor" spellcheck="false" class="canvas-code-textarea" placeholder="// Codex Canvas: Click 'Canvas' on any generated code block to view, edit, or execute live here..."></textarea>
             </div>
+            <div class="canvas-preview-container" id="canvasPreviewBox" style="display: none;">
+                <div class="canvas-preview-header">
+                    <span>Live Output Preview</span>
+                    <button class="canvas-preview-close" onclick="closeCanvasPreview()">✕</button>
+                </div>
+                <iframe id="canvasSandboxFrame" sandbox="allow-scripts allow-same-origin"></iframe>
+            </div>
+        </div>
 
-            <div style="display: flex; flex-direction: column; gap: 0.4rem; font-size: 0.74rem; font-family: 'Fira Code', monospace; color: var(--text-secondary); margin-top: 0.5rem;">
-                <div style="display: flex; justify-content: space-between;">
-                    <span>Lattice Coordinate:</span>
-                    <span id="coordVal" style="color: var(--accent-cyan);">[0, 0, 0, 0]</span>
-                </div>
-                <div style="display: flex; justify-content: space-between;">
-                    <span>Hopf Phase (χ₁, α₂):</span>
-                    <span id="phaseVal" style="color: var(--accent-cyan);">0.000, 0.000</span>
-                </div>
-                <div style="display: flex; justify-content: space-between;">
-                    <span>Semantic Attractor:</span>
-                    <span id="attractorVal" style="color: var(--accent-purple);">quantum</span>
-                </div>
+        <!-- TAB 3: SUBSTRATE INSPECTOR -->
+        <div class="studio-tab-content" id="tabContentSubstrate" style="display: none; padding: 1.2rem; flex-direction: column; gap: 1rem;">
+            <div class="substrate-card">
+                <div class="substrate-card-title">Compute Neural Substrate</div>
+                <div class="substrate-card-val" id="subCompute">WebGPU Native SIMD / Rust Core</div>
+            </div>
+            <div class="substrate-card">
+                <div class="substrate-card-title">Gosset E8 Manifold Dimensions</div>
+                <div class="substrate-card-val">8D Rotational (240 Root Vectors)</div>
+            </div>
+            <div class="substrate-card">
+                <div class="substrate-card-title">Memory Allocation</div>
+                <div class="substrate-card-val" id="subMemory">~180 MB VRAM (Quantized 4-bit)</div>
+            </div>
+            <div class="substrate-card">
+                <div class="substrate-card-title">Zero-Download Weight Cache</div>
+                <div class="substrate-card-val">IndexedDB Permanent Storage</div>
+            </div>
+            <div class="substrate-card">
+                <div class="substrate-card-title">SIMD Acceleration</div>
+                <div class="substrate-card-val">128-bit SIMD Dot Product Fused</div>
             </div>
         </div>
     </aside>
@@ -1949,10 +2161,16 @@
                     header.className = 'code-block-header';
                     header.innerHTML = `
                         <span class="code-lang-label">${lang}</span>
-                        <button class="copy-code-btn" onclick="copyCodeBlock(this)" title="Copy Code">
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-                            <span>Copy code</span>
-                        </button>
+                        <div style="display:flex; gap:0.4rem; align-items:center;">
+                            <button class="copy-code-btn" onclick="openInCanvas(this)" title="Open in Codex Canvas">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+                                <span>Canvas</span>
+                            </button>
+                            <button class="copy-code-btn" onclick="copyCodeBlock(this)" title="Copy Code">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                                <span>Copy</span>
+                            </button>
+                        </div>
                     `;
 
                     pre.parentNode.insertBefore(wrapper, pre);
@@ -2558,6 +2776,62 @@
             return (str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
         }
 
+        window.switchStudioTab = function(tabName) {
+            document.querySelectorAll('.studio-tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.studio-tab-content').forEach(tc => tc.style.display = 'none');
+            
+            const btn = document.getElementById(`tabBtn${tabName.charAt(0).toUpperCase() + tabName.slice(1)}`);
+            const content = document.getElementById(`tabContent${tabName.charAt(0).toUpperCase() + tabName.slice(1)}`);
+            if (btn) btn.classList.add('active');
+            if (content) content.style.display = 'flex';
+        };
+
+        window.openInCanvas = function(btn) {
+            const code = btn.closest('.code-block-wrapper').querySelector('pre code');
+            if(!code) return;
+            const langLabel = btn.closest('.code-block-wrapper').querySelector('.code-lang-label');
+            const lang = langLabel ? langLabel.innerText.trim() : 'code';
+            
+            const sidecar = document.getElementById('telemetrySidecar');
+            if (sidecar && sidecar.classList.contains('hidden')) {
+                toggleSidecar();
+            }
+            switchStudioTab('canvas');
+            
+            const editor = document.getElementById('canvasEditor');
+            const title = document.getElementById('canvasFileTitle');
+            if (editor) editor.value = code.innerText;
+            if (title) title.innerText = `artifact.${lang === 'html' ? 'html' : (lang === 'js' || lang === 'javascript' ? 'js' : (lang === 'python' || lang === 'py' ? 'py' : lang))}`;
+            
+            if (lang === 'html' || lang === 'svg') {
+                runCanvasCode();
+            }
+        };
+
+        window.runCanvasCode = function() {
+            const editor = document.getElementById('canvasEditor');
+            const previewBox = document.getElementById('canvasPreviewBox');
+            const iframe = document.getElementById('canvasSandboxFrame');
+            if (!editor || !previewBox || !iframe) return;
+            
+            previewBox.style.display = 'flex';
+            const code = editor.value;
+            iframe.srcdoc = code;
+        };
+
+        window.closeCanvasPreview = function() {
+            const previewBox = document.getElementById('canvasPreviewBox');
+            if (previewBox) previewBox.style.display = 'none';
+        };
+
+        window.copyCanvasCode = function() {
+            const editor = document.getElementById('canvasEditor');
+            if (!editor) return;
+            navigator.clipboard.writeText(editor.value).then(() => {
+                showToast("📋 Code copied from Canvas!");
+            });
+        };
+
         function startBrainVisualizer() {
             const canvas = document.getElementById('brainCanvas');
             if (!canvas) return;
@@ -2603,8 +2877,22 @@
             }
 
             function render() {
-                t += 0.005;
+                t += 0.006;
                 rippleShockwave = Math.max(0, rippleShockwave - 0.008);
+
+                // Continuous ambient synaptic pulsing so the brain is always alive
+                if(activePulses.length < 5 && Math.random() < 0.12) {
+                    const start = Math.floor(Math.random() * numNodes);
+                    const target = (start + 1 + Math.floor(Math.random() * 6)) % numNodes;
+                    activePulses.push({
+                        startNode: start,
+                        targetNode: target,
+                        progress: 0,
+                        speed: 0.008 + Math.random() * 0.014,
+                        color: Math.random() < 0.6 ? '#00f3ff' : '#a855f7',
+                        size: 3.5 + Math.random() * 2
+                    });
+                }
 
                 const width = canvas.width;
                 const height = canvas.height;
@@ -2618,7 +2906,7 @@
 
                 ctx.clearRect(0, 0, width, height);
 
-                const rotY = t * 0.3 + (currentAlpha * 0.25);
+                const rotY = t * 0.35 + (currentAlpha * 0.25);
                 const rotX = 0.35 + Math.sin(t * 0.25) * 0.06 + (currentChi * 0.1);
 
                 const cosY = Math.cos(rotY), sinY = Math.sin(rotY);
@@ -2755,7 +3043,7 @@
             const canvas = document.getElementById('waveCanvas');
             if (!canvas) return;
             const ctx = canvas.getContext('2d');
-            let t = 0;
+            let phase = 0;
 
             function resize() {
                 const parent = canvas.parentElement;
@@ -2771,7 +3059,14 @@
             resize();
 
             function renderWave() {
+                const width = canvas.width;
+                const height = canvas.height;
+                if (width === 0 || height === 0) {
+                    requestAnimationFrame(renderWave);
+                    return;
+                }
                 const cy = height / 2;
+                phase += 0.04;
 
                 ctx.clearRect(0, 0, width, height);
 
@@ -2779,13 +3074,16 @@
                 ctx.moveTo(0, cy);
                 for(let x = 0; x < width; x += 4) {
                     const normX = x / width;
-                    const amp = 10 + activePulses.length * 2.5 + rippleShockwave * 12;
-                    const y = cy + Math.sin(normX * 10 + phase) * Math.cos(normX * 5 - phase * 0.5) * amp;
+                    const amp = 8 + activePulses.length * 2.5 + rippleShockwave * 12;
+                    const y = cy + Math.sin(normX * 8 + phase) * Math.cos(normX * 4 - phase * 0.6) * amp;
                     ctx.lineTo(x, y);
                 }
-                ctx.strokeStyle = activePulses.length > 0 ? '#00f3ff' : 'rgba(255, 255, 255, 0.2)';
-                ctx.lineWidth = 1.5;
+                ctx.strokeStyle = activePulses.length > 0 ? '#00f3ff' : 'rgba(56, 189, 248, 0.4)';
+                ctx.lineWidth = 1.6;
+                ctx.shadowColor = '#00f3ff';
+                ctx.shadowBlur = activePulses.length > 0 ? 8 : 0;
                 ctx.stroke();
+                ctx.shadowBlur = 0;
 
                 requestAnimationFrame(renderWave);
             }
