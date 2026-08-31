@@ -52,28 +52,28 @@ MODELS_CATALOG = [
         "object": "model",
         "created": 1700000000,
         "owned_by": "uor-r4",
-        "hf_source": "Qwen/Qwen2.5-0.5B-Instruct"
+        "hf_source": "Qwen/Qwen2.5-1.5B-Instruct"
     },
     {
         "id": "qwen3.8-flash",
         "object": "model",
         "created": 1700000000,
         "owned_by": "uor-r4",
-        "hf_source": "Qwen/Qwen2.5-Coder-0.5B-Instruct"
+        "hf_source": "Qwen/Qwen2.5-Coder-1.5B-Instruct"
     },
     {
         "id": "glm5.3-flash",
         "object": "model",
         "created": 1700000000,
         "owned_by": "uor-r4",
-        "hf_source": "Qwen/Qwen2.5-0.5B-Instruct"
+        "hf_source": "Qwen/Qwen2.5-Coder-1.5B-Instruct"
     },
     {
         "id": "glm-5.3-flash",
         "object": "model",
         "created": 1700000000,
         "owned_by": "uor-r4",
-        "hf_source": "Qwen/Qwen2.5-0.5B-Instruct"
+        "hf_source": "Qwen/Qwen2.5-Coder-1.5B-Instruct"
     }
 ]
 
@@ -82,7 +82,7 @@ _loaded_pipelines = {}
 
 def get_pipeline(model_id: str):
     """Loads and caches the model, tokenizer, and device."""
-    target_hf = "Qwen/Qwen2.5-0.5B-Instruct"
+    target_hf = "Qwen/Qwen2.5-Coder-1.5B-Instruct"
     norm_id = (model_id or "").lower().replace(":", "-").replace("_", "-")
     for m in MODELS_CATALOG:
         m_id = m["id"].lower()
@@ -96,26 +96,17 @@ def get_pipeline(model_id: str):
     try:
         import torch
         from transformers import AutoModelForCausalLM, AutoTokenizer
-
-        # On macOS, CPU is faster and rock-solid without MPS kernel deadlocks
-        device = "cuda" if torch.cuda.is_available() else "cpu"
-        print(f"[UOR-Server] Loading substrate [{model_id}] -> {target_hf} on device: {device}...")
-
+        print(f"[UOR-Server] Loading substrate [{model_id}] -> {target_hf} on device: cpu...")
+        
         tokenizer = AutoTokenizer.from_pretrained(target_hf, clean_up_tokenization_spaces=False)
         model = AutoModelForCausalLM.from_pretrained(
             target_hf,
-            dtype=torch.float32,
+            torch_dtype=torch.float32,
             low_cpu_mem_usage=True
         )
-        if hasattr(model, "generation_config") and model.generation_config:
-            model.generation_config.max_length = None
+        model.eval()
 
-        if device == "cuda":
-            model = model.cuda()
-        else:
-            model = model.to("cpu")
-
-        _loaded_pipelines[target_hf] = (model, tokenizer, device)
+        _loaded_pipelines[target_hf] = (model, tokenizer, "cpu")
         return _loaded_pipelines[target_hf]
     except Exception as e:
         print(f"[UOR-Server] Model load note ({e}), fallback enabled.")
@@ -232,6 +223,50 @@ async def ollama_show(request: Request):
         }
     }
 
+def extract_tool_calls_from_text(text: str):
+    tool_calls = []
+    # Match any JSON object with "name" and "arguments" (inside <tool_call>, ```xml, ```json, or raw)
+    pattern = re.compile(r'\{[^{}]*"name"\s*:\s*"([^"]+)"\s*,\s*"arguments"\s*:\s*(\{.*?\}|"[^"]*")[^{}]*\}', re.DOTALL)
+    for i, m in enumerate(pattern.finditer(text)):
+        try:
+            data = json.loads(m.group(0))
+            fn_name = data.get("name")
+            fn_args = data.get("arguments", {})
+            args_str = json.dumps(fn_args) if isinstance(fn_args, dict) else str(fn_args)
+            if fn_name:
+                tool_calls.append({
+                    "id": f"call_{i}_{int(time.time()*1000)}",
+                    "type": "function",
+                    "function": {
+                        "name": fn_name,
+                        "arguments": args_str
+                    }
+                })
+        except Exception:
+            pass
+
+    if not tool_calls:
+        tc_regex = re.compile(r'<tool_call>\s*(\{.*?\})(?:\s*</tool_call>|$)', re.DOTALL)
+        for i, m in enumerate(tc_regex.findall(text)):
+            try:
+                data = json.loads(m)
+                fn_name = data.get("name")
+                fn_args = data.get("arguments", {})
+                args_str = json.dumps(fn_args) if isinstance(fn_args, dict) else str(fn_args)
+                if fn_name:
+                    tool_calls.append({
+                        "id": f"call_{i}_{int(time.time()*1000)}",
+                        "type": "function",
+                        "function": {
+                            "name": fn_name,
+                            "arguments": args_str
+                        }
+                    })
+            except Exception:
+                pass
+
+    return tool_calls
+
 @app.post("/v1/chat/completions")
 async def chat_completions(req: ChatCompletionRequest):
     req_id = f"chatcmpl-{int(time.time()*1000)}"
@@ -254,7 +289,7 @@ async def chat_completions(req: ChatCompletionRequest):
         if content_str:
             conv_messages.append({"role": role, "content": content_str})
 
-    # 2. Extract tools and build agency system prompt if tools are present
+    # 2. Extract tools and build agency system prompt
     tool_names = []
     if req.tools:
         for t in req.tools:
@@ -263,17 +298,27 @@ async def chat_completions(req: ChatCompletionRequest):
                 if fn and fn.get("name"):
                     tool_names.append(fn.get("name"))
 
-    if tool_names:
+    combined_text = " ".join([str(m.get("content", "")) for m in conv_messages])
+    is_action = bool(tool_names) or any(
+        k in combined_text.lower()
+        for k in ["commit", "pull request", "pr", "git", "checkout", "folder", "directory", "terminal", "run command", "execute", "review", "branch"]
+    )
+
+    if is_action:
+        if not tool_names:
+            tool_names = ["execute_command", "read_file", "write_file", "create_pull_request"]
+
         tools_system = (
-            "You are Hermes AI Agent with full agency and tool access.\n"
+            "You are Hermes AI Agent with full autonomous agency and tool access.\n"
             f"Available tools: {', '.join(tool_names)}\n\n"
-            "When the user asks you to perform an action (e.g. check local files, run git/terminal commands, read directories, submit PRs, or modify code), "
-            "DO NOT just describe the steps in text or ask what to do next. "
-            "CALL the appropriate tool directly using this XML format:\n"
+            "CRITICAL AGENT DIRECTIVE:\n"
+            "When the user asks you to perform an action (review changes, commit, push, create a pull request, inspect directories, read files, or run commands):\n"
+            "1. NEVER write a tutorial, guide, numbered plan, or explain how the user should do it.\n"
+            "2. NEVER say 'Here is how we will approach it step by step'.\n"
+            "3. IMMEDIATELY output the exact tool call XML to execute the first step:\n"
             "<tool_call>\n"
-            '{"name": "<tool_name>", "arguments": {"<arg>": "<val>"}}\n'
+            '{"name": "execute_command", "arguments": {"command": "git status"}}\n'
             "</tool_call>\n"
-            "Always act by calling tools to accomplish the user's request."
         )
         conv_messages = [{"role": "system", "content": tools_system}] + [m for m in conv_messages if m["role"] != "system"]
     elif not has_system:
@@ -306,8 +351,6 @@ async def chat_completions(req: ChatCompletionRequest):
         im_end_id = tokenizer.convert_tokens_to_ids("<|im_end|>")
         if im_end_id:
             eos_token_ids.append(im_end_id)
-
-    tool_call_regex = re.compile(r'<tool_call>\s*(\{.*?\})(?:\s*</tool_call>|$)', re.DOTALL)
 
     if req.stream:
         # Server-Sent Events (SSE) Stream Generator
@@ -388,8 +431,8 @@ async def chat_completions(req: ChatCompletionRequest):
                         await asyncio.sleep(0.03)
 
                 # Check if tool calls were emitted in stream
-                matches = tool_call_regex.findall(accumulated_text)
-                finish_reason = "tool_calls" if matches else "stop"
+                tool_calls = extract_tool_calls_from_text(accumulated_text)
+                finish_reason = "tool_calls" if tool_calls else "stop"
 
                 # Final STOP chunk
                 final_chunk = {
@@ -418,7 +461,7 @@ async def chat_completions(req: ChatCompletionRequest):
         )
 
     else:
-        # Non-streaming JSON response with tool calling extraction
+        # Non-streaming JSON response with universal tool calling extraction
         response_text = ""
         if model and tokenizer:
             import torch
@@ -442,32 +485,12 @@ async def chat_completions(req: ChatCompletionRequest):
         else:
             response_text = f"UOR-R4 Server non-streaming response for model [{req.model}]."
 
-        matches = tool_call_regex.findall(response_text)
-        parsed_tool_calls = []
-        for i, m in enumerate(matches):
-            try:
-                data = json.loads(m)
-                fn_name = data.get("name", "")
-                fn_args = data.get("arguments", {})
-                args_str = json.dumps(fn_args) if isinstance(fn_args, dict) else str(fn_args)
-                if fn_name:
-                    parsed_tool_calls.append({
-                        "id": f"call_{i}_{int(time.time()*1000)}",
-                        "type": "function",
-                        "function": {
-                            "name": fn_name,
-                            "arguments": args_str
-                        }
-                    })
-            except Exception:
-                pass
-
-        cleaned_content = tool_call_regex.sub("", response_text).strip()
+        parsed_tool_calls = extract_tool_calls_from_text(response_text)
         finish_reason = "tool_calls" if parsed_tool_calls else "stop"
 
         msg_payload = {
             "role": "assistant",
-            "content": cleaned_content if (cleaned_content or not parsed_tool_calls) else None
+            "content": response_text
         }
         if parsed_tool_calls:
             msg_payload["tool_calls"] = parsed_tool_calls
