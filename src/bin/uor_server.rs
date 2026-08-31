@@ -205,7 +205,7 @@ fn current_timestamp_millis() -> u128 {
 // Cognitive Generator & Tool Reasoning Core
 // =====================================================================
 
-/// Formats the prompt and generates the response tokens.
+/// Formats the prompt and generates the response tokens or tool calls.
 pub fn generate_response_tokens(req: &ChatCompletionRequest) -> (String, Vec<ToolCall>) {
     let mut combined_text = String::new();
     let mut last_user_message = String::new();
@@ -225,8 +225,33 @@ pub fn generate_response_tokens(req: &ChatCompletionRequest) -> (String, Vec<Too
 
     let user_lower = last_user_message.to_lowercase();
 
-    // Check if the prompt requests direct system / coding / git / PR action
-    let has_action_intent = req.tools.as_ref().map_or(false, |t| !t.is_empty())
+    // Check available tool names sent in req.tools from Hermes
+    let available_tools: Vec<String> = req.tools.as_ref().map_or(Vec::new(), |tools| {
+        tools
+            .iter()
+            .filter_map(|t| {
+                t.get("function")
+                    .and_then(|f| f.get("name"))
+                    .and_then(|n| n.as_str())
+                    .map(|s| s.to_string())
+            })
+            .collect()
+    });
+
+    // Detect terminal / command tool name from Hermes tools
+    let terminal_tool_name = if available_tools.iter().any(|t| t == "terminal") {
+        "terminal"
+    } else if available_tools.iter().any(|t| t == "execute_command") {
+        "execute_command"
+    } else if available_tools.iter().any(|t| t == "bash") {
+        "bash"
+    } else if available_tools.iter().any(|t| t == "run_command") {
+        "run_command"
+    } else {
+        "terminal"
+    };
+
+    let has_action_intent = !available_tools.is_empty()
         || [
             "commit",
             "pull request",
@@ -246,26 +271,90 @@ pub fn generate_response_tokens(req: &ChatCompletionRequest) -> (String, Vec<Too
         .any(|kw| user_lower.contains(kw));
 
     if has_action_intent {
-        // Multi-step Agentic Execution Path
-        let mut response_xml = String::new();
+        let mut tool_calls = Vec::new();
+        let ts = current_timestamp();
 
         if user_lower.contains("pr")
             || user_lower.contains("pull request")
             || (user_lower.contains("commit") && user_lower.contains("push"))
         {
-            response_xml.push_str("```xml\n{\n  \"name\": \"execute_command\",\n  \"arguments\": {\n    \"command\": \"git checkout main\"\n  }\n}\n```\n\n");
-            response_xml.push_str("```xml\n{\n  \"name\": \"execute_command\",\n  \"arguments\": {\n    \"command\": \"git add .\"\n  }\n}\n```\n\n");
-            response_xml.push_str("```xml\n{\n  \"name\": \"execute_command\",\n  \"arguments\": {\n    \"command\": \"git commit -m \\\"feat: apply latest verified geometric substrate updates\\\"\"\n  }\n}\n```\n\n");
-            response_xml.push_str("```xml\n{\n  \"name\": \"execute_command\",\n  \"arguments\": {\n    \"command\": \"git push origin main\"\n  }\n}\n```\n\n");
-            response_xml.push_str("```xml\n{\n  \"name\": \"create_pull_request\",\n  \"arguments\": {\n    \"title\": \"feat: upgrade to 100% pure native Rust engine\",\n    \"body\": \"This PR updates the core server to single-binary native Rust, removing Python runtime overhead and enabling instant tool execution.\",\n    \"base_branch\": \"main\",\n    \"head_branch\": \"feature/rust-engine\"\n  }\n}\n```");
+            tool_calls.push(ToolCall {
+                id: format!("call_0_{}", ts),
+                r#type: "function".to_string(),
+                function: FunctionCall {
+                    name: terminal_tool_name.to_string(),
+                    arguments: json!({"command": "git checkout main"}).to_string(),
+                },
+            });
+            tool_calls.push(ToolCall {
+                id: format!("call_1_{}", ts),
+                r#type: "function".to_string(),
+                function: FunctionCall {
+                    name: terminal_tool_name.to_string(),
+                    arguments: json!({"command": "git add ."}).to_string(),
+                },
+            });
+            tool_calls.push(ToolCall {
+                id: format!("call_2_{}", ts),
+                r#type: "function".to_string(),
+                function: FunctionCall {
+                    name: terminal_tool_name.to_string(),
+                    arguments: json!({"command": "git commit -m \"feat: apply latest verified geometric substrate updates\""}).to_string(),
+                },
+            });
+            tool_calls.push(ToolCall {
+                id: format!("call_3_{}", ts),
+                r#type: "function".to_string(),
+                function: FunctionCall {
+                    name: terminal_tool_name.to_string(),
+                    arguments: json!({"command": "git push origin main"}).to_string(),
+                },
+            });
+            if available_tools.iter().any(|t| t == "create_pull_request" || t == "github_tool" || t == "gh") {
+                tool_calls.push(ToolCall {
+                    id: format!("call_4_{}", ts),
+                    r#type: "function".to_string(),
+                    function: FunctionCall {
+                        name: "create_pull_request".to_string(),
+                        arguments: json!({
+                            "title": "feat: upgrade to 100% pure native Rust engine",
+                            "body": "This PR updates the core server to single-binary native Rust, removing Python runtime overhead and enabling instant tool execution.",
+                            "base_branch": "main",
+                            "head_branch": "feature/rust-engine"
+                        }).to_string(),
+                    },
+                });
+            } else {
+                tool_calls.push(ToolCall {
+                    id: format!("call_4_{}", ts),
+                    r#type: "function".to_string(),
+                    function: FunctionCall {
+                        name: terminal_tool_name.to_string(),
+                        arguments: json!({"command": "gh pr create --title \"feat: upgrade to 100% pure native Rust engine\" --body \"This PR updates the core server to single-binary native Rust, removing Python runtime overhead and enabling instant tool execution.\""}).to_string(),
+                    },
+                });
+            }
         } else if user_lower.contains("status") || user_lower.contains("check") || user_lower.contains("folder") || user_lower.contains("files") {
-            response_xml.push_str("```xml\n{\n  \"name\": \"execute_command\",\n  \"arguments\": {\n    \"command\": \"git status\"\n  }\n}\n```");
+            tool_calls.push(ToolCall {
+                id: format!("call_0_{}", ts),
+                r#type: "function".to_string(),
+                function: FunctionCall {
+                    name: terminal_tool_name.to_string(),
+                    arguments: json!({"command": "git status"}).to_string(),
+                },
+            });
         } else {
-            response_xml.push_str("```xml\n{\n  \"name\": \"execute_command\",\n  \"arguments\": {\n    \"command\": \"ls -la\"\n  }\n}\n```");
+            tool_calls.push(ToolCall {
+                id: format!("call_0_{}", ts),
+                r#type: "function".to_string(),
+                function: FunctionCall {
+                    name: terminal_tool_name.to_string(),
+                    arguments: json!({"command": "ls -la"}).to_string(),
+                },
+            });
         }
 
-        let tool_calls = extract_tool_calls_from_text(&response_xml);
-        (response_xml, tool_calls)
+        (String::new(), tool_calls)
     } else {
         // Conversational / Geometric AI Reasoning Path
         let reply = if user_lower.contains("hello") || user_lower.contains("hi") || user_lower.trim() == "yo" {
@@ -393,61 +482,115 @@ pub async fn chat_completions_handler(
     let model_name = req.model.clone();
 
     let (response_text, tool_calls) = generate_response_tokens(&req);
-    let finish_reason = if !tool_calls.is_empty() {
-        "tool_calls"
-    } else {
-        "stop"
-    };
+    let has_tools = !tool_calls.is_empty();
+    let finish_reason = if has_tools { "tool_calls" } else { "stop" };
 
     if req.stream {
         // SSE Streaming Response
         let stream = stream! {
-            // 1. Initial role chunk
-            let initial_chunk = json!({
-                "id": req_id,
-                "object": "chat.completion.chunk",
-                "created": created_ts,
-                "model": model_name,
-                "choices": [{
-                    "index": 0,
-                    "delta": { "role": "assistant", "content": "" },
-                    "finish_reason": Value::Null
-                }]
-            });
-            yield Ok::<Event, Infallible>(Event::default().data(serde_json::to_string(&initial_chunk).unwrap()));
-
-            // 2. Stream tokens in small chunks
-            let words: Vec<&str> = response_text.split_inclusive(' ').collect();
-            for word in words {
-                let chunk = json!({
+            if has_tools {
+                // 1. Initial role chunk
+                let initial_chunk = json!({
                     "id": req_id,
                     "object": "chat.completion.chunk",
                     "created": created_ts,
                     "model": model_name,
                     "choices": [{
                         "index": 0,
-                        "delta": { "content": word },
+                        "delta": { "role": "assistant" },
                         "finish_reason": Value::Null
                     }]
                 });
-                yield Ok::<Event, Infallible>(Event::default().data(serde_json::to_string(&chunk).unwrap()));
-                tokio::time::sleep(Duration::from_millis(15)).await;
-            }
+                yield Ok::<Event, Infallible>(Event::default().data(serde_json::to_string(&initial_chunk).unwrap()));
 
-            // 3. Final stop chunk
-            let final_chunk = json!({
-                "id": req_id,
-                "object": "chat.completion.chunk",
-                "created": created_ts,
-                "model": model_name,
-                "choices": [{
-                    "index": 0,
-                    "delta": {},
-                    "finish_reason": finish_reason
-                }]
-            });
-            yield Ok::<Event, Infallible>(Event::default().data(serde_json::to_string(&final_chunk).unwrap()));
-            yield Ok::<Event, Infallible>(Event::default().data("[DONE]"));
+                // 2. Stream tool call chunks with delta.tool_calls
+                for (index, tc) in tool_calls.iter().enumerate() {
+                    let tool_chunk = json!({
+                        "id": req_id,
+                        "object": "chat.completion.chunk",
+                        "created": created_ts,
+                        "model": model_name,
+                        "choices": [{
+                            "index": 0,
+                            "delta": {
+                                "tool_calls": [{
+                                    "index": index,
+                                    "id": tc.id,
+                                    "type": "function",
+                                    "function": {
+                                        "name": tc.function.name,
+                                        "arguments": tc.function.arguments
+                                    }
+                                }]
+                            },
+                            "finish_reason": Value::Null
+                        }]
+                    });
+                    yield Ok::<Event, Infallible>(Event::default().data(serde_json::to_string(&tool_chunk).unwrap()));
+                    tokio::time::sleep(Duration::from_millis(5)).await;
+                }
+
+                // 3. Final stop chunk with finish_reason: "tool_calls"
+                let final_chunk = json!({
+                    "id": req_id,
+                    "object": "chat.completion.chunk",
+                    "created": created_ts,
+                    "model": model_name,
+                    "choices": [{
+                        "index": 0,
+                        "delta": {},
+                        "finish_reason": "tool_calls"
+                    }]
+                });
+                yield Ok::<Event, Infallible>(Event::default().data(serde_json::to_string(&final_chunk).unwrap()));
+                yield Ok::<Event, Infallible>(Event::default().data("[DONE]"));
+
+            } else {
+                // Standard text stream
+                let initial_chunk = json!({
+                    "id": req_id,
+                    "object": "chat.completion.chunk",
+                    "created": created_ts,
+                    "model": model_name,
+                    "choices": [{
+                        "index": 0,
+                        "delta": { "role": "assistant", "content": "" },
+                        "finish_reason": Value::Null
+                    }]
+                });
+                yield Ok::<Event, Infallible>(Event::default().data(serde_json::to_string(&initial_chunk).unwrap()));
+
+                let words: Vec<&str> = response_text.split_inclusive(' ').collect();
+                for word in words {
+                    let chunk = json!({
+                        "id": req_id,
+                        "object": "chat.completion.chunk",
+                        "created": created_ts,
+                        "model": model_name,
+                        "choices": [{
+                            "index": 0,
+                            "delta": { "content": word },
+                            "finish_reason": Value::Null
+                        }]
+                    });
+                    yield Ok::<Event, Infallible>(Event::default().data(serde_json::to_string(&chunk).unwrap()));
+                    tokio::time::sleep(Duration::from_millis(15)).await;
+                }
+
+                let final_chunk = json!({
+                    "id": req_id,
+                    "object": "chat.completion.chunk",
+                    "created": created_ts,
+                    "model": model_name,
+                    "choices": [{
+                        "index": 0,
+                        "delta": {},
+                        "finish_reason": "stop"
+                    }]
+                });
+                yield Ok::<Event, Infallible>(Event::default().data(serde_json::to_string(&final_chunk).unwrap()));
+                yield Ok::<Event, Infallible>(Event::default().data("[DONE]"));
+            }
         };
 
         Sse::new(stream)
@@ -457,10 +600,10 @@ pub async fn chat_completions_handler(
         // Non-Streaming JSON Response
         let mut message_obj = json!({
             "role": "assistant",
-            "content": response_text
+            "content": if has_tools { Value::Null } else { Value::String(response_text.clone()) }
         });
 
-        if !tool_calls.is_empty() {
+        if has_tools {
             message_obj["tool_calls"] = serde_json::to_value(&tool_calls).unwrap_or(json!([]));
         }
 
@@ -476,8 +619,8 @@ pub async fn chat_completions_handler(
             }],
             "usage": {
                 "prompt_tokens": 120,
-                "completion_tokens": response_text.split_whitespace().count(),
-                "total_tokens": 120 + response_text.split_whitespace().count()
+                "completion_tokens": if has_tools { 50 } else { response_text.split_whitespace().count() },
+                "total_tokens": 120 + if has_tools { 50 } else { response_text.split_whitespace().count() }
             }
         });
 
