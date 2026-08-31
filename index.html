@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UOR-R4 Sovereign AI Studio (GLM-5.3 & Qwen 2.5)</title>
+    <title>UOR-R4 Sovereign AI Developer Studio</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
-    <!-- MARKED.JS, KATEX, PDF.JS & THREE.JS WITH ORBIT CONTROLS -->
+    <!-- MARKED.JS, KATEX, PDF.JS & THREE.JS -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
@@ -17,9 +17,12 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
+    <!-- MONACO EDITOR LOADER -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.min.js"></script>
+
     <style>
         :root {
-            font-size: 14.5px;
+            font-size: 14px;
             --bg-main: #050608;
             --bg-sidebar: #090b10;
             --bg-surface: #10131d;
@@ -34,10 +37,10 @@
             --accent-blue: #38bdf8;
             --accent-purple: #c084fc;
             --accent-emerald: #00ff88;
-            --radius-xl: 18px;
-            --radius-lg: 12px;
-            --radius-md: 9px;
-            --radius-sm: 6px;
+            --radius-xl: 16px;
+            --radius-lg: 11px;
+            --radius-md: 8px;
+            --radius-sm: 5px;
             --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             --font-mono: 'Fira Code', monospace;
         }
@@ -60,15 +63,16 @@
 
         /* ================= SIDEBAR ================= */
         .sidebar {
-            width: 240px;
+            width: 255px;
             background-color: var(--bg-sidebar);
             border-right: 1px solid var(--border-subtle);
             display: flex;
             flex-direction: column;
-            padding: 0.85rem;
+            padding: 0.75rem;
             flex-shrink: 0;
             transition: transform 0.25s ease, width 0.25s ease;
             z-index: 40;
+            overflow: hidden;
         }
 
         .sidebar.collapsed {
@@ -79,6 +83,48 @@
             border-right: none;
         }
 
+        .sidebar-tabs {
+            display: flex;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: 2px;
+            margin-bottom: 0.65rem;
+        }
+
+        .sidebar-tab-btn {
+            flex: 1;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            padding: 0.35rem 0.45rem;
+            font-size: 0.72rem;
+            font-weight: 600;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all 0.15s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.3rem;
+        }
+
+        .sidebar-tab-btn.active {
+            background: rgba(0, 216, 255, 0.15);
+            color: var(--accent-cyan);
+            font-weight: 700;
+        }
+
+        .sidebar-pane {
+            display: none;
+            flex: 1;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+        .sidebar-pane.active {
+            display: flex;
+        }
+
         .new-chat-btn {
             display: flex;
             align-items: center;
@@ -86,13 +132,13 @@
             background: rgba(255, 255, 255, 0.07);
             border: 1px solid var(--border);
             color: var(--text-primary);
-            padding: 0.55rem 0.75rem;
+            padding: 0.5rem 0.7rem;
             border-radius: var(--radius-md);
-            font-size: 0.82rem;
+            font-size: 0.78rem;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.15s ease;
-            margin-bottom: 0.75rem;
+            margin-bottom: 0.65rem;
         }
 
         .new-chat-btn:hover {
@@ -102,7 +148,7 @@
 
         .conv-search-box {
             position: relative;
-            margin-bottom: 0.75rem;
+            margin-bottom: 0.65rem;
         }
 
         .conv-search-input {
@@ -110,9 +156,9 @@
             background: rgba(0, 0, 0, 0.4);
             border: 1px solid var(--border-subtle);
             border-radius: var(--radius-sm);
-            padding: 0.4rem 0.55rem 0.4rem 1.7rem;
+            padding: 0.35rem 0.5rem 0.35rem 1.6rem;
             color: var(--text-primary);
-            font-size: 0.76rem;
+            font-size: 0.74rem;
             outline: none;
             transition: border-color 0.15s ease;
         }
@@ -123,39 +169,38 @@
 
         .conv-search-icon {
             position: absolute;
-            left: 0.5rem;
+            left: 0.45rem;
             top: 50%;
             transform: translateY(-50%);
             color: var(--text-muted);
             pointer-events: none;
-            font-size: 0.72rem;
+            font-size: 0.7rem;
         }
 
         .sidebar-section-label {
-            font-size: 0.65rem;
+            font-size: 0.62rem;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.06em;
             color: var(--text-muted);
-            padding: 0.35rem 0.2rem;
+            padding: 0.3rem 0.15rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
-        .conversations-scroll-container {
+        .conversations-scroll-container, .file-tree-container {
             flex: 1;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 0.2rem;
-            margin-top: 0.2rem;
+            gap: 0.15rem;
         }
 
-        .conversations-scroll-container::-webkit-scrollbar {
+        .conversations-scroll-container::-webkit-scrollbar, .file-tree-container::-webkit-scrollbar {
             width: 4px;
         }
-        .conversations-scroll-container::-webkit-scrollbar-thumb {
+        .conversations-scroll-container::-webkit-scrollbar-thumb, .file-tree-container::-webkit-scrollbar-thumb {
             background: rgba(255, 255, 255, 0.15);
             border-radius: 4px;
         }
@@ -164,13 +209,13 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0.45rem 0.55rem;
+            padding: 0.4rem 0.5rem;
             border-radius: var(--radius-sm);
             cursor: pointer;
             color: var(--text-secondary);
-            font-size: 0.78rem;
+            font-size: 0.76rem;
             transition: all 0.15s ease;
-            gap: 0.45rem;
+            gap: 0.4rem;
             user-select: none;
         }
 
@@ -212,13 +257,116 @@
             color: #ff453a;
         }
 
+        /* FILE TREE STYLING */
+        .workspace-header-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 0.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .workspace-name-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.76rem;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .workspace-badge {
+            font-size: 0.62rem;
+            font-weight: 700;
+            padding: 1px 5px;
+            border-radius: 10px;
+            background: rgba(0, 255, 136, 0.15);
+            color: var(--accent-emerald);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+        }
+
+        .btn-open-workspace {
+            background: rgba(0, 216, 255, 0.12);
+            border: 1px solid rgba(0, 216, 255, 0.35);
+            color: var(--accent-cyan);
+            padding: 0.3rem 0.55rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.72rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.3rem;
+            transition: all 0.15s ease;
+        }
+
+        .btn-open-workspace:hover {
+            background: rgba(0, 216, 255, 0.22);
+            color: #ffffff;
+        }
+
+        .tree-node {
+            display: flex;
+            align-items: center;
+            padding: 0.28rem 0.4rem;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 0.74rem;
+            color: var(--text-secondary);
+            gap: 0.35rem;
+            user-select: none;
+            transition: background 0.12s ease;
+        }
+
+        .tree-node:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: #ffffff;
+        }
+
+        .tree-node.active {
+            background: rgba(0, 216, 255, 0.15);
+            color: var(--accent-cyan);
+            font-weight: 600;
+        }
+
+        .tree-icon {
+            font-size: 0.8rem;
+            flex-shrink: 0;
+        }
+
+        .tree-name {
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .tree-tag-btn {
+            opacity: 0;
+            font-size: 0.65rem;
+            color: var(--accent-cyan);
+            padding: 1px 4px;
+            border-radius: 3px;
+            background: rgba(0, 216, 255, 0.12);
+            border: 1px solid rgba(0, 216, 255, 0.3);
+            transition: all 0.12s ease;
+        }
+
+        .tree-node:hover .tree-tag-btn {
+            opacity: 1;
+        }
+
         .sidebar-footer {
-            padding-top: 0.65rem;
+            padding-top: 0.55rem;
             border-top: 1px solid var(--border-subtle);
             display: flex;
             flex-direction: column;
-            gap: 0.3rem;
-            font-size: 0.7rem;
+            gap: 0.25rem;
+            font-size: 0.68rem;
             color: var(--text-muted);
         }
 
@@ -235,12 +383,12 @@
 
         /* TOP NAVBAR */
         .top-navbar {
-            height: 48px;
+            height: 46px;
             border-bottom: 1px solid var(--border-subtle);
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0 1.1rem;
+            padding: 0 1rem;
             background-color: rgba(9, 11, 16, 0.95);
             backdrop-filter: blur(12px);
             z-index: 30;
@@ -249,7 +397,7 @@
         .nav-left {
             display: flex;
             align-items: center;
-            gap: 0.65rem;
+            gap: 0.6rem;
         }
 
         .icon-btn {
@@ -257,13 +405,13 @@
             border: none;
             color: var(--text-secondary);
             cursor: pointer;
-            padding: 0.3rem;
+            padding: 0.28rem;
             border-radius: var(--radius-sm);
             display: flex;
             align-items: center;
             justify-content: center;
             transition: all 0.15s ease;
-            font-size: 0.85rem;
+            font-size: 0.82rem;
         }
 
         .icon-btn:hover {
@@ -274,32 +422,94 @@
         .brand-badge {
             display: flex;
             align-items: center;
-            gap: 0.4rem;
-            font-size: 0.82rem;
+            gap: 0.35rem;
+            font-size: 0.8rem;
             font-weight: 700;
             color: #ffffff;
-            padding: 0.2rem 0.55rem;
+            padding: 0.18rem 0.5rem;
             border-radius: var(--radius-sm);
             background: rgba(0, 216, 255, 0.1);
             border: 1px solid rgba(0, 216, 255, 0.25);
         }
 
+        /* STUDIO MODE SELECTOR PILLS */
+        .studio-mode-pill-bar {
+            display: flex;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-subtle);
+            border-radius: 20px;
+            padding: 2px;
+            gap: 2px;
+        }
+
+        .mode-pill-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            padding: 0.25rem 0.65rem;
+            border-radius: 16px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .mode-pill-btn:hover {
+            color: #ffffff;
+        }
+
+        .mode-pill-btn.active {
+            background: rgba(0, 216, 255, 0.18);
+            color: var(--accent-cyan);
+            font-weight: 700;
+            box-shadow: 0 0 10px rgba(0, 216, 255, 0.2);
+        }
+
         .nav-right {
             display: flex;
             align-items: center;
-            gap: 0.55rem;
+            gap: 0.5rem;
+        }
+
+        .btn-github-auth {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            padding: 0.25rem 0.55rem;
+            border-radius: var(--radius-md);
+            font-size: 0.72rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .btn-github-auth:hover {
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .btn-github-auth.connected {
+            border-color: rgba(0, 255, 136, 0.4);
+            color: var(--accent-emerald);
+            background: rgba(0, 255, 136, 0.1);
         }
 
         .btn-sidecar-toggle {
             display: flex;
             align-items: center;
-            gap: 0.4rem;
+            gap: 0.35rem;
             background: rgba(255, 255, 255, 0.08);
             border: 1px solid var(--border);
             color: var(--text-secondary);
-            padding: 0.35rem 0.65rem;
+            padding: 0.3rem 0.55rem;
             border-radius: var(--radius-md);
-            font-size: 0.76rem;
+            font-size: 0.72rem;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.15s ease;
@@ -314,21 +524,25 @@
             background: rgba(0, 216, 255, 0.18);
             color: var(--accent-cyan);
             border-color: rgba(0, 216, 255, 0.45);
-            box-shadow: 0 0 14px rgba(0, 216, 255, 0.2);
         }
 
-        /* ================= CHAT CONTAINER ================= */
-        .chat-view-container {
+        /* ================= MAIN STUDIO VIEWS ================= */
+        .studio-view-container {
             flex: 1;
-            display: flex;
+            display: none;
             overflow: hidden;
             position: relative;
         }
 
+        .studio-view-container.active {
+            display: flex;
+        }
+
+        /* --- 1. CHAT STUDIO VIEW --- */
         .chat-scroll-area {
             flex: 1;
             overflow-y: auto;
-            padding: 1.25rem 1.1rem 7rem 1.1rem;
+            padding: 1.1rem 1rem 6.5rem 1rem;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -347,40 +561,40 @@
             max-width: 760px;
             display: flex;
             flex-direction: column;
-            gap: 1.25rem;
+            gap: 1.1rem;
         }
 
-        /* EMPTY STATE / WELCOME */
+        /* EMPTY HERO */
         .empty-hero {
             display: flex;
             flex-direction: column;
             align-items: center;
             text-align: center;
-            margin-top: 3rem;
-            gap: 0.75rem;
+            margin-top: 2.5rem;
+            gap: 0.65rem;
         }
 
         .hero-logo-orb {
-            width: 58px;
-            height: 58px;
+            width: 54px;
+            height: 54px;
             border-radius: 50%;
             background: radial-gradient(circle at 30% 30%, #00d8ff, #0284c7 60%, #050608 95%);
             box-shadow: 0 0 35px rgba(0, 216, 255, 0.4);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.6rem;
+            font-size: 1.5rem;
         }
 
         .hero-title {
-            font-size: 1.4rem;
+            font-size: 1.35rem;
             font-weight: 700;
             letter-spacing: -0.02em;
             color: #ffffff;
         }
 
         .hero-desc {
-            font-size: 0.85rem;
+            font-size: 0.82rem;
             color: var(--text-secondary);
             max-width: 480px;
             line-height: 1.45;
@@ -388,23 +602,23 @@
 
         .prompt-starter-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 0.65rem;
+            grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+            gap: 0.6rem;
             width: 100%;
             max-width: 720px;
-            margin-top: 1.25rem;
+            margin-top: 1.1rem;
         }
 
         .starter-card {
             background: rgba(255, 255, 255, 0.04);
             border: 1px solid var(--border-subtle);
             border-radius: var(--radius-lg);
-            padding: 0.75rem;
+            padding: 0.65rem 0.75rem;
             cursor: pointer;
             transition: all 0.15s ease;
             display: flex;
             flex-direction: column;
-            gap: 0.25rem;
+            gap: 0.2rem;
             text-align: left;
         }
 
@@ -415,13 +629,13 @@
         }
 
         .starter-title {
-            font-size: 0.8rem;
+            font-size: 0.78rem;
             font-weight: 700;
             color: #ffffff;
         }
 
         .starter-desc {
-            font-size: 0.72rem;
+            font-size: 0.7rem;
             color: var(--text-muted);
         }
 
@@ -429,7 +643,7 @@
         .message-row {
             display: flex;
             width: 100%;
-            gap: 0.85rem;
+            gap: 0.75rem;
             animation: fadeIn 0.2s ease-out;
         }
 
@@ -438,13 +652,13 @@
         }
 
         .message-avatar {
-            width: 28px;
-            height: 28px;
+            width: 26px;
+            height: 26px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.78rem;
+            font-size: 0.74rem;
             flex-shrink: 0;
         }
 
@@ -463,15 +677,15 @@
             max-width: 86%;
             display: flex;
             flex-direction: column;
-            gap: 0.35rem;
+            gap: 0.3rem;
         }
 
         .user-bubble {
             background: #1e293b;
             color: #ffffff;
-            padding: 0.65rem 0.85rem;
+            padding: 0.6rem 0.8rem;
             border-radius: var(--radius-lg) var(--radius-lg) 2px var(--radius-lg);
-            font-size: 0.88rem;
+            font-size: 0.86rem;
             line-height: 1.45;
             white-space: pre-wrap;
             border: 1px solid var(--border-subtle);
@@ -480,12 +694,12 @@
         .ai-bubble {
             background: transparent;
             color: var(--text-primary);
-            font-size: 0.88rem;
+            font-size: 0.86rem;
             line-height: 1.55;
             width: 100%;
             display: flex;
             flex-direction: column;
-            gap: 0.45rem;
+            gap: 0.4rem;
         }
 
         .ai-text {
@@ -493,36 +707,31 @@
         }
 
         .ai-text p {
-            margin-bottom: 0.65rem;
+            margin-bottom: 0.6rem;
         }
         .ai-text p:last-child {
             margin-bottom: 0;
         }
 
         .ai-text ul, .ai-text ol {
-            margin-left: 1.3rem;
-            margin-bottom: 0.65rem;
+            margin-left: 1.25rem;
+            margin-bottom: 0.6rem;
         }
 
         .ai-text code:not(pre code) {
             background: rgba(255, 255, 255, 0.1);
             color: var(--accent-cyan);
-            padding: 0.12rem 0.3rem;
+            padding: 0.1rem 0.28rem;
             border-radius: 4px;
             font-family: var(--font-mono);
             font-size: 0.82em;
         }
 
-        /* KATEX MATH RENDERING STYLES */
         .katex-display {
-            margin: 0.75rem 0 !important;
+            margin: 0.65rem 0 !important;
             overflow-x: auto;
             overflow-y: hidden;
-            padding: 0.45rem 0;
-        }
-
-        .katex {
-            font-size: 1.05em;
+            padding: 0.35rem 0;
         }
 
         /* CODE BLOCK WITH COPY BUTTON HEADER */
@@ -530,7 +739,7 @@
             background: #080a10;
             border: 1px solid var(--border);
             border-radius: var(--radius-md);
-            margin: 0.75rem 0;
+            margin: 0.65rem 0;
             overflow: hidden;
         }
 
@@ -539,26 +748,31 @@
             justify-content: space-between;
             align-items: center;
             background: rgba(255, 255, 255, 0.04);
-            padding: 0.3rem 0.65rem;
+            padding: 0.25rem 0.6rem;
             border-bottom: 1px solid var(--border-subtle);
         }
 
         .code-lang-label {
-            font-size: 0.66rem;
+            font-size: 0.65rem;
             font-family: var(--font-mono);
             color: var(--text-muted);
             text-transform: uppercase;
             font-weight: 600;
         }
 
-        .code-copy-btn {
+        .code-action-group {
+            display: flex;
+            gap: 0.35rem;
+        }
+
+        .code-copy-btn, .code-editor-btn {
             background: rgba(255, 255, 255, 0.08);
             border: 1px solid var(--border-subtle);
             color: var(--text-secondary);
-            padding: 0.18rem 0.5rem;
+            padding: 0.15rem 0.45rem;
             border-radius: 4px;
             cursor: pointer;
-            font-size: 0.66rem;
+            font-size: 0.65rem;
             font-weight: 600;
             display: flex;
             align-items: center;
@@ -566,7 +780,7 @@
             transition: all 0.15s ease;
         }
 
-        .code-copy-btn:hover {
+        .code-copy-btn:hover, .code-editor-btn:hover {
             background: rgba(255, 255, 255, 0.18);
             color: #ffffff;
         }
@@ -574,15 +788,14 @@
         .code-copy-btn.copied {
             background: rgba(0, 255, 136, 0.2);
             color: var(--accent-emerald);
-            border-color: rgba(0, 255, 136, 0.4);
         }
 
         .code-block-container pre {
-            padding: 0.75rem;
+            padding: 0.7rem;
             overflow-x: auto;
             margin: 0;
             font-family: var(--font-mono);
-            font-size: 0.8rem;
+            font-size: 0.78rem;
             line-height: 1.45;
         }
 
@@ -590,36 +803,34 @@
         .message-action-toolbar {
             display: flex;
             align-items: center;
-            gap: 0.45rem;
-            margin-top: 0.3rem;
-            padding-top: 0.3rem;
+            gap: 0.4rem;
+            margin-top: 0.25rem;
+            padding-top: 0.25rem;
         }
 
         .msg-action-btn {
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid var(--border-subtle);
             color: var(--text-muted);
-            padding: 0.22rem 0.55rem;
+            padding: 0.2rem 0.5rem;
             border-radius: var(--radius-sm);
-            font-size: 0.68rem;
+            font-size: 0.66rem;
             font-weight: 600;
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 0.3rem;
+            gap: 0.25rem;
             transition: all 0.15s ease;
         }
 
         .msg-action-btn:hover {
             color: #ffffff;
             background: rgba(255, 255, 255, 0.12);
-            border-color: rgba(255, 255, 255, 0.2);
         }
 
         .msg-action-btn.copied {
             color: var(--accent-emerald);
             background: rgba(0, 255, 136, 0.15);
-            border-color: rgba(0, 255, 136, 0.3);
         }
 
         .typing-cursor::after {
@@ -645,7 +856,7 @@
             bottom: 0;
             left: 0;
             right: 0;
-            padding: 0.65rem 1.1rem 1.1rem 1.1rem;
+            padding: 0.55rem 1rem 1rem 1rem;
             background: linear-gradient(180deg, transparent 0%, rgba(5, 6, 8, 0.95) 40%, rgba(5, 6, 8, 1) 100%);
             display: flex;
             flex-direction: column;
@@ -656,21 +867,21 @@
         .attachment-chips-row {
             display: flex;
             flex-wrap: wrap;
-            gap: 0.35rem;
+            gap: 0.3rem;
             width: 100%;
             max-width: 760px;
-            margin-bottom: 0.35rem;
+            margin-bottom: 0.3rem;
         }
 
         .attachment-chip {
             background: var(--bg-surface);
             border: 1px solid var(--border);
             border-radius: var(--radius-sm);
-            padding: 0.2rem 0.5rem;
-            font-size: 0.68rem;
+            padding: 0.18rem 0.45rem;
+            font-size: 0.66rem;
             display: flex;
             align-items: center;
-            gap: 0.3rem;
+            gap: 0.25rem;
             color: var(--text-primary);
         }
 
@@ -691,8 +902,8 @@
             box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
             display: flex;
             flex-direction: column;
-            padding: 0.55rem 0.75rem;
-            gap: 0.35rem;
+            padding: 0.5rem 0.7rem;
+            gap: 0.3rem;
             transition: border-color 0.15s ease, box-shadow 0.15s ease;
             backdrop-filter: blur(16px);
             position: relative;
@@ -709,11 +920,11 @@
             border: none;
             color: #ffffff;
             font-family: var(--font-sans);
-            font-size: 0.88rem;
+            font-size: 0.86rem;
             line-height: 1.4;
             resize: none;
             outline: none;
-            max-height: 160px;
+            max-height: 150px;
             min-height: 22px;
         }
 
@@ -730,7 +941,7 @@
         .input-tools-left {
             display: flex;
             align-items: center;
-            gap: 0.45rem;
+            gap: 0.4rem;
         }
 
         .tool-icon-btn {
@@ -738,13 +949,13 @@
             border: none;
             color: var(--text-muted);
             cursor: pointer;
-            padding: 0.3rem;
+            padding: 0.28rem;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             transition: all 0.15s ease;
-            font-size: 0.82rem;
+            font-size: 0.8rem;
         }
 
         .tool-icon-btn:hover {
@@ -760,13 +971,13 @@
         .input-model-pill-btn {
             display: flex;
             align-items: center;
-            gap: 0.35rem;
+            gap: 0.3rem;
             background: rgba(255, 255, 255, 0.06);
             border: 1px solid var(--border);
             color: var(--accent-cyan);
-            padding: 0.22rem 0.55rem;
-            border-radius: 18px;
-            font-size: 0.72rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 16px;
+            font-size: 0.7rem;
             font-weight: 700;
             cursor: pointer;
             transition: all 0.15s ease;
@@ -779,7 +990,7 @@
         }
 
         .pill-arrow {
-            font-size: 0.6rem;
+            font-size: 0.58rem;
             color: var(--text-muted);
             margin-left: 1px;
         }
@@ -788,15 +999,15 @@
             position: absolute;
             bottom: calc(100% + 8px);
             left: 0;
-            width: 230px;
+            width: 220px;
             background: rgba(16, 19, 29, 0.98);
             border: 1.5px solid rgba(0, 216, 255, 0.35);
             border-radius: var(--radius-md);
             box-shadow: 0 -8px 25px rgba(0, 0, 0, 0.8), 0 0 16px rgba(0, 216, 255, 0.15);
-            padding: 0.35rem;
+            padding: 0.3rem;
             display: none;
             flex-direction: column;
-            gap: 0.25rem;
+            gap: 0.2rem;
             z-index: 100;
             backdrop-filter: blur(20px);
             animation: fadeIn 0.15s ease-out;
@@ -810,7 +1021,7 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0.45rem 0.55rem;
+            padding: 0.4rem 0.5rem;
             border-radius: var(--radius-sm);
             cursor: pointer;
             transition: all 0.15s ease;
@@ -828,11 +1039,11 @@
         .opt-left {
             display: flex;
             align-items: center;
-            gap: 0.45rem;
+            gap: 0.4rem;
         }
 
         .opt-icon {
-            font-size: 0.9rem;
+            font-size: 0.85rem;
         }
 
         .opt-info {
@@ -842,18 +1053,18 @@
         }
 
         .opt-name {
-            font-size: 0.78rem;
+            font-size: 0.76rem;
             font-weight: 700;
             color: #ffffff;
         }
 
         .opt-tier {
-            font-size: 0.65rem;
+            font-size: 0.62rem;
             color: var(--text-muted);
         }
 
         .opt-check {
-            font-size: 0.75rem;
+            font-size: 0.72rem;
             color: var(--accent-emerald);
             font-weight: 800;
         }
@@ -862,8 +1073,8 @@
             background: #ffffff;
             color: #000000;
             border: none;
-            width: 28px;
-            height: 28px;
+            width: 26px;
+            height: 26px;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -871,7 +1082,7 @@
             cursor: pointer;
             transition: all 0.15s ease;
             font-weight: 700;
-            font-size: 0.85rem;
+            font-size: 0.82rem;
         }
 
         .send-btn:hover:not(:disabled) {
@@ -885,9 +1096,247 @@
             cursor: not-allowed;
         }
 
+        /* --- 2. MONACO & DIFF STUDIO VIEW --- */
+        .editor-view-layout {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            background: #0d1117;
+        }
+
+        .editor-top-toolbar {
+            height: 38px;
+            background: rgba(9, 11, 16, 0.95);
+            border-bottom: 1px solid var(--border-subtle);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 0.75rem;
+        }
+
+        .editor-tabs-scroll {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            overflow-x: auto;
+        }
+
+        .editor-file-tab {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-subtle);
+            border-radius: 4px;
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.12s ease;
+        }
+
+        .editor-file-tab.active {
+            background: rgba(0, 216, 255, 0.15);
+            color: var(--accent-cyan);
+            border-color: rgba(0, 216, 255, 0.4);
+            font-weight: 600;
+        }
+
+        .editor-actions-right {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .editor-btn {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid var(--border);
+            color: #ffffff;
+            padding: 3px 8px;
+            border-radius: var(--radius-sm);
+            font-size: 0.7rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.15s ease;
+        }
+
+        .editor-btn:hover {
+            background: rgba(255, 255, 255, 0.18);
+        }
+
+        .editor-btn.primary {
+            background: rgba(0, 216, 255, 0.2);
+            color: var(--accent-cyan);
+            border-color: rgba(0, 216, 255, 0.5);
+        }
+
+        .editor-btn.success {
+            background: rgba(0, 255, 136, 0.2);
+            color: var(--accent-emerald);
+            border-color: rgba(0, 255, 136, 0.5);
+        }
+
+        .monaco-instance-container {
+            flex: 1;
+            width: 100%;
+            height: calc(100% - 38px);
+            position: relative;
+        }
+
+        #monacoEditorRoot, #monacoDiffRoot {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        /* --- 3. LIVE PREVIEW SANDBOX VIEW --- */
+        .preview-view-layout {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            background: #090b10;
+        }
+
+        .preview-toolbar {
+            height: 38px;
+            background: rgba(9, 11, 16, 0.95);
+            border-bottom: 1px solid var(--border-subtle);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 0.85rem;
+        }
+
+        .preview-url-bar {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--border-subtle);
+            border-radius: 14px;
+            padding: 3px 12px;
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            font-family: var(--font-mono);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .sandbox-iframe {
+            flex: 1;
+            width: 100%;
+            border: none;
+            background: #ffffff;
+        }
+
+        .preview-console-drawer {
+            height: 140px;
+            background: #06080e;
+            border-top: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .console-header {
+            padding: 4px 10px;
+            background: rgba(255, 255, 255, 0.04);
+            border-bottom: 1px solid var(--border-subtle);
+            font-size: 0.68rem;
+            font-family: var(--font-mono);
+            color: var(--text-muted);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .console-logs-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 6px 10px;
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .log-entry {
+            color: var(--text-secondary);
+        }
+        .log-entry.error {
+            color: #ff453a;
+        }
+        .log-entry.warn {
+            color: #ffd60a;
+        }
+
+        /* --- 4. GITHUB REPOSITORY EXPLORER VIEW --- */
+        .github-view-layout {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 1.5rem;
+            max-width: 920px;
+            margin: 0 auto;
+            width: 100%;
+            gap: 1.25rem;
+            overflow-y: auto;
+        }
+
+        .github-auth-card {
+            background: rgba(16, 19, 29, 0.95);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+        }
+
+        .github-repo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 0.75rem;
+        }
+
+        .repo-card {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: 0.85rem;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+            transition: all 0.15s ease;
+        }
+
+        .repo-card:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(0, 216, 255, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .repo-name {
+            font-size: 0.84rem;
+            font-weight: 700;
+            color: var(--accent-cyan);
+        }
+
+        .repo-desc {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            line-height: 1.35;
+        }
+
         /* ================= SIDECAR: 3D REALISTIC HOLOGRAPHIC BLUE BRAIN ================= */
         .telemetry-sidecar {
-            width: 380px;
+            width: 370px;
             background-color: var(--bg-sidebar);
             border-left: 1px solid var(--border-subtle);
             display: flex;
@@ -906,7 +1355,7 @@
         }
 
         .sidecar-header {
-            padding: 0.75rem 0.95rem;
+            padding: 0.65rem 0.85rem;
             border-bottom: 1px solid var(--border-subtle);
             display: flex;
             align-items: center;
@@ -914,31 +1363,30 @@
         }
 
         .sidecar-title {
-            font-size: 0.84rem;
+            font-size: 0.8rem;
             font-weight: 700;
             color: #ffffff;
             display: flex;
             align-items: center;
-            gap: 0.4rem;
+            gap: 0.35rem;
         }
 
         .sidecar-content {
-            padding: 0.85rem;
+            padding: 0.75rem;
             display: flex;
             flex-direction: column;
-            gap: 0.85rem;
+            gap: 0.75rem;
         }
 
-        /* 3D HOLOGRAPHIC BRAIN CANVAS CONTAINER */
         .canvas-container {
             width: 100%;
-            height: 280px;
+            height: 260px;
             background: radial-gradient(circle at 50% 50%, #0c1a30 0%, #050608 90%);
             border: 1.5px solid rgba(0, 216, 255, 0.35);
             border-radius: var(--radius-lg);
             position: relative;
             overflow: hidden;
-            box-shadow: 0 0 30px rgba(0, 216, 255, 0.2), inset 0 0 35px rgba(0, 0, 0, 0.85);
+            box-shadow: 0 0 25px rgba(0, 216, 255, 0.2), inset 0 0 30px rgba(0, 0, 0, 0.85);
         }
 
         #threeCanvas {
@@ -947,16 +1395,13 @@
             display: block;
             cursor: grab;
         }
-        #threeCanvas:active {
-            cursor: grabbing;
-        }
 
         .canvas-controls-overlay {
             position: absolute;
-            top: 8px;
-            right: 8px;
+            top: 6px;
+            right: 6px;
             display: flex;
-            gap: 5px;
+            gap: 4px;
             z-index: 10;
         }
 
@@ -964,53 +1409,43 @@
             background: rgba(12, 26, 48, 0.85);
             border: 1px solid rgba(0, 216, 255, 0.4);
             color: #ffffff;
-            font-size: 0.66rem;
+            font-size: 0.64rem;
             font-weight: 600;
-            padding: 3px 8px;
-            border-radius: 16px;
+            padding: 2px 7px;
+            border-radius: 14px;
             cursor: pointer;
-            transition: all 0.2s ease;
-            backdrop-filter: blur(8px);
-        }
-        .canvas-chip-btn:hover {
-            color: var(--accent-cyan);
-            background: rgba(0, 216, 255, 0.25);
-            border-color: var(--accent-cyan);
+            transition: all 0.15s ease;
         }
 
         .canvas-active-token-badge {
             position: absolute;
-            bottom: 10px;
-            left: 10px;
+            bottom: 8px;
+            left: 8px;
             background: rgba(12, 26, 48, 0.9);
             border: 1.5px solid var(--accent-cyan);
-            border-radius: 16px;
-            padding: 3px 10px;
-            font-size: 0.72rem;
+            border-radius: 14px;
+            padding: 2px 8px;
+            font-size: 0.68rem;
             font-weight: 700;
             color: #ffffff;
             pointer-events: none;
-            backdrop-filter: blur(8px);
-            box-shadow: 0 0 12px rgba(0, 216, 255, 0.35);
         }
 
-        /* EEG BRAINWAVE OSCILLOSCOPE & PERSISTED THROUGHPUT METER */
         .eeg-card {
             background: rgba(16, 19, 29, 0.95);
             border: 1.5px solid rgba(0, 216, 255, 0.25);
             border-radius: var(--radius-md);
-            padding: 0.65rem 0.85rem;
+            padding: 0.55rem 0.75rem;
             display: flex;
             flex-direction: column;
-            gap: 0.4rem;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+            gap: 0.35rem;
         }
 
         .eeg-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 0.72rem;
+            font-size: 0.7rem;
             font-weight: 700;
             color: #ffffff;
         }
@@ -1019,32 +1454,30 @@
             background: rgba(0, 255, 136, 0.15);
             border: 1px solid rgba(0, 255, 136, 0.4);
             color: var(--accent-emerald);
-            padding: 2px 7px;
+            padding: 2px 6px;
             border-radius: 10px;
             font-family: var(--font-mono);
-            font-size: 0.7rem;
+            font-size: 0.68rem;
             font-weight: 800;
         }
 
         #eegCanvas {
             width: 100%;
-            height: 60px;
+            height: 55px;
             background: #06080e;
             border-radius: var(--radius-sm);
             border: 1px solid rgba(255, 255, 255, 0.08);
             display: block;
         }
 
-        /* UNIFIED BRAIN REASONING HUD CARD */
         .bold-hud-card {
             background: rgba(16, 19, 29, 0.95);
             border: 1.5px solid rgba(255, 255, 255, 0.12);
             border-radius: var(--radius-md);
-            padding: 0.75rem 0.85rem;
+            padding: 0.65rem 0.75rem;
             display: flex;
             flex-direction: column;
-            gap: 0.45rem;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+            gap: 0.4rem;
         }
 
         .card-header-subtle {
@@ -1054,28 +1487,26 @@
         }
 
         .active-concept-badge {
-            font-size: 0.8rem;
+            font-size: 0.78rem;
             font-weight: 800;
             color: #ffffff;
             display: flex;
             align-items: center;
-            gap: 0.4rem;
-            text-shadow: 0 0 10px rgba(0, 216, 255, 0.6);
+            gap: 0.35rem;
         }
 
         .active-phase-tag {
-            font-size: 0.68rem;
+            font-size: 0.65rem;
             font-family: var(--font-mono);
             color: #000000;
             background: var(--accent-emerald);
             padding: 2px 6px;
             border-radius: 10px;
             font-weight: 800;
-            box-shadow: 0 0 8px rgba(0, 255, 136, 0.4);
         }
 
         .token-trace-pill {
-            font-size: 0.74rem;
+            font-size: 0.72rem;
             color: var(--text-secondary);
             font-style: italic;
             white-space: nowrap;
@@ -1083,25 +1514,24 @@
             text-overflow: ellipsis;
         }
 
-        /* UNIFIED METRIC CAPSULES */
         .metric-capsules-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 0.5rem;
+            gap: 0.45rem;
         }
 
         .metric-capsule {
             background: rgba(255, 255, 255, 0.04);
             border: 1px solid var(--border);
             border-radius: var(--radius-sm);
-            padding: 0.55rem 0.7rem;
+            padding: 0.45rem 0.6rem;
             display: flex;
             flex-direction: column;
-            gap: 0.15rem;
+            gap: 0.1rem;
         }
 
         .capsule-key {
-            font-size: 0.62rem;
+            font-size: 0.6rem;
             color: var(--text-muted);
             text-transform: uppercase;
             letter-spacing: 0.05em;
@@ -1109,27 +1539,90 @@
         }
 
         .capsule-val {
-            font-size: 0.84rem;
+            font-size: 0.8rem;
             font-weight: 800;
             color: #ffffff;
             font-family: var(--font-mono);
         }
 
+        /* MODAL DIALOGS */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(8px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 150;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal-box {
+            background: rgba(16, 19, 29, 0.98);
+            border: 1.5px solid var(--accent-cyan);
+            border-radius: var(--radius-lg);
+            padding: 1.25rem;
+            width: 90%;
+            max-width: 480px;
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+            box-shadow: 0 16px 45px rgba(0, 0, 0, 0.8), 0 0 25px rgba(0, 216, 255, 0.2);
+            animation: fadeIn 0.15s ease-out;
+        }
+
+        .modal-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .modal-input {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 0.5rem 0.65rem;
+            color: #ffffff;
+            font-family: var(--font-mono);
+            font-size: 0.76rem;
+            outline: none;
+        }
+        .modal-input:focus {
+            border-color: var(--accent-cyan);
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.5rem;
+        }
+
         /* TOAST */
         .toast-box {
             position: fixed;
-            bottom: 18px;
-            right: 18px;
+            bottom: 16px;
+            right: 16px;
             background: rgba(16, 19, 29, 0.98);
             border: 1.5px solid var(--accent-cyan);
             color: #ffffff;
-            padding: 0.65rem 1rem;
-            border-radius: 18px;
-            font-size: 0.8rem;
+            padding: 0.6rem 0.95rem;
+            border-radius: 16px;
+            font-size: 0.78rem;
             font-weight: 600;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
             display: none;
-            z-index: 100;
+            z-index: 200;
             backdrop-filter: blur(20px);
             animation: fadeIn 0.2s ease-out;
         }
@@ -1139,31 +1632,71 @@
 
     <!-- ================= SIDEBAR ================= -->
     <aside class="sidebar" id="leftSidebar">
-        <button class="new-chat-btn" onclick="startNewChat()">
-            <span>+ New Chat</span>
-            <span style="font-size:0.7rem; color:var(--text-muted);">⌘K</span>
-        </button>
-
-        <div class="conv-search-box">
-            <span class="conv-search-icon">🔍</span>
-            <input type="text" class="conv-search-input" id="convSearchInput" placeholder="Search sessions..." oninput="filterConversations(this.value)">
+        <!-- SIDEBAR VIEW SWITCHER TABS -->
+        <div class="sidebar-tabs">
+            <button class="sidebar-tab-btn active" id="btnTabSessions" onclick="switchSidebarTab('sessions')">
+                <span>💬</span>
+                <span>Chats</span>
+            </button>
+            <button class="sidebar-tab-btn" id="btnTabFiles" onclick="switchSidebarTab('files')">
+                <span>📁</span>
+                <span>Workspace</span>
+            </button>
         </div>
 
-        <div class="sidebar-section-label">
-            <span>Recent Sessions</span>
-            <span style="font-size:0.62rem; color:var(--text-muted);" id="convCountLabel">0</span>
+        <!-- 1. SESSIONS DRAWER -->
+        <div class="sidebar-pane active" id="paneSessions">
+            <button class="new-chat-btn" onclick="startNewChat()">
+                <span>+ New Chat</span>
+                <span style="font-size:0.68rem; color:var(--text-muted);">⌘K</span>
+            </button>
+
+            <div class="conv-search-box">
+                <span class="conv-search-icon">🔍</span>
+                <input type="text" class="conv-search-input" id="convSearchInput" placeholder="Search sessions..." oninput="filterConversations(this.value)">
+            </div>
+
+            <div class="sidebar-section-label">
+                <span>Recent Sessions</span>
+                <span style="font-size:0.6rem; color:var(--text-muted);" id="convCountLabel">0</span>
+            </div>
+
+            <div class="conversations-scroll-container" id="conversationsList">
+                <!-- Populated dynamically -->
+            </div>
         </div>
 
-        <div class="conversations-scroll-container" id="conversationsList">
-            <!-- Populated dynamically -->
+        <!-- 2. WORKSPACE FILE TREE DRAWER -->
+        <div class="sidebar-pane" id="paneFiles">
+            <div class="workspace-header-card">
+                <div class="workspace-name-row">
+                    <span id="activeWorkspaceName" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">No Workspace</span>
+                    <span class="workspace-badge" id="activeWorkspaceBadge">Browser</span>
+                </div>
+                <button class="btn-open-workspace" onclick="openLocalDirectory()">
+                    <span>📂</span>
+                    <span>Mount Local Folder</span>
+                </button>
+            </div>
+
+            <div class="sidebar-section-label">
+                <span>Project Files</span>
+                <span style="font-size:0.6rem; color:var(--text-muted);" id="fileCountLabel">0 items</span>
+            </div>
+
+            <div class="file-tree-container" id="fileTreeContainer">
+                <div style="padding:1rem 0.5rem; text-align:center; color:var(--text-muted); font-size:0.72rem;">
+                    Mount a local folder or connect a GitHub repository to browse files.
+                </div>
+            </div>
         </div>
 
         <div class="sidebar-footer">
             <div style="display:flex; justify-content:space-between; align-items:center;">
-                <span>Sovereign Substrates</span>
-                <span id="storageSummaryLabel" style="font-family:var(--font-mono); color:var(--accent-emerald);">Ready</span>
+                <span>Sovereign Studio</span>
+                <span id="storageSummaryLabel" style="font-family:var(--font-mono); color:var(--accent-emerald);">Active</span>
             </div>
-            <div style="font-size:0.64rem; color:var(--text-muted);">100% In-Browser WASM / WebGPU • GitHub Pages</div>
+            <div style="font-size:0.62rem; color:var(--text-muted);">100% In-Browser • WebGPU / WASM • GitHub Pages</div>
         </div>
     </aside>
 
@@ -1175,20 +1708,45 @@
                 <button class="icon-btn" onclick="toggleSidebar()" title="Toggle Sidebar">☰</button>
                 <div class="brand-badge">
                     <span>🧠</span>
-                    <span>UOR-R4 Sovereign Studio</span>
+                    <span>UOR-R4 Studio</span>
                 </div>
             </div>
 
+            <!-- STUDIO MODE SELECTOR PILLS -->
+            <div class="studio-mode-pill-bar">
+                <button class="mode-pill-btn active" id="pillViewChat" onclick="switchStudioView('chat')">
+                    <span>💬</span>
+                    <span>Chat</span>
+                </button>
+                <button class="mode-pill-btn" id="pillViewEditor" onclick="switchStudioView('editor')">
+                    <span>💻</span>
+                    <span>Editor & Diff</span>
+                </button>
+                <button class="mode-pill-btn" id="pillViewPreview" onclick="switchStudioView('preview')">
+                    <span>👁</span>
+                    <span>Live Preview</span>
+                </button>
+                <button class="mode-pill-btn" id="pillViewGithub" onclick="switchStudioView('github')">
+                    <span>🐙</span>
+                    <span>GitHub Repos</span>
+                </button>
+            </div>
+
             <div class="nav-right">
+                <button class="btn-github-auth" id="btnGithubAuth" onclick="openGithubModal()">
+                    <span>🐙</span>
+                    <span id="githubAuthLabel">Connect GitHub</span>
+                </button>
+
                 <button class="btn-sidecar-toggle active" id="btnSidecarToggle" onclick="toggleSidecar()" title="Toggle 3D Visualizer">
                     <span>🧠</span>
-                    <span>Neural Hologram</span>
+                    <span>Hologram</span>
                 </button>
             </div>
         </header>
 
-        <!-- ================= CHAT CONTAINER ================= -->
-        <div class="chat-view-container" id="viewChat">
+        <!-- ================= 1. CHAT STUDIO VIEW ================= -->
+        <div class="studio-view-container active" id="viewChat">
             <div class="chat-scroll-area" id="chatScrollArea">
                 <div class="chat-max-width" id="chatMessagesContainer">
                     <!-- Hero empty state or messages -->
@@ -1202,7 +1760,7 @@
                     <textarea 
                         id="chatInput" 
                         class="chat-textarea" 
-                        placeholder="Ask anything, write code, analyze math or attach files..." 
+                        placeholder="Ask questions, generate code, edit files, or type @file to attach..." 
                         rows="1"
                         oninput="autoResizeTextarea(this)"
                         onkeydown="handleTextareaKey(event)"
@@ -1215,7 +1773,7 @@
                             </button>
                             <input type="file" id="fileUploadInput" multiple style="display:none;" onchange="handleFileUpload(this.files)">
                             
-                            <!-- IN-PROMPT MODEL SELECTOR DROPDOWN -->
+                            <!-- IN-PROMPT MODEL SELECTOR -->
                             <div class="input-model-selector-wrapper" id="inputModelSelectorWrapper">
                                 <button type="button" class="input-model-pill-btn" onclick="toggleInputModelDropdown(event)" title="Select Neural Model">
                                     <span id="inputActiveModelIcon">📐</span>
@@ -1255,6 +1813,101 @@
                 </div>
             </div>
         </div>
+
+        <!-- ================= 2. MONACO EDITOR & DIFF VIEW ================= -->
+        <div class="studio-view-container" id="viewEditor">
+            <div class="editor-view-layout">
+                <div class="editor-top-toolbar">
+                    <div class="editor-tabs-scroll" id="editorTabsBar">
+                        <!-- Open File Tabs -->
+                    </div>
+
+                    <div class="editor-actions-right">
+                        <button class="editor-btn" id="btnToggleDiffMode" onclick="toggleMonacoDiffView()">
+                            <span>⚖️</span>
+                            <span id="diffModeLabel">View Diff</span>
+                        </button>
+                        <button class="editor-btn success" onclick="saveActiveFileToDisk()">
+                            <span>💾</span>
+                            <span>Save File</span>
+                        </button>
+                        <button class="editor-btn primary" onclick="openCreatePrModal()">
+                            <span>🐙</span>
+                            <span>Create PR</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="monaco-instance-container">
+                    <div id="monacoEditorRoot"></div>
+                    <div id="monacoDiffRoot" style="display:none;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= 3. LIVE PREVIEW SANDBOX VIEW ================= -->
+        <div class="studio-view-container" id="viewPreview">
+            <div class="preview-view-layout">
+                <div class="preview-toolbar">
+                    <div class="preview-url-bar">
+                        <span>🔒</span>
+                        <span>sandbox://app-preview.internal/</span>
+                    </div>
+
+                    <div style="display:flex; gap:6px;">
+                        <button class="editor-btn" onclick="refreshLivePreview()">
+                            <span>🔄</span>
+                            <span>Run / Reload</span>
+                        </button>
+                        <button class="editor-btn primary" onclick="sendPreviewToChat()">
+                            <span>💬</span>
+                            <span>Iterate in Chat</span>
+                        </button>
+                    </div>
+                </div>
+
+                <iframe class="sandbox-iframe" id="sandboxIframe" sandbox="allow-scripts allow-modals"></iframe>
+
+                <div class="preview-console-drawer">
+                    <div class="console-header">
+                        <span>Terminal & Console Logs</span>
+                        <button class="icon-btn" onclick="clearPreviewConsole()">Clear</button>
+                    </div>
+                    <div class="console-logs-list" id="consoleLogsList">
+                        <div class="log-entry" style="color:var(--text-muted);">[Ready] Sandbox environment initialized.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= 4. GITHUB REPOS VIEW ================= -->
+        <div class="studio-view-container" id="viewGithub">
+            <div class="github-view-layout">
+                <div class="github-auth-card" id="githubUserProfileCard">
+                    <div style="display:flex; align-items:center; justify-content:space-between;">
+                        <div style="display:flex; align-items:center; gap:0.75rem;">
+                            <div style="font-size:1.8rem;" id="githubUserAvatar">🐙</div>
+                            <div>
+                                <h3 id="githubUserName" style="font-size:1rem; color:#ffffff;">GitHub Cloud Integration</h3>
+                                <p id="githubUserBio" style="font-size:0.75rem; color:var(--text-muted);">Connect Personal Access Token to browse repositories and open PRs.</p>
+                            </div>
+                        </div>
+                        <button class="editor-btn primary" onclick="openGithubModal()">
+                            <span id="btnConfigurePatText">🔑 Configure PAT</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="sidebar-section-label">
+                    <span>Your Repositories</span>
+                    <span id="githubRepoCountBadge" style="font-family:var(--font-mono); color:var(--accent-cyan);">0 repos</span>
+                </div>
+
+                <div class="github-repo-grid" id="githubReposList">
+                    <!-- Populated dynamically from Octokit -->
+                </div>
+            </div>
+        </div>
     </main>
 
     <!-- ================= SIDECAR: 3D REALISTIC HOLOGRAPHIC BLUE BRAIN ================= -->
@@ -1284,7 +1937,7 @@
                     <span>⚡ Thought Wave EEG (α, β, γ)</span>
                     <span class="eeg-tps-meter" id="eegTpsMeter">Ready</span>
                 </div>
-                <canvas id="eegCanvas" width="360" height="60"></canvas>
+                <canvas id="eegCanvas" width="350" height="55"></canvas>
             </div>
 
             <!-- UNIFIED BRAIN REASONING HUD CARD -->
@@ -1323,10 +1976,48 @@
         </div>
     </aside>
 
+    <!-- GITHUB PAT AUTH MODAL -->
+    <div class="modal-overlay" id="githubAuthModal">
+        <div class="modal-box">
+            <div class="modal-title">
+                <span>🐙</span>
+                <span>GitHub Cloud Authentication</span>
+            </div>
+            <p style="font-size:0.76rem; color:var(--text-secondary); line-height:1.4;">
+                Enter a GitHub Personal Access Token (PAT) with <code>repo</code> scope. Your token is stored 100% locally in your browser's secure storage.
+            </p>
+            <input type="password" class="modal-input" id="githubPatInput" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
+            <div class="modal-actions">
+                <button class="editor-btn" onclick="closeGithubModal()">Cancel</button>
+                <button class="editor-btn primary" onclick="authenticateGithub()">Connect & Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CREATE PULL REQUEST MODAL -->
+    <div class="modal-overlay" id="createPrModal">
+        <div class="modal-box">
+            <div class="modal-title">
+                <span>🐙</span>
+                <span>Create GitHub Pull Request</span>
+            </div>
+            <input type="text" class="modal-input" id="prTitleInput" placeholder="PR Title (e.g. feat: Add holographic neural visualizer)">
+            <textarea class="modal-input" id="prBodyInput" style="height:100px; resize:none;" placeholder="PR Description / Changelog..."></textarea>
+            <div style="display:flex; gap:6px;">
+                <input type="text" class="modal-input" id="prBranchInput" placeholder="Feature branch (e.g. feat/uor-studio)">
+                <input type="text" class="modal-input" id="prBaseInput" placeholder="Base branch (main)" value="main">
+            </div>
+            <div class="modal-actions">
+                <button class="editor-btn" onclick="closeCreatePrModal()">Cancel</button>
+                <button class="editor-btn success" onclick="submitCreatePullRequest()">Open Pull Request</button>
+            </div>
+        </div>
+    </div>
+
     <!-- TOAST NOTIFICATION -->
     <div class="toast-box" id="toastBox"></div>
 
-    <!-- ================= SCRIPTS ================= -->
+    <!-- ================= SCRIPTS & MODULES ================= -->
     <script type="module">
         import init, { InteractiveChatSession } from './pkg/uor_r4_wasm_bridge.js';
 
@@ -1355,6 +2046,21 @@
             });
         };
 
+        window.openCodeInEditor = function(btn) {
+            const container = btn.closest('.code-block-container');
+            if (!container) return;
+            const codeEl = container.querySelector('code');
+            if (!codeEl) return;
+            const code = codeEl.innerText;
+            const langClass = Array.from(codeEl.classList).find(c => c.startsWith('language-'));
+            const lang = langClass ? langClass.replace('language-', '') : 'javascript';
+
+            const tabName = `snippet_${Date.now().toString().slice(-4)}.${getExtForLang(lang)}`;
+            openFileInMonaco(tabName, code, lang);
+            switchStudioView('editor');
+            showToast(`Opened ${tabName} in Monaco Editor`);
+        };
+
         window.copyEntireResponse = function(btn) {
             const row = btn.closest('.message-row');
             if (!row) return;
@@ -1374,7 +2080,12 @@
             });
         };
 
-        // Custom Marked Renderer with Copyable Headers
+        function getExtForLang(lang) {
+            const map = { rust: 'rs', python: 'py', javascript: 'js', typescript: 'ts', html: 'html', css: 'css', json: 'json', markdown: 'md' };
+            return map[lang] || 'txt';
+        }
+
+        // Custom Marked Renderer
         if (typeof marked !== 'undefined') {
             const renderer = new marked.Renderer();
             renderer.code = function(arg1, arg2) {
@@ -1392,9 +2103,14 @@
                 <div class="code-block-container">
                     <div class="code-block-header">
                         <span class="code-lang-label">${escapeHtml(language)}</span>
-                        <button class="code-copy-btn" onclick="copyCodeBlock(this)">
-                            <span>📋</span> Copy
-                        </button>
+                        <div class="code-action-group">
+                            <button class="code-editor-btn" onclick="openCodeInEditor(this)">
+                                <span>💻</span> Edit
+                            </button>
+                            <button class="code-copy-btn" onclick="copyCodeBlock(this)">
+                                <span>📋</span> Copy
+                            </button>
+                        </div>
                     </div>
                     <pre><code class="language-${escapeHtml(language)}">${escapedCode}</code></pre>
                 </div>`;
@@ -1439,6 +2155,600 @@
         window.attachedFiles = [];
         window.conversations = [];
         window.currentConvId = null;
+
+        // Workspace & GitHub State
+        window.localDirectoryHandle = null;
+        window.workspaceFiles = [];
+        window.openEditorTabs = [];
+        window.activeEditorTab = null;
+        window.octokitClient = null;
+        window.userGithubRepos = [];
+        window.activeRepo = null;
+
+        // --- STUDIO VIEW SWITCHER ---
+        window.switchStudioView = function(viewName) {
+            ['chat', 'editor', 'preview', 'github'].forEach(v => {
+                const viewEl = document.getElementById(`view${capitalize(v)}`);
+                const pillEl = document.getElementById(`pillView${capitalize(v)}`);
+                if (viewEl) viewEl.classList.toggle('active', v === viewName);
+                if (pillEl) pillEl.classList.toggle('active', v === viewName);
+            });
+
+            if (viewName === 'editor' && window.monacoEditorInstance) {
+                setTimeout(() => window.monacoEditorInstance.layout(), 50);
+            }
+            if (viewName === 'preview') {
+                refreshLivePreview();
+            }
+        };
+
+        function capitalize(s) {
+            return s.charAt(0).toUpperCase() + s.slice(1);
+        }
+
+        window.switchSidebarTab = function(tabName) {
+            const btnSessions = document.getElementById('btnTabSessions');
+            const btnFiles = document.getElementById('btnTabFiles');
+            const paneSessions = document.getElementById('paneSessions');
+            const paneFiles = document.getElementById('paneFiles');
+
+            if (btnSessions) btnSessions.classList.toggle('active', tabName === 'sessions');
+            if (btnFiles) btnFiles.classList.toggle('active', tabName === 'files');
+            if (paneSessions) paneSessions.classList.toggle('active', tabName === 'sessions');
+            if (paneFiles) paneFiles.classList.toggle('active', tabName === 'files');
+        };
+
+        // --- PHASE 1: LOCAL WORKSPACE (FILE SYSTEM ACCESS API) ---
+        window.openLocalDirectory = async function() {
+            if (!('showDirectoryPicker' in window)) {
+                showToast("File System Access API is supported in Chrome & Edge.");
+                return;
+            }
+
+            try {
+                const dirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
+                window.localDirectoryHandle = dirHandle;
+                document.getElementById('activeWorkspaceName').innerText = dirHandle.name;
+                document.getElementById('activeWorkspaceBadge').innerText = "Mounted Disk";
+
+                showToast(`Mounted local workspace: ${dirHandle.name}`);
+                await scanLocalWorkspace(dirHandle);
+            } catch(e) {
+                if (e.name !== 'AbortError') showToast("Could not access directory.");
+            }
+        };
+
+        async function scanLocalWorkspace(dirHandle) {
+            window.workspaceFiles = [];
+            const container = document.getElementById('fileTreeContainer');
+            if (container) container.innerHTML = '<div style="padding:0.75rem; text-align:center; color:var(--text-muted); font-size:0.72rem;">Scanning workspace...</div>';
+
+            async function traverse(handle, path = '') {
+                for await (const entry of handle.values()) {
+                    if (entry.name.startsWith('.') || entry.name === 'node_modules' || entry.name === 'target' || entry.name === 'dist') continue;
+                    const relPath = path ? `${path}/${entry.name}` : entry.name;
+                    if (entry.kind === 'file') {
+                        workspaceFiles.push({ name: entry.name, path: relPath, handle: entry, kind: 'file' });
+                    } else if (entry.kind === 'directory') {
+                        workspaceFiles.push({ name: entry.name, path: relPath, handle: entry, kind: 'directory' });
+                        await traverse(entry, relPath);
+                    }
+                }
+            }
+
+            await traverse(dirHandle);
+            document.getElementById('fileCountLabel').innerText = `${workspaceFiles.length} items`;
+            renderWorkspaceTree();
+        }
+
+        function renderWorkspaceTree() {
+            const container = document.getElementById('fileTreeContainer');
+            if (!container) return;
+            container.innerHTML = '';
+
+            workspaceFiles.forEach((item) => {
+                const depth = item.path.split('/').length - 1;
+                const node = document.createElement('div');
+                node.className = 'tree-node';
+                node.style.paddingLeft = `${depth * 12 + 6}px`;
+
+                const icon = item.kind === 'directory' ? '📁' : getFileIcon(item.name);
+
+                node.innerHTML = `
+                    <span class="tree-icon">${icon}</span>
+                    <span class="tree-name">${escapeHtml(item.name)}</span>
+                    ${item.kind === 'file' ? `<button class="tree-tag-btn" onclick="tagFileToContext(event, '${item.path}')">+Tag</button>` : ''}
+                `;
+
+                node.onclick = (e) => {
+                    if (e.target.classList.contains('tree-tag-btn')) return;
+                    if (item.kind === 'file') {
+                        openWorkspaceFileInEditor(item);
+                    }
+                };
+
+                container.appendChild(node);
+            });
+        }
+
+        function getFileIcon(name) {
+            if (name.endsWith('.rs')) return '🦀';
+            if (name.endsWith('.py')) return '🐍';
+            if (name.endsWith('.js') || name.endsWith('.ts')) return '📜';
+            if (name.endsWith('.html')) return '🌐';
+            if (name.endsWith('.css')) return '🎨';
+            if (name.endsWith('.json')) return '📦';
+            if (name.endsWith('.md')) return '📝';
+            return '📄';
+        }
+
+        window.tagFileToContext = async function(event, path) {
+            event.stopPropagation();
+            const item = workspaceFiles.find(f => f.path === path);
+            if (!item || item.kind !== 'file') return;
+
+            try {
+                let text = '';
+                let size = 0;
+                if (item.handle) {
+                    const file = await item.handle.getFile();
+                    text = await file.text();
+                    size = file.size;
+                } else if (item.isRemote && octokitClient && activeRepo) {
+                    const { data } = await octokitClient.rest.repos.getContent({
+                        owner: activeRepo.owner.login,
+                        repo: activeRepo.name,
+                        path: item.path
+                    });
+                    text = atob(data.content.replace(/\s/g, ''));
+                    size = data.size;
+                }
+
+                attachedFiles.push({ name: item.name, path: item.path, size: size, text: text });
+                renderAttachmentChips();
+                showToast(`Tagged @${item.name} into context`);
+            } catch(e) {
+                showToast(`Failed to read ${item.name}`);
+            }
+        };
+
+        async function openWorkspaceFileInEditor(fileItem) {
+            try {
+                let text = '';
+                if (fileItem.handle) {
+                    const file = await fileItem.handle.getFile();
+                    text = await file.text();
+                } else if (fileItem.isRemote && octokitClient && activeRepo) {
+                    const { data } = await octokitClient.rest.repos.getContent({
+                        owner: activeRepo.owner.login,
+                        repo: activeRepo.name,
+                        path: fileItem.path
+                    });
+                    text = atob(data.content.replace(/\s/g, ''));
+                }
+                const ext = fileItem.name.split('.').pop() || 'txt';
+                openFileInMonaco(fileItem.name, text, ext, fileItem);
+                switchStudioView('editor');
+            } catch(e) {
+                showToast(`Could not open file: ${e.message}`);
+            }
+        }
+
+        // --- PHASE 2: GITHUB INTEGRATION (DYNAMIC ESM.SH OCTOKIT) ---
+        window.openGithubModal = function() {
+            const modal = document.getElementById('githubAuthModal');
+            const pat = localStorage.getItem('uor_github_pat') || '';
+            const input = document.getElementById('githubPatInput');
+            if (input) input.value = pat;
+            if (modal) modal.classList.add('show');
+        };
+
+        window.closeGithubModal = function() {
+            const modal = document.getElementById('githubAuthModal');
+            if (modal) modal.classList.remove('show');
+        };
+
+        window.authenticateGithub = async function() {
+            const pat = document.getElementById('githubPatInput').value.trim();
+            if (!pat) return;
+
+            try {
+                const { Octokit } = await import('https://esm.sh/@octokit/rest');
+                const octokit = new Octokit({ auth: pat });
+                const { data: user } = await octokit.rest.users.getAuthenticated();
+
+                window.octokitClient = octokit;
+                localStorage.setItem('uor_github_pat', pat);
+
+                document.getElementById('githubAuthLabel').innerText = `@${user.login}`;
+                document.getElementById('btnGithubAuth').classList.add('connected');
+                document.getElementById('githubUserName').innerText = user.name || user.login;
+                document.getElementById('githubUserBio').innerText = user.bio || `Connected as @${user.login}`;
+                document.getElementById('btnConfigurePatText').innerText = "✓ Connected";
+
+                closeGithubModal();
+                showToast(`Connected to GitHub: @${user.login}`);
+
+                await loadUserGithubRepos();
+            } catch(e) {
+                showToast(`GitHub Auth Failed: ${e.message}`);
+            }
+        };
+
+        async function loadUserGithubRepos() {
+            if (!octokitClient) return;
+            try {
+                const { data: repos } = await octokitClient.rest.repos.listForAuthenticatedUser({
+                    sort: 'updated',
+                    per_page: 30
+                });
+                window.userGithubRepos = repos;
+                document.getElementById('githubRepoCountBadge').innerText = `${repos.length} repos`;
+
+                const grid = document.getElementById('githubReposList');
+                if (!grid) return;
+                grid.innerHTML = '';
+
+                repos.forEach(repo => {
+                    const card = document.createElement('div');
+                    card.className = 'repo-card';
+                    card.innerHTML = `
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span class="repo-name">${escapeHtml(repo.name)}</span>
+                            <span style="font-size:0.65rem; color:var(--text-muted);">${repo.private ? '🔒 Private' : '🌐 Public'}</span>
+                        </div>
+                        <p class="repo-desc">${escapeHtml(repo.description || 'No description provided.')}</p>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:auto; font-size:0.68rem; color:var(--text-muted);">
+                            <span>⭐ ${repo.stargazers_count}</span>
+                            <span style="color:var(--accent-cyan); font-weight:600;">Load Files →</span>
+                        </div>
+                    `;
+
+                    card.onclick = () => loadRemoteGithubRepo(repo);
+                    grid.appendChild(card);
+                });
+            } catch(e) {
+                showToast("Failed to fetch repositories.");
+            }
+        }
+
+        async function loadRemoteGithubRepo(repo) {
+            if (!octokitClient) return;
+            window.activeRepo = repo;
+            showToast(`Loading repository: ${repo.full_name}...`);
+
+            try {
+                const { data: treeData } = await octokitClient.rest.git.getTree({
+                    owner: repo.owner.login,
+                    repo: repo.name,
+                    tree_sha: repo.default_branch || 'main',
+                    recursive: 1
+                });
+
+                window.workspaceFiles = treeData.tree.map(item => ({
+                    name: item.path.split('/').pop(),
+                    path: item.path,
+                    sha: item.sha,
+                    kind: item.type === 'tree' ? 'directory' : 'file',
+                    isRemote: true
+                }));
+
+                document.getElementById('activeWorkspaceName').innerText = repo.full_name;
+                document.getElementById('activeWorkspaceBadge').innerText = "GitHub Cloud";
+                document.getElementById('fileCountLabel').innerText = `${workspaceFiles.length} items`;
+
+                switchSidebarTab('files');
+                renderWorkspaceTree();
+                showToast(`Loaded ${workspaceFiles.length} files from GitHub`);
+            } catch(e) {
+                showToast(`Failed to load repo tree: ${e.message}`);
+            }
+        }
+
+        window.openCreatePrModal = function() {
+            const modal = document.getElementById('createPrModal');
+            if (modal) modal.classList.add('show');
+        };
+
+        window.closeCreatePrModal = function() {
+            const modal = document.getElementById('createPrModal');
+            if (modal) modal.classList.remove('show');
+        };
+
+        window.submitCreatePullRequest = async function() {
+            if (!octokitClient || !activeRepo) {
+                showToast("Connect a GitHub repository first.");
+                return;
+            }
+
+            const title = document.getElementById('prTitleInput').value.trim();
+            const body = document.getElementById('prBodyInput').value.trim();
+            const head = document.getElementById('prBranchInput').value.trim();
+            const base = document.getElementById('prBaseInput').value.trim() || 'main';
+
+            if (!title || !head) {
+                showToast("Please provide PR Title and Feature Branch.");
+                return;
+            }
+
+            try {
+                const { data: pr } = await octokitClient.rest.pulls.create({
+                    owner: activeRepo.owner.login,
+                    repo: activeRepo.name,
+                    title: title,
+                    body: body,
+                    head: head,
+                    base: base
+                });
+
+                closeCreatePrModal();
+                showToast(`🎉 Pull Request #${pr.number} created: ${pr.html_url}`);
+            } catch(e) {
+                showToast(`PR creation failed: ${e.message}`);
+            }
+        };
+
+        // --- PHASE 3: MONACO CODE EDITOR & DIFF ENGINE ---
+        let monacoEditorInstance = null;
+        let monacoDiffInstance = null;
+        let isDiffModeActive = false;
+
+        function initMonacoEditor() {
+            if (typeof require === 'undefined') return;
+            require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs' } });
+
+            require(['vs/editor/editor.main'], function() {
+                monacoEditorInstance = monaco.editor.create(document.getElementById('monacoEditorRoot'), {
+                    value: '// Sovereign AI Studio - Monaco Editor\n// Open a local file or snippet to begin editing.\n',
+                    language: 'javascript',
+                    theme: 'vs-dark',
+                    automaticLayout: true,
+                    fontSize: 13,
+                    fontFamily: 'Fira Code, monospace',
+                    minimap: { enabled: true }
+                });
+
+                monacoDiffInstance = monaco.editor.createDiffEditor(document.getElementById('monacoDiffRoot'), {
+                    theme: 'vs-dark',
+                    automaticLayout: true,
+                    fontSize: 13,
+                    fontFamily: 'Fira Code, monospace',
+                    renderSideBySide: true
+                });
+
+                window.monacoEditorInstance = monacoEditorInstance;
+                window.monacoDiffInstance = monacoDiffInstance;
+            });
+        }
+
+        window.openFileInMonaco = function(name, content, ext = 'javascript', fileItem = null) {
+            const langMap = { rs: 'rust', py: 'python', js: 'javascript', ts: 'typescript', html: 'html', css: 'css', json: 'json', md: 'markdown' };
+            const language = langMap[ext] || ext;
+
+            const existingTab = openEditorTabs.find(t => t.name === name);
+            if (!existingTab) {
+                openEditorTabs.push({ name, content, language, originalContent: content, fileItem });
+            }
+
+            activeEditorTab = name;
+            renderEditorTabs();
+
+            if (monacoEditorInstance) {
+                const model = monaco.editor.createModel(content, language);
+                monacoEditorInstance.setModel(model);
+            }
+        };
+
+        function renderEditorTabs() {
+            const bar = document.getElementById('editorTabsBar');
+            if (!bar) return;
+            bar.innerHTML = '';
+
+            openEditorTabs.forEach(tab => {
+                const tabEl = document.createElement('div');
+                tabEl.className = 'editor-file-tab' + (tab.name === activeEditorTab ? ' active' : '');
+                tabEl.innerHTML = `
+                    <span>📄</span>
+                    <span>${escapeHtml(tab.name)}</span>
+                    <span style="font-size:0.6rem; margin-left:4px;" onclick="closeEditorTab(event, '${tab.name}')">✕</span>
+                `;
+                tabEl.onclick = () => {
+                    activeEditorTab = tab.name;
+                    renderEditorTabs();
+                    if (monacoEditorInstance) {
+                        const model = monaco.editor.createModel(tab.content, tab.language);
+                        monacoEditorInstance.setModel(model);
+                    }
+                };
+                bar.appendChild(tabEl);
+            });
+        }
+
+        window.closeEditorTab = function(e, name) {
+            e.stopPropagation();
+            openEditorTabs = openEditorTabs.filter(t => t.name !== name);
+            if (activeEditorTab === name) {
+                activeEditorTab = openEditorTabs.length > 0 ? openEditorTabs[0].name : null;
+            }
+            renderEditorTabs();
+        };
+
+        window.toggleMonacoDiffView = function() {
+            isDiffModeActive = !isDiffModeActive;
+            const editorEl = document.getElementById('monacoEditorRoot');
+            const diffEl = document.getElementById('monacoDiffRoot');
+            const label = document.getElementById('diffModeLabel');
+
+            if (isDiffModeActive) {
+                if (editorEl) editorEl.style.display = 'none';
+                if (diffEl) diffEl.style.display = 'block';
+                if (label) label.innerText = "Close Diff";
+
+                const currentTab = openEditorTabs.find(t => t.name === activeEditorTab);
+                if (currentTab && monacoDiffInstance) {
+                    const originalModel = monaco.editor.createModel(currentTab.originalContent || '', currentTab.language);
+                    const modifiedModel = monaco.editor.createModel(monacoEditorInstance.getValue(), currentTab.language);
+                    monacoDiffInstance.setModel({ original: originalModel, modified: modifiedModel });
+                }
+            } else {
+                if (editorEl) editorEl.style.display = 'block';
+                if (diffEl) diffEl.style.display = 'none';
+                if (label) label.innerText = "View Diff";
+            }
+        };
+
+        window.saveActiveFileToDisk = async function() {
+            const currentTab = openEditorTabs.find(t => t.name === activeEditorTab);
+            if (!currentTab) return;
+
+            const updatedContent = monacoEditorInstance ? monacoEditorInstance.getValue() : currentTab.content;
+            currentTab.content = updatedContent;
+
+            if (currentTab.fileItem && currentTab.fileItem.handle) {
+                try {
+                    const writable = await currentTab.fileItem.handle.createWritable();
+                    await writable.write(updatedContent);
+                    await writable.close();
+                    currentTab.originalContent = updatedContent;
+                    showToast(`💾 Saved ${currentTab.name} to local disk!`);
+                } catch(e) {
+                    showToast(`Save error: ${e.message}`);
+                }
+            } else {
+                showToast(`Saved ${currentTab.name} in memory.`);
+            }
+        };
+
+        // --- LIVE PREVIEW SANDBOX ENGINE ---
+        window.refreshLivePreview = function() {
+            const iframe = document.getElementById('sandboxIframe');
+            if (!iframe) return;
+
+            let htmlContent = '';
+            const htmlTab = openEditorTabs.find(t => t.name.endsWith('.html'));
+            if (htmlTab) {
+                htmlContent = htmlTab.content;
+            } else {
+                htmlContent = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <style>
+                        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; background: #0c1017; color: #ffffff; }
+                        .card { background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 2rem; text-align: center; box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
+                        h1 { color: #58a6ff; margin-bottom: 0.5rem; }
+                        button { background: #238636; color: white; border: none; padding: 0.6rem 1.2rem; border-radius: 6px; font-weight: bold; cursor: pointer; }
+                    </style>
+                </head>
+                <body>
+                    <div class="card">
+                        <h1>⚡ Sovereign App Live Sandbox</h1>
+                        <p>Open or generate an HTML/JS file to preview interactive applications live.</p>
+                        <button onclick="console.log('Sandbox Interactive Event Triggered at ' + new Date().toLocaleTimeString())">Interactive Event</button>
+                    </div>
+                </body>
+                </html>`;
+            }
+
+            const injectedScript = `
+            <script>
+                (function() {
+                    const origLog = console.log;
+                    const origError = console.error;
+                    const origWarn = console.warn;
+                    console.log = function(...args) {
+                        window.parent.postMessage({ type: 'CONSOLE_LOG', level: 'info', msg: args.join(' ') }, '*');
+                        origLog.apply(console, args);
+                    };
+                    console.error = function(...args) {
+                        window.parent.postMessage({ type: 'CONSOLE_LOG', level: 'error', msg: args.join(' ') }, '*');
+                        origError.apply(console, args);
+                    };
+                    console.warn = function(...args) {
+                        window.parent.postMessage({ type: 'CONSOLE_LOG', level: 'warn', msg: args.join(' ') }, '*');
+                        origWarn.apply(console, args);
+                    };
+                })();
+            <\/script>`;
+
+            iframe.srcdoc = injectedScript + htmlContent;
+        };
+
+        window.addEventListener('message', (event) => {
+            if (event.data && event.data.type === 'CONSOLE_LOG') {
+                const list = document.getElementById('consoleLogsList');
+                if (!list) return;
+                const entry = document.createElement('div');
+                entry.className = `log-entry ${event.data.level}`;
+                entry.innerText = `[${new Date().toLocaleTimeString()}] ${event.data.msg}`;
+                list.appendChild(entry);
+                list.scrollTop = list.scrollHeight;
+            }
+        });
+
+        window.clearPreviewConsole = function() {
+            const list = document.getElementById('consoleLogsList');
+            if (list) list.innerHTML = '';
+        };
+
+        window.sendPreviewToChat = function() {
+            const logs = Array.from(document.querySelectorAll('.log-entry')).map(el => el.innerText).join('\n');
+            const input = document.getElementById('chatInput');
+            if (input) {
+                input.value = `Here are the latest runtime logs from the sandbox preview:\n\`\`\`\n${logs}\n\`\`\`\nPlease analyze and optimize.`;
+                switchStudioView('chat');
+                autoResizeTextarea(input);
+            }
+        };
+
+        // --- PHASE 4: IN-BROWSER MCP TOOLS & REASONING ENGINE ---
+        window.executeMcpToolCall = async function(toolName, args) {
+            logToolExecutionCard(toolName, args, 'running');
+
+            let result = null;
+            if (toolName === 'read_file') {
+                const file = workspaceFiles.find(f => f.path === args.path);
+                if (file && file.handle) {
+                    const fObj = await file.handle.getFile();
+                    result = await fObj.text();
+                } else {
+                    result = `Error: File not found: ${args.path}`;
+                }
+            } else if (toolName === 'write_file') {
+                const file = workspaceFiles.find(f => f.path === args.path);
+                if (file && file.handle) {
+                    const wr = await file.handle.createWritable();
+                    await wr.write(args.content);
+                    await wr.close();
+                    result = `Successfully wrote ${args.content.length} bytes to ${args.path}`;
+                } else {
+                    result = `File handle unavailable for ${args.path}`;
+                }
+            } else if (toolName === 'list_directory') {
+                result = workspaceFiles.map(f => f.path).join('\n');
+            }
+
+            logToolExecutionCard(toolName, args, 'completed', result);
+            return result;
+        };
+
+        function logToolExecutionCard(toolName, args, status, result = null) {
+            const container = document.getElementById('chatMessagesContainer');
+            if (!container) return;
+
+            const card = document.createElement('div');
+            card.className = 'tool-call-card';
+            card.innerHTML = `
+                <div class="tool-header-row">
+                    <span>🔧 MCP Tool: ${escapeHtml(toolName)}</span>
+                    <span class="tool-status-tag">${status.toUpperCase()}</span>
+                </div>
+                <div style="color:var(--text-muted); font-size:0.68rem;">Arguments: ${escapeHtml(JSON.stringify(args))}</div>
+                ${result ? `<div style="color:var(--accent-emerald); max-height:80px; overflow-y:auto; font-size:0.66rem;">Output: ${escapeHtml(result.slice(0, 300))}</div>` : ''}
+            `;
+            container.appendChild(card);
+            scrollDown();
+        }
 
         // --- IN-BROWSER PIPELINE ---
         async function getBrowserPipeline(modelId) {
@@ -1561,7 +2871,7 @@
         // --- TEXTAREA & CHAT HANDLING ---
         window.autoResizeTextarea = function(el) {
             el.style.height = 'auto';
-            el.style.height = Math.min(el.scrollHeight, 160) + 'px';
+            el.style.height = Math.min(el.scrollHeight, 150) + 'px';
         };
 
         window.handleTextareaKey = function(event) {
@@ -1713,23 +3023,23 @@
                 container.innerHTML = `
                     <div class="empty-hero">
                         <div class="hero-logo-orb">🧠</div>
-                        <h2 class="hero-title">UOR-R4 Sovereign AI Studio</h2>
+                        <h2 class="hero-title">UOR-R4 Sovereign AI Developer Studio</h2>
                         <p class="hero-desc">
-                            Focused GLM-5.3 SOTA Logic & Qwen 2.5 neural models running purely in-browser via WebGPU and WebAssembly. Live 3D holographic neural brain with real-time synaptic action potentials.
+                            Full-stack in-browser engineering environment: Local Workspace File System API, GitHub Repo Integration, Monaco Code Diff Viewer, Live Preview Sandbox, and WebGPU/WASM GLM-5.3 & Qwen 2.5 models.
                         </p>
 
                         <div class="prompt-starter-grid">
-                            <div class="starter-card" onclick="useStarterPrompt('Explain the geometry of high-dimensional spheres and the Hopf fibration with mathematical formulas')">
-                                <span class="starter-title">📐 E8 & Hopf Geometry</span>
-                                <span class="starter-desc">Analyze continuous Clifford torus trajectories.</span>
+                            <div class="starter-card" onclick="useStarterPrompt('Create an interactive HTML5 Canvas particle flow animation with controls and open it in Live Preview')">
+                                <span class="starter-title">👁 Live Web App Sandbox</span>
+                                <span class="starter-desc">Generate interactive HTML/JS applications.</span>
                             </div>
-                            <div class="starter-card" onclick="useStarterPrompt('Write a Python function to compute the determinant of an NxN matrix with full recursion')">
-                                <span class="starter-title">💻 Algorithms & Code</span>
-                                <span class="starter-desc">Generate clean, complete implementations with copy tools.</span>
+                            <div class="starter-card" onclick="useStarterPrompt('Write a Rust WebAssembly vector math module with SIMD dot product and unit tests')">
+                                <span class="starter-title">🦀 Rust & WASM Engineering</span>
+                                <span class="starter-desc">Edit in Monaco with side-by-side diff.</span>
                             </div>
-                            <div class="starter-card" onclick="useStarterPrompt('Explain how biological synaptic action potentials propagate across cerebral hemispheres')">
-                                <span class="starter-title">✨ Neuroscience & AI</span>
-                                <span class="starter-desc">Watch electrical synaptic waves fire across the 3D hologram.</span>
+                            <div class="starter-card" onclick="useStarterPrompt('Derive the Euler-Lagrange equations for geodesic motion in Riemannian geometry with display LaTeX')">
+                                <span class="starter-title">📐 KaTeX Mathematical Physics</span>
+                                <span class="starter-desc">Explore continuous manifold topology.</span>
                             </div>
                         </div>
                     </div>
@@ -1805,29 +3115,21 @@
                 .replace(/<\|endoftext\|>/g, '')
                 .replace(/<\|im_start\|>/g, '');
 
-            // 1. Separate code blocks to protect them from math regex alterations
             const codeBlocks = [];
             cleanText = cleanText.replace(/(```[\s\S]*?```|`[^`\n]+`)/g, (match) => {
                 codeBlocks.push(match);
                 return `___CODE_BLOCK_${codeBlocks.length - 1}___`;
             });
 
-            // 2. Preprocess LaTeX formulas in prose
-            // Convert \[ ... \] to $$ ... $$
             cleanText = cleanText.replace(/\\\[([\s\S]*?)\\\]/g, '\n\n$$$$$1$$$$\n\n');
-            // Convert \( ... \) to $ ... $
             cleanText = cleanText.replace(/\\\(([\s\S]*?)\\\)/g, '$$$1$$');
-            // Convert \begin{equation} ... \end{equation} to $$ ... $$
             cleanText = cleanText.replace(/\\begin\{equation\*?\}([\s\S]*?)\\end\{equation\*?\}/g, '\n\n$$$$$1$$$$\n\n');
-            // Convert \begin{align} ... \end{align} to $$ \begin{aligned} ... \end{aligned} $$
             cleanText = cleanText.replace(/\\begin\{align\*?\}([\s\S]*?)\\end\{align\*?\}/g, '\n\n$$\\begin{aligned}$1\\end{aligned}$$\n\n');
 
-            // 3. Restore protected code blocks
             cleanText = cleanText.replace(/___CODE_BLOCK_(\d+)___/g, (match, idx) => {
                 return codeBlocks[parseInt(idx, 10)] || match;
             });
 
-            // 4. Parse Markdown to HTML
             if (typeof marked !== 'undefined') {
                 try {
                     targetEl.innerHTML = marked.parse(cleanText);
@@ -1838,7 +3140,6 @@
                 targetEl.innerText = cleanText;
             }
 
-            // 5. Execute KaTeX auto-render over DOM nodes
             if (typeof renderMathInElement !== 'undefined') {
                 try {
                     renderMathInElement(targetEl, {
@@ -1851,13 +3152,11 @@
                         ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code"],
                         throwOnError: false
                     });
-                } catch(e) {
-                    console.error("KaTeX render error:", e);
-                }
+                } catch(e) {}
             }
         }
 
-        // --- FAST STREAMING CHAT WITH UNTRUNCATED HEADROOM & PERSISTED AVG TPS ---
+        // --- FAST STREAMING CHAT ---
         window.sendChat = async function() {
             if (isGenerating) return;
             const input = document.getElementById('chatInput');
@@ -1868,7 +3167,7 @@
 
             let fullContext = userPrompt;
             if (attachedFiles.length > 0) {
-                fullContext += "\n\n--- Context from attached documents ---\n";
+                fullContext += "\n\n--- Context from attached workspace documents ---\n";
                 attachedFiles.forEach(f => {
                     fullContext += `\n[File: ${f.name}]\n${f.text.slice(0, 4000)}\n`;
                 });
@@ -1971,10 +3270,9 @@
                     }
                 });
 
-                // System instruction for clean LaTeX formatting and reasoning
                 const systemMsg = {
                     role: 'system',
-                    content: 'You are a sovereign AI assistant. When writing mathematical expressions or equations, always format them using standard LaTeX syntax enclosed in $$...$$ for display math and $...$ for inline math (e.g. $$x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$$, $ax^2 + bx + c = 0$). Write clean code with appropriate language tags.'
+                    content: 'You are a sovereign software engineer and AI coding assistant. When writing mathematical expressions or equations, always format them using standard LaTeX syntax enclosed in $$...$$ for display math and $...$ for inline math. Write clean, modular, production-ready code with appropriate language tags.'
                 };
 
                 const recentHistory = curConv.messages.slice(-6);
@@ -2008,12 +3306,17 @@
                 fullResponse = fullResponse.replace(/<\|im_end\|>/g, '').replace(/<\|endoftext\|>/g, '').trim();
 
                 textDiv.classList.remove('typing-cursor');
-                // Execute Full Markdown & KaTeX LaTeX Post-Processing
                 renderRichMarkdown(textDiv, fullResponse);
                 if (toolbar) toolbar.style.display = 'flex';
                 scrollDown();
 
-                // Persist final average TPS
+                // If output contains an HTML code block, automatically load it into Monaco index.html
+                const htmlMatch = fullResponse.match(/```html([\s\S]*?)```/);
+                if (htmlMatch) {
+                    const htmlCode = htmlMatch[1].trim();
+                    openFileInMonaco('index.html', htmlCode, 'html');
+                }
+
                 const totalElapsed = Math.max(0.1, (performance.now() - streamStartTime) / 1000);
                 const finalAvgTps = (generatedTokenCount / totalElapsed).toFixed(1);
                 const tpsEl = document.getElementById('eegTpsMeter');
@@ -2397,7 +3700,7 @@
                 eegCtx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
                 eegCtx.lineWidth = 1;
                 eegCtx.beginPath();
-                for (let x = 0; x < w; x += 36) {
+                for (let x = 0; x < w; x += 35) {
                     eegCtx.moveTo(x, 0); eegCtx.lineTo(x, h);
                 }
                 for (let y = 0; y < h; y += 18) {
@@ -2462,10 +3765,29 @@
             window.wasmChatSession = new InteractiveChatSession();
             initThreeVisualizer();
             initEegOscilloscope();
+            initMonacoEditor();
             loadPersistentState();
             updateInputModelDisplay();
             prewarmActivePipeline();
-            console.log("⚡ UOR-R4 Robust LaTeX & Math Markdown Studio Ready.");
+
+            // Check stored GitHub PAT
+            const storedPat = localStorage.getItem('uor_github_pat');
+            if (storedPat) {
+                try {
+                    const { Octokit } = await import('https://esm.sh/@octokit/rest');
+                    const octokit = new Octokit({ auth: storedPat });
+                    window.octokitClient = octokit;
+                    const { data: user } = await octokit.rest.users.getAuthenticated();
+                    document.getElementById('githubAuthLabel').innerText = `@${user.login}`;
+                    document.getElementById('btnGithubAuth').classList.add('connected');
+                } catch(e) {}
+            }
+
+            window.savePersistentState = savePersistentState;
+            window.renderConversationsList = renderConversationsList;
+            window.renderCurrentChatMessages = renderCurrentChatMessages;
+            window.renderRichMarkdown = renderRichMarkdown;
+            console.log("⚡ UOR-R4 Sovereign AI Developer Studio Initialized.");
         });
     </script>
 </body>
