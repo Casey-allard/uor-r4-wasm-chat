@@ -445,7 +445,23 @@ async fn start_background_server() {
         .route("/v1/models/:model_id", get(get_model_handler))
         .route("/api/status", get(api_status_handler))
         .route("/api/profiles", get(api_profiles_handler))
+        .route("/api/profiles/sessions/sidebar", get(api_sidebar_sessions_handler))
+        .route("/api/profiles/sessions", get(api_sessions_handler))
+        .route("/api/profiles/sessions/pull-requests", post(api_pull_requests_handler))
+        .route("/api/profiles/projects/tree", get(api_projects_tree_handler))
+        .route("/api/projects", get(api_projects_handler))
         .route("/api/sessions", get(api_sessions_handler))
+        .route("/api/sessions/:id", get(api_session_detail_handler))
+        .route("/api/sessions/:id/messages", get(api_session_detail_handler))
+        .route("/api/model/info", get(api_model_info_handler))
+        .route("/api/model/options", get(api_model_options_handler))
+        .route("/api/model/auxiliary", get(api_model_auxiliary_handler))
+        .route("/api/model/recommended-default", get(api_model_recommended_default_handler))
+        .route("/api/model/set", post(api_model_set_handler))
+        .route("/api/analytics/usage", get(api_analytics_usage_handler))
+        .route("/api/messaging/platforms", get(api_messaging_platforms_handler))
+        .route("/api/messaging/pairings", get(api_messaging_pairings_handler))
+        .route("/api/webhooks", get(api_webhooks_handler))
         .route("/api/config", get(api_config_handler))
         .route("/api/config/defaults", get(api_config_defaults_handler))
         .route("/api/config/schema", get(api_config_schema_handler))
@@ -533,21 +549,29 @@ async fn handle_socket(mut socket: WebSocket) {
                             "jsonrpc": "2.0",
                             "id": id,
                             "result": {
+                                "provider": "uor-rust",
+                                "model": "qwen2.5-0.5b",
                                 "providers": [
                                     {
                                         "slug": "uor-rust",
                                         "name": "UOR-R4 Native Rust Substrate",
+                                        "is_current": true,
+                                        "authenticated": true,
                                         "auth_type": "api_key",
                                         "key_env": "OPENAI_API_KEY",
                                         "models": [
-                                            { "id": "qwen2.5-0.5b", "name": "Qwen 2.5 0.5B (UOR Geometric)" },
-                                            { "id": "glm5.3-flash", "name": "GLM 5.3 Flash (UOR Substrate)" },
-                                            { "id": "gemma4-flash", "name": "Gemma 4 Flash (E8 Lattices)" },
-                                            { "id": "qwen3.8-flash", "name": "Qwen 3.8 Flash (Hopf Fibers)" }
+                                            "qwen2.5-0.5b",
+                                            "glm5.3-flash",
+                                            "gemma4-flash",
+                                            "qwen3.8-flash"
+                                        ],
+                                        "total_models": 4,
+                                        "featured_models": [
+                                            "qwen2.5-0.5b",
+                                            "glm5.3-flash"
                                         ]
                                     }
-                                ],
-                                "default_model": "qwen2.5-0.5b"
+                                ]
                             }
                         });
                         let _ = socket.send(Message::Text(resp.to_string())).await;
@@ -567,7 +591,7 @@ async fn handle_socket(mut socket: WebSocket) {
                         let resp = json!({
                             "jsonrpc": "2.0",
                             "id": id,
-                            "result": { "ok": true }
+                            "result": { "ok": true, "provider": "uor-rust", "model": "qwen2.5-0.5b" }
                         });
                         let _ = socket.send(Message::Text(resp.to_string())).await;
                     }
@@ -575,7 +599,21 @@ async fn handle_socket(mut socket: WebSocket) {
                         let resp = json!({
                             "jsonrpc": "2.0",
                             "id": id,
-                            "result": []
+                            "result": [
+                                {
+                                    "id": "uor-r4-session-1",
+                                    "session_id": "uor-r4-session-1",
+                                    "title": "Welcome to Hermes AI",
+                                    "model": "qwen2.5-0.5b",
+                                    "created_at": 1700000000,
+                                    "updated_at": 1700000000,
+                                    "message_count": 0,
+                                    "profile": "default",
+                                    "source": "desktop",
+                                    "pinned": false,
+                                    "archived": false
+                                }
+                            ]
                         });
                         let _ = socket.send(Message::Text(resp.to_string())).await;
                     }
@@ -586,9 +624,60 @@ async fn handle_socket(mut socket: WebSocket) {
                             "id": id,
                             "result": {
                                 "session_id": sess_id,
+                                "stored_session_id": sess_id,
                                 "profile": "default",
-                                "title": "New Chat"
+                                "title": "Welcome to Hermes AI",
+                                "messages": [],
+                                "message_count": 0
                             }
+                        });
+                        let _ = socket.send(Message::Text(resp.to_string())).await;
+                    }
+                    "projects.tree" => {
+                        let resp = json!({
+                            "jsonrpc": "2.0",
+                            "id": id,
+                            "result": { "tree": [], "projects": [] }
+                        });
+                        let _ = socket.send(Message::Text(resp.to_string())).await;
+                    }
+                    "projects.list" => {
+                        let resp = json!({
+                            "jsonrpc": "2.0",
+                            "id": id,
+                            "result": { "projects": [] }
+                        });
+                        let _ = socket.send(Message::Text(resp.to_string())).await;
+                    }
+                    "projects.project_sessions" => {
+                        let resp = json!({
+                            "jsonrpc": "2.0",
+                            "id": id,
+                            "result": { "project": null }
+                        });
+                        let _ = socket.send(Message::Text(resp.to_string())).await;
+                    }
+                    "goals.list" => {
+                        let resp = json!({
+                            "jsonrpc": "2.0",
+                            "id": id,
+                            "result": { "goals": [] }
+                        });
+                        let _ = socket.send(Message::Text(resp.to_string())).await;
+                    }
+                    "skills.list" => {
+                        let resp = json!({
+                            "jsonrpc": "2.0",
+                            "id": id,
+                            "result": { "skills": [] }
+                        });
+                        let _ = socket.send(Message::Text(resp.to_string())).await;
+                    }
+                    "tools.list" => {
+                        let resp = json!({
+                            "jsonrpc": "2.0",
+                            "id": id,
+                            "result": { "tools": [] }
                         });
                         let _ = socket.send(Message::Text(resp.to_string())).await;
                     }
@@ -614,7 +703,7 @@ async fn handle_socket(mut socket: WebSocket) {
                         });
                         let _ = socket.send(Message::Text(start_event.to_string())).await;
 
-                        let response_text = format!("Hello! I am Hermes powered by UOR-R4 Geometric AI. You said: '{}'. Inference is running 100% natively in Rust.", prompt_text);
+                        let response_text = format!("Hello! I am Hermes powered by UOR-R4 Sovereign Geometric AI. You said: '{}'. Inference is running 100% natively in Rust.", prompt_text);
                         let words: Vec<&str> = response_text.split_whitespace().collect();
                         
                         for word in words {
@@ -686,8 +775,163 @@ pub async fn api_profiles_handler() -> impl IntoResponse {
     ]))
 }
 
+pub async fn api_sidebar_sessions_handler() -> impl IntoResponse {
+    Json(json!({
+        "recents": {
+            "sessions": [
+                {
+                    "id": "uor-r4-session-1",
+                    "session_id": "uor-r4-session-1",
+                    "title": "Welcome to Hermes AI",
+                    "model": "qwen2.5-0.5b",
+                    "created_at": 1700000000,
+                    "updated_at": 1700000000,
+                    "message_count": 0,
+                    "profile": "default",
+                    "source": "desktop",
+                    "pinned": false,
+                    "archived": false
+                }
+            ],
+            "profiles_truncated": { "default": false },
+            "profiles_usage": { "default": { "cost_usd": 0.0, "tokens": 0 } }
+        },
+        "cron": { "sessions": [] },
+        "messaging": { "sessions": [] }
+    }))
+}
+
 pub async fn api_sessions_handler() -> impl IntoResponse {
+    Json(json!({
+        "limit": 40,
+        "offset": 0,
+        "total": 1,
+        "sessions": [
+            {
+                "id": "uor-r4-session-1",
+                "session_id": "uor-r4-session-1",
+                "title": "Welcome to Hermes AI",
+                "model": "qwen2.5-0.5b",
+                "created_at": 1700000000,
+                "updated_at": 1700000000,
+                "message_count": 0,
+                "profile": "default",
+                "source": "desktop",
+                "pinned": false,
+                "archived": false
+            }
+        ],
+        "profile_totals": { "default": 1 },
+        "has_more": false
+    }))
+}
+
+pub async fn api_pull_requests_handler() -> impl IntoResponse {
+    Json(json!({
+        "pull_requests": {},
+        "scanned": []
+    }))
+}
+
+pub async fn api_model_info_handler() -> impl IntoResponse {
+    Json(json!({
+        "model": "qwen2.5-0.5b",
+        "provider": "uor-rust",
+        "auto_context_length": 32768,
+        "config_context_length": 32768,
+        "effective_context_length": 32768,
+        "capabilities": {
+            "fast": true,
+            "reasoning": true
+        }
+    }))
+}
+
+pub async fn api_model_options_handler() -> impl IntoResponse {
+    Json(json!({
+        "model": "qwen2.5-0.5b",
+        "provider": "uor-rust",
+        "providers": [
+            {
+                "slug": "uor-rust",
+                "name": "UOR-R4 Native Rust Substrate",
+                "is_current": true,
+                "authenticated": true,
+                "auth_type": "api_key",
+                "key_env": "OPENAI_API_KEY",
+                "models": [
+                    "qwen2.5-0.5b",
+                    "glm5.3-flash",
+                    "gemma4-flash",
+                    "qwen3.8-flash"
+                ],
+                "total_models": 4,
+                "featured_models": [
+                    "qwen2.5-0.5b",
+                    "glm5.3-flash"
+                ]
+            }
+        ]
+    }))
+}
+
+pub async fn api_model_auxiliary_handler() -> impl IntoResponse {
+    Json(json!({ "models": {} }))
+}
+
+pub async fn api_model_recommended_default_handler() -> impl IntoResponse {
+    Json(json!({
+        "provider": "uor-rust",
+        "model": "qwen2.5-0.5b",
+        "free_tier": true
+    }))
+}
+
+pub async fn api_model_set_handler(Json(payload): Json<Value>) -> impl IntoResponse {
+    let provider = payload.get("provider").and_then(|v| v.as_str()).unwrap_or("uor-rust");
+    let model = payload.get("model").and_then(|v| v.as_str()).unwrap_or("qwen2.5-0.5b");
+    Json(json!({
+        "ok": true,
+        "provider": provider,
+        "model": model
+    }))
+}
+
+pub async fn api_analytics_usage_handler() -> impl IntoResponse {
+    Json(json!({
+        "days": 30,
+        "total_tokens": 0,
+        "total_cost_usd": 0.0,
+        "series": []
+    }))
+}
+
+pub async fn api_messaging_platforms_handler() -> impl IntoResponse {
+    Json(json!({ "platforms": [] }))
+}
+
+pub async fn api_messaging_pairings_handler() -> impl IntoResponse {
+    Json(json!({ "approved": [], "pending": [] }))
+}
+
+pub async fn api_webhooks_handler() -> impl IntoResponse {
     Json(json!([]))
+}
+
+pub async fn api_projects_tree_handler() -> impl IntoResponse {
+    Json(json!({ "tree": [], "projects": [] }))
+}
+
+pub async fn api_projects_handler() -> impl IntoResponse {
+    Json(json!([]))
+}
+
+pub async fn api_session_detail_handler(Path(id): Path<String>) -> impl IntoResponse {
+    Json(json!({
+        "session_id": id,
+        "messages": [],
+        "total": 0
+    }))
 }
 
 pub async fn api_config_handler() -> impl IntoResponse {
@@ -695,7 +939,7 @@ pub async fn api_config_handler() -> impl IntoResponse {
         "model": "qwen2.5-0.5b",
         "provider": "uor-rust",
         "temperature": 0.35,
-        "system_prompt": "You are Hermes AI Agent powered by UOR-R4."
+        "system_prompt": "You are Hermes AI Agent powered by UOR-R4 Sovereign Geometric Intelligence."
     }))
 }
 
@@ -716,7 +960,7 @@ pub async fn api_config_defaults_handler() -> impl IntoResponse {
         "model": "qwen2.5-0.5b",
         "provider": "uor-rust",
         "temperature": 0.35,
-        "system_prompt": "You are Hermes AI Agent powered by UOR-R4."
+        "system_prompt": "You are Hermes AI Agent powered by UOR-R4 Sovereign Geometric Intelligence."
     }))
 }
 
