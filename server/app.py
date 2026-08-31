@@ -73,10 +73,10 @@ MODELS_CATALOG = [
 _loaded_pipelines = {}
 
 def get_pipeline(model_id: str):
-    """Loads and caches the transformers pipeline."""
+    """Loads and caches the model, tokenizer, and device."""
     target_hf = "Qwen/Qwen2.5-0.5B-Instruct"
     for m in MODELS_CATALOG:
-        if m["id"] == model_id:
+        if m["id"] == model_id or m["id"] == model_id.replace(":", "-"):
             target_hf = m["hf_source"]
             break
 
@@ -85,7 +85,7 @@ def get_pipeline(model_id: str):
 
     try:
         import torch
-        from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
+        from transformers import AutoModelForCausalLM, AutoTokenizer
 
         device = "cuda" if torch.cuda.is_available() else ("mps" if torch.backends.mps.is_available() else "cpu")
         print(f"[UOR-Server] Loading {target_hf} on device: {device}...")
@@ -96,6 +96,9 @@ def get_pipeline(model_id: str):
             dtype=torch.float32,
             low_cpu_mem_usage=True
         )
+        if hasattr(model, "generation_config") and model.generation_config:
+            model.generation_config.max_length = None
+
         if device == "cuda":
             model = model.cuda()
         elif device == "mps":
@@ -104,12 +107,11 @@ def get_pipeline(model_id: str):
             except Exception:
                 model = model.to("cpu")
 
-        pipe = pipeline("text-generation", model=model, tokenizer=tokenizer)
-        _loaded_pipelines[target_hf] = (pipe, tokenizer)
+        _loaded_pipelines[target_hf] = (model, tokenizer, device)
         return _loaded_pipelines[target_hf]
     except Exception as e:
-        print(f"[UOR-Server] Transformers load note ({e}), using lightweight simulation pipeline.")
-        return None, None
+        print(f"[UOR-Server] Model load note ({e}), fallback enabled.")
+        return None, None, "cpu"
 
 
 # --- Pydantic Data Models (OpenAI & Hermes Spec) ---
@@ -258,67 +260,89 @@ async def chat_completions(req: ChatCompletionRequest):
 
     prompt += "<|im_start|>assistant\n"
 
-    pipe, tokenizer = get_pipeline(req.model)
+    model, tokenizer, device = get_pipeline(req.model)
+    max_new_tokens = min(req.max_tokens or 1024, 2048)
 
     if req.stream:
         # Server-Sent Events (SSE) Stream Generator
         async def event_generator():
             try:
-                if pipe and tokenizer:
-                    # Execute streaming via generator
+                # 1. Send initial role delta for OpenAI compatibility
+                initial_chunk = {
+                    "id": req_id,
+                    "object": "chat.completion.chunk",
+                    "created": created_ts,
+                    "model": req.model,
+                    "choices": [{"index": 0, "delta": {"role": "assistant", "content": ""}, "finish_reason": None}]
+                }
+                yield f"data: {json.dumps(initial_chunk)}\n\n"
+
+                if model and tokenizer:
+                    import torch
                     from transformers import TextIteratorStreamer
                     from threading import Thread
 
+                    inputs = tokenizer(prompt, return_tensors="pt")
+                    if device in ["cuda", "mps"]:
+                        inputs = {k: v.to(device) for k, v in inputs.items()}
+
                     streamer = TextIteratorStreamer(tokenizer, skip_prompt=True, timeout=30.0)
-                    generation_kwargs = dict(
-                        text_inputs=prompt,
-                        max_new_tokens=req.max_tokens or 1024,
+                    gen_kwargs = dict(
+                        **inputs,
+                        max_new_tokens=max_new_tokens,
                         temperature=req.temperature or 0.35,
                         top_p=req.top_p or 0.85,
                         do_sample=True,
-                        streamer=streamer
+                        streamer=streamer,
+                        pad_token_id=tokenizer.eos_token_id
                     )
-                    thread = Thread(target=pipe, kwargs=generation_kwargs)
+
+                    thread = Thread(target=model.generate, kwargs=gen_kwargs)
                     thread.start()
 
-                    for new_text in streamer:
-                        if "<|im_end|>" in new_text or "<|endoftext|>" in new_text:
-                            new_text = new_text.replace("<|im_end|>", "").replace("<|endoftext|>", "")
-                            if new_text:
-                                chunk_payload = {
+                    loop = asyncio.get_running_loop()
+                    while True:
+                        try:
+                            chunk = await loop.run_in_executor(None, streamer.__next__)
+                        except StopIteration:
+                            break
+
+                        if "<|im_end|>" in chunk or "<|endoftext|>" in chunk:
+                            chunk = chunk.replace("<|im_end|>", "").replace("<|endoftext|>", "")
+                            if chunk:
+                                payload = {
                                     "id": req_id,
                                     "object": "chat.completion.chunk",
                                     "created": created_ts,
                                     "model": req.model,
-                                    "choices": [{"index": 0, "delta": {"content": new_text}, "finish_reason": None}]
+                                    "choices": [{"index": 0, "delta": {"content": chunk}, "finish_reason": None}]
                                 }
-                                yield f"data: {json.dumps(chunk_payload)}\n\n"
+                                yield f"data: {json.dumps(payload)}\n\n"
                             break
 
-                        chunk_payload = {
-                            "id": req_id,
-                            "object": "chat.completion.chunk",
-                            "created": created_ts,
-                            "model": req.model,
-                            "choices": [{"index": 0, "delta": {"content": new_text}, "finish_reason": None}]
-                        }
-                        yield f"data: {json.dumps(chunk_payload)}\n\n"
-                        await asyncio.sleep(0.001)
+                        if chunk:
+                            payload = {
+                                "id": req_id,
+                                "object": "chat.completion.chunk",
+                                "created": created_ts,
+                                "model": req.model,
+                                "choices": [{"index": 0, "delta": {"content": chunk}, "finish_reason": None}]
+                            }
+                            yield f"data: {json.dumps(payload)}\n\n"
+                            await asyncio.sleep(0.001)
 
                 else:
-                    # Fallback fast streaming simulator for demonstration/testing
-                    sample_reply = f"Hello from UOR-R4 API Server! Connected to substrate [{req.model}]. Ready for reasoning."
-                    words = sample_reply.split(" ")
-                    for w in words:
-                        chunk_payload = {
+                    sample_reply = f"Hello from UOR-R4 API Server! Connected to substrate [{req.model}]."
+                    for w in sample_reply.split(" "):
+                        payload = {
                             "id": req_id,
                             "object": "chat.completion.chunk",
                             "created": created_ts,
                             "model": req.model,
                             "choices": [{"index": 0, "delta": {"content": w + " "}, "finish_reason": None}]
                         }
-                        yield f"data: {json.dumps(chunk_payload)}\n\n"
-                        await asyncio.sleep(0.04)
+                        yield f"data: {json.dumps(payload)}\n\n"
+                        await asyncio.sleep(0.03)
 
                 # Final STOP chunk
                 final_chunk = {
@@ -336,21 +360,36 @@ async def chat_completions(req: ChatCompletionRequest):
                 yield f"data: {json.dumps(err_payload)}\n\n"
                 yield "data: [DONE]\n\n"
 
-        return StreamingResponse(event_generator(), media_type="text/event-stream")
+        return StreamingResponse(
+            event_generator(),
+            media_type="text/event-stream",
+            headers={
+                "Cache-Control": "no-cache",
+                "Connection": "keep-alive",
+                "X-Accel-Buffering": "no"
+            }
+        )
 
     else:
         # Non-streaming JSON response
         response_text = ""
-        if pipe and tokenizer:
-            outputs = pipe(
-                prompt,
-                max_new_tokens=req.max_tokens or 1024,
-                temperature=req.temperature or 0.35,
-                top_p=req.top_p or 0.85,
-                do_sample=True
-            )
-            raw_out = outputs[0]["generated_text"]
-            response_text = raw_out[len(prompt):].replace("<|im_end|>", "").replace("<|endoftext|>", "").strip()
+        if model and tokenizer:
+            import torch
+            inputs = tokenizer(prompt, return_tensors="pt")
+            if device in ["cuda", "mps"]:
+                inputs = {k: v.to(device) for k, v in inputs.items()}
+
+            with torch.no_grad():
+                out_ids = model.generate(
+                    **inputs,
+                    max_new_tokens=max_new_tokens,
+                    temperature=req.temperature or 0.35,
+                    top_p=req.top_p or 0.85,
+                    do_sample=True,
+                    pad_token_id=tokenizer.eos_token_id
+                )
+            new_ids = out_ids[0][inputs["input_ids"].shape[1]:]
+            response_text = tokenizer.decode(new_ids, skip_special_tokens=True).strip()
         else:
             response_text = f"UOR-R4 Server non-streaming response for model [{req.model}]."
 
