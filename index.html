@@ -2233,24 +2233,35 @@
                         ...chatHistory.slice(-16).map(m => ({ role: m.role, content: m.content }))
                     ];
 
+                    function cleanAssistantResponse(text) {
+                        if (!text) return "";
+                        let cleaned = text;
+                        cleaned = cleaned.replace(/<\|im_end\|>|<\|endoftext\|>|<\|im_start\|>[\s\S]*/g, '');
+                        cleaned = cleaned.replace(/\n\s*(?:User|Human|Assistant|System|Prompt):\s*[\s\S]*/gi, '');
+                        cleaned = cleaned.replace(/\n*--\s*This (?:message|response) was auto[\s\S]*/gi, '');
+                        cleaned = cleaned.replace(/\n*--\s*This is an automated (?:message|response)[\s\S]*/gi, '');
+                        cleaned = cleaned.replace(/\n*\[(?:Note|Disclaimer): This response was generated[\s\S]*/gi, '');
+                        cleaned = cleaned.replace(/\n*--\s*If prompted instead of generating[\s\S]*/gi, '');
+                        return cleaned.trim();
+                    }
+
                     let isStreamStopped = false;
                     const streamer = new TextStreamer(generator.tokenizer, {
                         skip_prompt: true,
                         callback_function: (chunk) => {
                             if (isStreamStopped) return;
                             
-                            if (chunk.includes('<|im_end|>') || chunk.includes('<|endoftext|>') || chunk.includes('<|im_start|>')) {
-                                isStreamStopped = true;
-                                fullResponse = fullResponse.replace(/<\|im_end\|>|<\|endoftext\|>|<\|im_start\|>[\s\S]*/g, '').trim();
-                                renderRichMarkdown(contentDiv, fullResponse);
-                                return;
-                            }
-
                             fullResponse += chunk;
                             
-                            if (fullResponse.includes('<|im_end|>') || fullResponse.includes('<|endoftext|>') || fullResponse.includes('<|im_start|>')) {
+                            if (
+                                fullResponse.includes('<|im_end|>') || 
+                                fullResponse.includes('<|endoftext|>') || 
+                                fullResponse.includes('<|im_start|>') ||
+                                /--\s*This (?:message|response) was auto/i.test(fullResponse) ||
+                                /\n\s*(?:User|Human|Assistant):/i.test(fullResponse)
+                            ) {
                                 isStreamStopped = true;
-                                fullResponse = fullResponse.replace(/<\|im_end\|>|<\|endoftext\|>|<\|im_start\|>[\s\S]*/g, '').trim();
+                                fullResponse = cleanAssistantResponse(fullResponse);
                                 renderRichMarkdown(contentDiv, fullResponse);
                                 return;
                             }
@@ -2286,7 +2297,7 @@
                         streamer: streamer
                     });
 
-                    fullResponse = fullResponse.replace(/<\|im_end\|>|<\|endoftext\|>|<\|im_start\|>[\s\S]*/g, '').trim();
+                    fullResponse = cleanAssistantResponse(fullResponse);
 
                 } catch(err) {
                     console.error("Generation error:", err);
