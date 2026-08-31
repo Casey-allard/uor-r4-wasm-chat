@@ -236,39 +236,54 @@ async def chat_completions(req: ChatCompletionRequest):
     req_id = f"chatcmpl-{int(time.time()*1000)}"
     created_ts = int(time.time())
     
-    # 1. Format messages into ChatML / Hermes prompt
-    prompt = ""
-    if req.tools:
-        tools_json = json.dumps(req.tools, indent=2)
-        tools_system = (
-            "You are a helpful assistant with access to the following tools:\n"
-            f"<tools>\n{tools_json}\n</tools>\n\n"
-            "To call a tool, respond with a JSON object inside <tool_call> tags:\n"
-            "<tool_call>\n"
-            '{"name": "tool_name", "arguments": {"arg1": "value"}}\n'
-            "</tool_call>"
-        )
-        has_system = any(m.role == "system" for m in req.messages)
-        if not has_system:
-            prompt += f"<|im_start|>system\n{tools_system}<|im_end|>\n"
-
+    # 1. Sanitize messages and build clean conversation list
+    conv_messages = []
+    has_system = False
     for msg in req.messages:
         content_str = msg.content if isinstance(msg.content, str) else (json.dumps(msg.content) if msg.content else "")
-        if msg.role == "system" and req.tools:
-            content_str = f"{content_str}\n\n<tools>\n{json.dumps(req.tools, indent=2)}\n</tools>"
+        role = msg.role.lower()
+        if role in ["tool", "function"]:
+            role = "user"
+            content_str = f"Tool Output:\n{content_str}"
+        elif role == "system":
+            has_system = True
+            if len(content_str) > 600:
+                # Condense verbose agent checklists to keep small 0.5B model focused on the user
+                content_str = "You are a helpful, direct, and intelligent AI assistant. Answer user queries clearly, naturally, and concisely."
 
-        if msg.role in ["tool", "function"]:
-            prompt += f"<|im_start|>tool\n<tool_response>\n{content_str}\n</tool_response><|im_end|>\n"
-        elif msg.tool_calls:
-            tc_str = json.dumps(msg.tool_calls)
-            prompt += f"<|im_start|>assistant\n<tool_call>\n{tc_str}\n</tool_call><|im_end|>\n"
-        else:
-            prompt += f"<|im_start|>{msg.role}\n{content_str}<|im_end|>\n"
+        if content_str:
+            conv_messages.append({"role": role, "content": content_str})
 
-    prompt += "<|im_start|>assistant\n"
+    if not has_system:
+        conv_messages.insert(0, {
+            "role": "system",
+            "content": "You are a helpful, direct, and intelligent AI assistant. Answer user queries clearly, naturally, and concisely."
+        })
 
     model, tokenizer, device = get_pipeline(req.model)
     max_new_tokens = min(req.max_tokens or 1024, 2048)
+
+    # 2. Apply tokenizer's official ChatML template
+    if tokenizer and hasattr(tokenizer, "apply_chat_template"):
+        try:
+            prompt = tokenizer.apply_chat_template(conv_messages, tokenize=False, add_generation_prompt=True)
+        except Exception:
+            prompt = ""
+            for m in conv_messages:
+                prompt += f"<|im_start|>{m['role']}\n{m['content']}<|im_end|>\n"
+            prompt += "<|im_start|>assistant\n"
+    else:
+        prompt = ""
+        for m in conv_messages:
+            prompt += f"<|im_start|>{m['role']}\n{m['content']}<|im_end|>\n"
+        prompt += "<|im_start|>assistant\n"
+
+    eos_token_ids = []
+    if tokenizer:
+        eos_token_ids.append(tokenizer.eos_token_id)
+        im_end_id = tokenizer.convert_tokens_to_ids("<|im_end|>")
+        if im_end_id:
+            eos_token_ids.append(im_end_id)
 
     if req.stream:
         # Server-Sent Events (SSE) Stream Generator
@@ -297,11 +312,13 @@ async def chat_completions(req: ChatCompletionRequest):
                     gen_kwargs = dict(
                         **inputs,
                         max_new_tokens=max_new_tokens,
-                        temperature=req.temperature or 0.35,
-                        top_p=req.top_p or 0.85,
+                        temperature=max(req.temperature or 0.7, 0.2),
+                        top_p=req.top_p or 0.9,
+                        repetition_penalty=1.15,
                         do_sample=True,
                         streamer=streamer,
-                        pad_token_id=tokenizer.eos_token_id
+                        pad_token_id=tokenizer.eos_token_id,
+                        eos_token_id=eos_token_ids
                     )
 
                     thread = Thread(target=model.generate, kwargs=gen_kwargs)
@@ -390,10 +407,12 @@ async def chat_completions(req: ChatCompletionRequest):
                 out_ids = model.generate(
                     **inputs,
                     max_new_tokens=max_new_tokens,
-                    temperature=req.temperature or 0.35,
-                    top_p=req.top_p or 0.85,
+                    temperature=max(req.temperature or 0.7, 0.2),
+                    top_p=req.top_p or 0.9,
+                    repetition_penalty=1.15,
                     do_sample=True,
-                    pad_token_id=tokenizer.eos_token_id
+                    pad_token_id=tokenizer.eos_token_id,
+                    eos_token_id=eos_token_ids
                 )
             new_ids = out_ids[0][inputs["input_ids"].shape[1]:]
             response_text = tokenizer.decode(new_ids, skip_special_tokens=True).strip()
