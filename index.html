@@ -1976,78 +1976,39 @@
         </div>
     </aside>
 
-    <!-- GITHUB OAUTH & CLOUD AUTH MODAL -->
+    <!-- GITHUB CLOUD AUTH MODAL -->
     <div class="modal-overlay" id="githubAuthModal">
-        <div class="modal-box" style="max-width: 520px;">
+        <div class="modal-box" style="max-width: 490px;">
             <div class="modal-title">
                 <span>🐙</span>
-                <span>GitHub OAuth & Cloud Integration</span>
+                <span>Connect GitHub Cloud</span>
             </div>
             
-            <!-- OAUTH METHOD SWITCHER TABS -->
-            <div class="sidebar-tabs" style="margin-bottom:0.75rem;">
-                <button class="sidebar-tab-btn active" id="btnTabOauthApp" onclick="switchGithubAuthTab('oauth')">
-                    <span>⚡</span>
-                    <span>Automated OAuth Popup</span>
-                </button>
-                <button class="sidebar-tab-btn" id="btnTabOauthDirect" onclick="switchGithubAuthTab('direct')">
-                    <span>🔑</span>
-                    <span>1-Click Token Link</span>
-                </button>
-            </div>
+            <p style="font-size:0.76rem; color:var(--text-secondary); line-height:1.45;">
+                Connect your GitHub account to browse repositories, inspect code trees, and open Pull Requests directly from the Sovereign AI Studio.
+            </p>
 
-            <!-- TAB 1: AUTOMATED OAUTH POPUP -->
-            <div id="githubTabOauth" style="display:flex; flex-direction:column; gap:0.65rem;">
-                <p style="font-size:0.75rem; color:var(--text-secondary); line-height:1.45;">
-                    Click below to open the official GitHub OAuth Authorization window. The popup will automatically authenticate your account and connect the studio.
-                </p>
+            <!-- 1-CLICK PRE-FILLED TOKEN GENERATOR BUTTON -->
+            <a href="https://github.com/settings/tokens/new?description=UOR-R4+Sovereign+Studio&scopes=repo,read:user,workflow" target="_blank" class="btn-open-workspace" style="padding:0.75rem; text-decoration:none; font-size:0.82rem; font-weight:700; text-align:center; display:flex; justify-content:center; align-items:center; gap:0.45rem; background:rgba(0,216,255,0.22); border:1.5px solid var(--accent-cyan);">
+                <span>↗</span>
+                <span>Open 1-Click Token Generator on GitHub</span>
+            </a>
+            <div style="font-size:0.65rem; color:var(--text-muted); text-align:center;">(Opens GitHub with <code>repo</code>, <code>read:user</code>, and <code>workflow</code> scopes pre-selected)</div>
 
-                <div style="background:rgba(0,0,0,0.4); border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:0.65rem; display:flex; flex-direction:column; gap:0.4rem;">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <span style="font-size:0.68rem; color:var(--text-muted); font-weight:600;">OAuth Client ID</span>
-                        <span style="font-size:0.62rem; color:var(--accent-cyan); cursor:pointer;" onclick="toggleAdvancedOauthSettings()">⚙️ Advanced Settings</span>
-                    </div>
-                    <input type="text" class="modal-input" id="githubClientIdInput" placeholder="GitHub OAuth App Client ID" value="Ov23li4UorR4Studio">
-                    
-                    <div id="advancedOauthSettings" style="display:none; flex-direction:column; gap:0.35rem; margin-top:0.25rem;">
-                        <label style="font-size:0.65rem; color:var(--text-muted);">OAuth Token Exchange Gatekeeper / Proxy URL:</label>
-                        <input type="text" class="modal-input" id="githubProxyUrlInput" placeholder="https://your-gatekeeper.vercel.app/authenticate/" value="https://gatekeeper-auth.netlify.app/authenticate/">
-                    </div>
-                </div>
-
-                <button class="btn-open-workspace" style="padding:0.7rem; font-size:0.84rem; background:rgba(0,216,255,0.22); border:1.5px solid var(--accent-cyan); font-weight:700;" onclick="launchGithubOAuthPopup()">
-                    <span>🐙</span>
-                    <span>Open GitHub OAuth Authorization Window ↗</span>
-                </button>
-
-                <div id="oauthPopupStatusMsg" style="display:none; font-size:0.72rem; color:var(--accent-emerald); text-align:center; padding:4px;">
-                    ⏳ Waiting for OAuth authorization in popup...
+            <div style="display:flex; flex-direction:column; gap:0.35rem; margin-top:0.4rem;">
+                <label style="font-size:0.68rem; color:var(--text-muted); font-weight:600;">Paste Generated Token Below:</label>
+                <div style="position:relative; display:flex; align-items:center;">
+                    <input type="password" class="modal-input" id="githubPatInput" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx or gho_..." style="padding-right:2rem;">
+                    <button class="icon-btn" style="position:absolute; right:6px;" onclick="pasteTokenFromClipboard()" title="Paste from clipboard">📋</button>
                 </div>
             </div>
 
-            <!-- TAB 2: 1-CLICK TOKEN LINK -->
-            <div id="githubTabDirect" style="display:none; flex-direction:column; gap:0.65rem;">
-                <p style="font-size:0.75rem; color:var(--text-secondary); line-height:1.45;">
-                    Generate an official GitHub Personal Access Token with pre-configured <code>repo</code> and <code>workflow</code> permissions in 1 click:
-                </p>
-
-                <a href="https://github.com/settings/tokens/new?description=UOR-R4+Sovereign+Studio&scopes=repo,read:user,workflow" target="_blank" class="btn-open-workspace" style="padding:0.6rem; text-decoration:none; font-size:0.78rem; text-align:center; display:flex; justify-content:center; align-items:center; gap:0.4rem;">
-                    <span>↗</span>
-                    <span>1-Click Pre-filled Token Generator on GitHub</span>
-                </a>
-
-                <div style="display:flex; flex-direction:column; gap:0.3rem; margin-top:0.3rem;">
-                    <label style="font-size:0.68rem; color:var(--text-muted); font-weight:600;">Paste Token Below:</label>
-                    <input type="password" class="modal-input" id="githubPatInput" placeholder="ghp_... or gho_xxxxxxxxxxxxxxxxxxxx">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.4rem;">
+                <button class="editor-btn" id="btnDisconnectGithub" style="display:none; color:#ff453a; border-color:rgba(255,69,58,0.4);" onclick="disconnectGithubAccount()">Disconnect</button>
+                <div style="display:flex; gap:0.5rem; margin-left:auto;">
+                    <button class="editor-btn" onclick="closeGithubModal()">Cancel</button>
+                    <button class="editor-btn success" style="padding:0.45rem 0.85rem;" onclick="authenticateGithubToken()"><span>💾</span> Connect & Save</button>
                 </div>
-
-                <button class="editor-btn success" style="padding:0.5rem;" onclick="authenticateGithubToken()">
-                    <span>💾</span> Save Token & Connect
-                </button>
-            </div>
-
-            <div class="modal-actions" style="margin-top:0.4rem;">
-                <button class="editor-btn" onclick="closeGithubModal()">Close</button>
             </div>
         </div>
     </div>
@@ -2392,25 +2353,14 @@
             }
         }
 
-        // --- PHASE 2: GITHUB OAUTH & CLOUD INTEGRATION (DYNAMIC ESM.SH OCTOKIT) ---
-        window.switchGithubAuthTab = function(tabName) {
-            const isOauth = tabName === 'oauth';
-            document.getElementById('btnTabOauthApp')?.classList.toggle('active', isOauth);
-            document.getElementById('btnTabOauthDirect')?.classList.toggle('active', !isOauth);
-            document.getElementById('githubTabOauth').style.display = isOauth ? 'flex' : 'none';
-            document.getElementById('githubTabDirect').style.display = !isOauth ? 'flex' : 'none';
-        };
-
-        window.toggleAdvancedOauthSettings = function() {
-            const adv = document.getElementById('advancedOauthSettings');
-            if (adv) adv.style.display = (adv.style.display === 'none' || !adv.style.display) ? 'flex' : 'none';
-        };
-
+        // --- PHASE 2: GITHUB CLOUD INTEGRATION VIA OCTOKIT ---
         window.openGithubModal = function() {
             const modal = document.getElementById('githubAuthModal');
             const pat = localStorage.getItem('uor_github_pat') || '';
             const input = document.getElementById('githubPatInput');
+            const disconnectBtn = document.getElementById('btnDisconnectGithub');
             if (input) input.value = pat;
+            if (disconnectBtn) disconnectBtn.style.display = pat ? 'inline-flex' : 'none';
             if (modal) modal.classList.add('show');
         };
 
@@ -2419,102 +2369,28 @@
             if (modal) modal.classList.remove('show');
         };
 
-        // 1. Launch GitHub OAuth Popup Flow with Proxy Token Exchanger
-        let oauthPopupRef = null;
-        let oauthPollTimer = null;
-
-        window.launchGithubOAuthPopup = function() {
-            const clientId = (document.getElementById('githubClientIdInput')?.value || '').trim() || 'Ov23li4UorR4Studio';
-            const redirectUri = window.location.origin + window.location.pathname;
-            const state = 'uor_' + Math.random().toString(36).substring(2, 15);
-            localStorage.setItem('uor_oauth_state', state);
-
-            const authUrl = `https://github.com/login/oauth/authorize?client_id=${encodeURIComponent(clientId)}&scope=repo,read:user,workflow&state=${encodeURIComponent(state)}&redirect_uri=${encodeURIComponent(redirectUri)}`;
-
-            const width = 600, height = 700;
-            const left = window.screen.width / 2 - width / 2;
-            const top = window.screen.height / 2 - height / 2;
-
-            const statusEl = document.getElementById('oauthPopupStatusMsg');
-            if (statusEl) {
-                statusEl.style.display = 'block';
-                statusEl.innerText = "⏳ Waiting for authorization in popup window...";
-            }
-
-            oauthPopupRef = window.open(
-                authUrl,
-                'GitHub OAuth Flow',
-                `toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=yes, resizable=yes, copyhistory=no, width=${width}, height=${height}, top=${top}, left=${left}`
-            );
-
-            if (oauthPopupRef) {
-                oauthPopupRef.focus();
-                showToast("⚡ Opened GitHub OAuth window...");
-
-                // Poll popup URL for code in case postMessage is blocked by cross-origin policies
-                if (oauthPollTimer) clearInterval(oauthPollTimer);
-                oauthPollTimer = setInterval(async () => {
-                    if (!oauthPopupRef || oauthPopupRef.closed) {
-                        clearInterval(oauthPollTimer);
-                        return;
-                    }
-                    try {
-                        const popupUrl = oauthPopupRef.location.href;
-                        if (popupUrl && popupUrl.includes('code=')) {
-                            const urlObj = new URL(popupUrl);
-                            const code = urlObj.searchParams.get('code');
-                            if (code) {
-                                clearInterval(oauthPollTimer);
-                                oauthPopupRef.close();
-                                await exchangeOAuthCodeForToken(code);
-                            }
-                        }
-                    } catch(e) {
-                        // Cross-origin access while still on github.com is expected until redirect
-                    }
-                }, 800);
-            } else {
-                window.location.href = authUrl;
-            }
-        };
-
-        // 2. Exchange OAuth code for access token via gatekeeper or direct callback
-        async function exchangeOAuthCodeForToken(code) {
-            const proxyBase = (document.getElementById('githubProxyUrlInput')?.value || '').trim();
-            showToast("Exchanging OAuth code for token...");
-
+        window.pasteTokenFromClipboard = async function() {
             try {
-                if (proxyBase) {
-                    const res = await fetch(proxyBase + code, { headers: { 'Accept': 'application/json' } });
-                    if (res.ok) {
-                        const data = await res.json();
-                        const token = data.token || data.access_token;
-                        if (token) {
-                            await connectOctokitWithToken(token);
-                            return;
-                        }
-                    }
+                const text = await navigator.clipboard.readText();
+                const input = document.getElementById('githubPatInput');
+                if (input && text) {
+                    input.value = text.trim();
+                    showToast("📋 Token pasted from clipboard!");
                 }
             } catch(e) {
-                console.warn("Proxy exchange attempt:", e);
+                showToast("Could not access clipboard.");
             }
-
-            // Fallback: connect directly with received code/token
-            await connectOctokitWithToken(code);
-        }
-
-        // 3. Authenticate with Token
-        window.authenticateGithubToken = async function() {
-            const token = document.getElementById('githubPatInput').value.trim();
-            if (!token) {
-                showToast("Please enter a valid token.");
-                return;
-            }
-            await connectOctokitWithToken(token);
         };
 
-        async function connectOctokitWithToken(token) {
+        window.authenticateGithubToken = async function() {
+            const token = (document.getElementById('githubPatInput')?.value || '').trim();
+            if (!token) {
+                showToast("Please paste a valid GitHub token.");
+                return;
+            }
+
             try {
+                showToast("Connecting to GitHub API...");
                 const { Octokit } = await import('https://esm.sh/@octokit/rest');
                 const octokit = new Octokit({ auth: token });
                 const { data: user } = await octokit.rest.users.getAuthenticated();
@@ -2525,48 +2401,107 @@
                 document.getElementById('githubAuthLabel').innerText = `@${user.login}`;
                 document.getElementById('btnGithubAuth').classList.add('connected');
                 document.getElementById('githubUserName').innerText = user.name || user.login;
-                document.getElementById('githubUserBio').innerText = user.bio || `OAuth Connected as @${user.login}`;
-                document.getElementById('btnConfigurePatText').innerText = "✓ OAuth Active";
+                document.getElementById('githubUserBio').innerText = user.bio || `Connected as @${user.login}`;
+                document.getElementById('btnConfigurePatText').innerText = "✓ Connected";
 
                 closeGithubModal();
-                showToast(`🎉 GitHub Connected: @${user.login}`);
+                showToast(`🎉 Connected to GitHub: @${user.login}`);
 
                 await loadUserGithubRepos();
             } catch(e) {
                 showToast(`GitHub Auth Failed: ${e.message}`);
             }
-        }
+        };
 
-        // Check URL for OAuth callback code on page load
-        async function checkOAuthCallbackUrl() {
-            const params = new URLSearchParams(window.location.search);
-            const code = params.get('code');
-            const token = params.get('token') || params.get('access_token');
-            const state = params.get('state');
+        window.disconnectGithubAccount = function() {
+            localStorage.removeItem('uor_github_pat');
+            window.octokitClient = null;
+            window.userGithubRepos = [];
+            window.activeRepo = null;
 
-            if (code || token) {
-                const cleanUrl = window.location.origin + window.location.pathname;
-                window.history.replaceState({}, document.title, cleanUrl);
+            document.getElementById('githubAuthLabel').innerText = "Connect GitHub";
+            document.getElementById('btnGithubAuth').classList.remove('connected');
+            document.getElementById('githubUserName').innerText = "GitHub Cloud Integration";
+            document.getElementById('githubUserBio').innerText = "Connect Personal Access Token to browse repositories and open PRs.";
+            document.getElementById('btnConfigurePatText').innerText = "🔑 Configure Token";
+            document.getElementById('githubRepoCountBadge').innerText = "0 repos";
 
-                if (window.opener) {
-                    window.opener.postMessage({ type: 'GITHUB_OAUTH_TOKEN', token: token || code }, '*');
-                    window.close();
-                } else {
-                    if (token) await connectOctokitWithToken(token);
-                    else if (code) await exchangeOAuthCodeForToken(code);
-                }
+            const grid = document.getElementById('githubReposList');
+            if (grid) grid.innerHTML = '';
+
+            closeGithubModal();
+            showToast("Disconnected GitHub account.");
+        };
+
+        async function loadUserGithubRepos() {
+            if (!octokitClient) return;
+            try {
+                const { data: repos } = await octokitClient.rest.repos.listForAuthenticatedUser({
+                    sort: 'updated',
+                    per_page: 30
+                });
+                window.userGithubRepos = repos;
+                document.getElementById('githubRepoCountBadge').innerText = `${repos.length} repos`;
+
+                const grid = document.getElementById('githubReposList');
+                if (!grid) return;
+                grid.innerHTML = '';
+
+                repos.forEach(repo => {
+                    const card = document.createElement('div');
+                    card.className = 'repo-card';
+                    card.innerHTML = `
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span class="repo-name">${escapeHtml(repo.name)}</span>
+                            <span style="font-size:0.65rem; color:var(--text-muted);">${repo.private ? '🔒 Private' : '🌐 Public'}</span>
+                        </div>
+                        <p class="repo-desc">${escapeHtml(repo.description || 'No description provided.')}</p>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:auto; font-size:0.68rem; color:var(--text-muted);">
+                            <span>⭐ ${repo.stargazers_count}</span>
+                            <span style="color:var(--accent-cyan); font-weight:600;">Load Files →</span>
+                        </div>
+                    `;
+
+                    card.onclick = () => loadRemoteGithubRepo(repo);
+                    grid.appendChild(card);
+                });
+            } catch(e) {
+                showToast("Failed to fetch repositories.");
             }
         }
 
-        window.addEventListener('message', async (e) => {
-            if (e.data && (e.data.type === 'GITHUB_OAUTH_TOKEN' || e.data.type === 'GITHUB_OAUTH_CODE')) {
-                const val = e.data.token || e.data.code;
-                if (val) {
-                    showToast("Received OAuth token from authorization window!");
-                    await connectOctokitWithToken(val);
-                }
+        async function loadRemoteGithubRepo(repo) {
+            if (!octokitClient) return;
+            window.activeRepo = repo;
+            showToast(`Loading repository: ${repo.full_name}...`);
+
+            try {
+                const { data: treeData } = await octokitClient.rest.git.getTree({
+                    owner: repo.owner.login,
+                    repo: repo.name,
+                    tree_sha: repo.default_branch || 'main',
+                    recursive: 1
+                });
+
+                window.workspaceFiles = treeData.tree.map(item => ({
+                    name: item.path.split('/').pop(),
+                    path: item.path,
+                    sha: item.sha,
+                    kind: item.type === 'tree' ? 'directory' : 'file',
+                    isRemote: true
+                }));
+
+                document.getElementById('activeWorkspaceName').innerText = repo.full_name;
+                document.getElementById('activeWorkspaceBadge').innerText = "GitHub Cloud";
+                document.getElementById('fileCountLabel').innerText = `${workspaceFiles.length} items`;
+
+                switchSidebarTab('files');
+                renderWorkspaceTree();
+                showToast(`Loaded ${workspaceFiles.length} files from GitHub`);
+            } catch(e) {
+                showToast(`Failed to load repo tree: ${e.message}`);
             }
-        });
+        }
 
                 // --- PHASE 3: MONACO CODE EDITOR & DIFF ENGINE ---
         let monacoEditorInstance = null;
