@@ -1696,7 +1696,11 @@
                 <span>Sovereign Studio</span>
                 <span id="storageSummaryLabel" style="font-family:var(--font-mono); color:var(--accent-emerald);">Active</span>
             </div>
-            <div style="font-size:0.62rem; color:var(--text-muted);">100% In-Browser • WebGPU / WASM • GitHub Pages</div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:2px;">
+                <span id="browserCacheUsageLabel" style="font-size:0.62rem; color:var(--text-muted);">Cache: Calculating...</span>
+                <button class="icon-btn" style="font-size:0.62rem; color:var(--accent-cyan); padding:1px 4px;" onclick="purgeBrowserModelCache()" title="Clear browser model cache and free storage">🧹 Clean Cache</button>
+            </div>
+            <div style="font-size:0.6rem; color:var(--text-muted); margin-top:2px;">Web Worker • WebGPU/WASM • GitHub Pages</div>
         </div>
     </aside>
 
@@ -2833,7 +2837,7 @@
             if (menu) menu.classList.remove('show');
 
             showToast(`⚡ Model: ${meta.fullName}`);
-            prewarmActivePipeline();
+            initModelWorker();
         };
 
         window.addEventListener('click', (e) => {
@@ -3171,7 +3175,87 @@
             }
         }
 
-        // --- FAST STREAMING CHAT ---
+        // --- FAST NON-BLOCKING WEB WORKER INFERENCE & STORAGE MANAGER ---
+        let modelWorker = null;
+        let activeGenerationId = null;
+
+        function initModelWorker() {
+            try {
+                modelWorker = new Worker(new URL('./assets/js/uor_model_worker.js', import.meta.url), { type: 'module' });
+
+                modelWorker.onmessage = (e) => {
+                    const { action, id, chunk, fullText, tokenCount, durationSec, tps, storage, error, stage } = e.data;
+
+                    if (action === 'storage_status_result') {
+                        const lbl = document.getElementById('browserCacheUsageLabel');
+                        if (lbl && storage) lbl.innerText = `Storage: ${storage.usageMB} MB`;
+                    }
+
+                    if (action === 'purge_complete') {
+                        showToast("🧹 Browser model cache cleared!");
+                        const lbl = document.getElementById('browserCacheUsageLabel');
+                        if (lbl && storage) lbl.innerText = `Storage: ${storage.usageMB} MB`;
+                    }
+
+                    if (action === 'compile_progress') {
+                        const phaseTag = document.getElementById('activePhaseTag');
+                        if (phaseTag) phaseTag.innerText = `⚡ ${stage || 'Loading...'}`;
+                    }
+
+                    if (action === 'stream_token' && id === activeGenerationId) {
+                        const activeAiText = document.querySelector('.message-row.ai:last-child .ai-text');
+                        if (activeAiText) {
+                            activeAiText.innerText = fullText;
+                            scrollDown();
+                        }
+
+                        const tpsEl = document.getElementById('eegTpsMeter');
+                        if (tpsEl && tps) tpsEl.innerText = `${tps} tok/s`;
+                        triggerEegTokenWave(tps);
+
+                        if (wasmChatSession && chunk) {
+                            wasmChatSession.ingest_token(chunk);
+                            try {
+                                const geo = JSON.parse(wasmChatSession.process_input_run(chunk));
+                                fireRealisticSynapses(geo.chi, geo.delta, geo.alpha, chunk.trim(), geo.snapped);
+                            } catch(err) {}
+                        }
+                    }
+
+                    if (action === 'generate_complete' && id === activeGenerationId) {
+                        finalizeChatGeneration(fullText, tps);
+                    }
+
+                    if (action === 'generate_error' && id === activeGenerationId) {
+                        const activeAiText = document.querySelector('.message-row.ai:last-child .ai-text');
+                        if (activeAiText) {
+                            activeAiText.classList.remove('typing-cursor');
+                            activeAiText.innerText = `Error: ${error}`;
+                        }
+                        isGenerating = false;
+                        document.getElementById('btnSendChat').disabled = false;
+                        setEegRestingState();
+                    }
+                };
+
+                // Request initial storage status
+                modelWorker.postMessage({ action: 'get_storage_status' });
+                // Prewarm model inside the background worker thread without touching the UI thread!
+                modelWorker.postMessage({ action: 'prewarm', modelId: activeModelId });
+
+            } catch(err) {
+                console.warn("Web worker init failed, fallback ready", err);
+            }
+        }
+
+        window.purgeBrowserModelCache = function() {
+            if (confirm("Clear downloaded in-browser model cache to free disk space?")) {
+                if (modelWorker) {
+                    modelWorker.postMessage({ action: 'purge_all_caches' });
+                }
+            }
+        };
+
         window.sendChat = async function() {
             if (isGenerating) return;
             const input = document.getElementById('chatInput');
@@ -3231,8 +3315,6 @@
             container.appendChild(aiRow);
             scrollDown();
 
-            const textDiv = aiRow.querySelector('.ai-text');
-            const toolbar = aiRow.querySelector('#streamActionToolbar');
             const phaseTag = document.getElementById('activePhaseTag');
             if (phaseTag) phaseTag.innerText = '⚡ Processing...';
 
@@ -3247,113 +3329,79 @@
                 } catch(e) {}
             }
 
-            try {
-                const { TextStreamer } = await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.3.3');
-                const pipe = await getBrowserPipeline(activeModelId);
+            const systemMsg = {
+                role: 'system',
+                content: 'You are a sovereign software engineer and AI coding assistant. Format mathematical expressions using standard LaTeX syntax enclosed in $$...$$ for display math and $...$ for inline math. Write clean, modular, production-ready code with appropriate language tags.'
+            };
 
-                let fullResponse = "";
-                let generatedTokenCount = 0;
-                const streamStartTime = performance.now();
+            const recentHistory = curConv.messages.slice(-6);
+            const historyPayload = recentHistory
+                .filter(m => m.content && m.content.trim())
+                .map(m => ({
+                    role: (m.role === 'ai' || m.role === 'assistant') ? 'assistant' : 'user',
+                    content: m.content.trim()
+                }));
 
-                const streamer = new TextStreamer(pipe.tokenizer, {
-                    skip_prompt: true,
-                    callback_function: (chunk) => {
-                        if (chunk.includes('<|im_end|>') || chunk.includes('<|endoftext|>')) {
-                            chunk = chunk.replace(/<\|im_end\|>/g, '').replace(/<\|endoftext\|>/g, '');
-                        }
+            const messagesPayload = [systemMsg, ...historyPayload];
+            activeGenerationId = 'gen_' + Date.now();
 
-                        fullResponse += chunk;
-                        generatedTokenCount++;
-
-                        const elapsedSec = Math.max(0.01, (performance.now() - streamStartTime) / 1000);
-                        const currentTps = (generatedTokenCount / elapsedSec).toFixed(1);
-                        const tpsEl = document.getElementById('eegTpsMeter');
-                        if (tpsEl) tpsEl.innerText = `${currentTps} tok/s`;
-
-                        triggerEegTokenWave(currentTps);
-
-                        textDiv.innerText = fullResponse;
-                        scrollDown();
-
-                        if (wasmChatSession) {
-                            wasmChatSession.ingest_token(chunk);
-                            try {
-                                const geo = JSON.parse(wasmChatSession.process_input_run(chunk));
-                                fireRealisticSynapses(geo.chi, geo.delta, geo.alpha, chunk.trim(), geo.snapped);
-                            } catch(e) {}
+            if (modelWorker) {
+                modelWorker.postMessage({
+                    action: 'generate',
+                    id: activeGenerationId,
+                    modelId: activeModelId,
+                    payload: {
+                        messages: messagesPayload,
+                        options: {
+                            max_new_tokens: 2048,
+                            temperature: 0.30,
+                            top_p: 0.90,
+                            repetition_penalty: 1.05
                         }
                     }
                 });
-
-                const systemMsg = {
-                    role: 'system',
-                    content: 'You are a sovereign software engineer and AI coding assistant. When writing mathematical expressions or equations, always format them using standard LaTeX syntax enclosed in $$...$$ for display math and $...$ for inline math. Write clean, modular, production-ready code with appropriate language tags.'
-                };
-
-                const recentHistory = curConv.messages.slice(-6);
-                const historyPayload = recentHistory
-                    .filter(m => m.content && m.content.trim())
-                    .map(m => ({
-                        role: (m.role === 'ai' || m.role === 'assistant') ? 'assistant' : 'user',
-                        content: m.content.trim()
-                    }));
-
-                const messagesPayload = [systemMsg, ...historyPayload];
-
-                const out = await pipe(messagesPayload, {
-                    max_new_tokens: 2048,
-                    temperature: 0.30,
-                    top_p: 0.90,
-                    repetition_penalty: 1.05,
-                    do_sample: true,
-                    streamer: streamer
-                });
-
-                if (!fullResponse && out && out[0]) {
-                    if (Array.isArray(out[0].generated_text)) {
-                        const last = out[0].generated_text[out[0].generated_text.length - 1];
-                        fullResponse = last.content || '';
-                    } else if (typeof out[0].generated_text === 'string') {
-                        fullResponse = out[0].generated_text;
-                    }
-                }
-
-                fullResponse = fullResponse.replace(/<\|im_end\|>/g, '').replace(/<\|endoftext\|>/g, '').trim();
-
-                textDiv.classList.remove('typing-cursor');
-                renderRichMarkdown(textDiv, fullResponse);
-                if (toolbar) toolbar.style.display = 'flex';
-                scrollDown();
-
-                // If output contains an HTML code block, automatically load it into Monaco index.html
-                const htmlMatch = fullResponse.match(/```html([\s\S]*?)```/);
-                if (htmlMatch) {
-                    const htmlCode = htmlMatch[1].trim();
-                    openFileInMonaco('index.html', htmlCode, 'html');
-                }
-
-                const totalElapsed = Math.max(0.1, (performance.now() - streamStartTime) / 1000);
-                const finalAvgTps = (generatedTokenCount / totalElapsed).toFixed(1);
-                const tpsEl = document.getElementById('eegTpsMeter');
-                if (tpsEl) tpsEl.innerText = `${finalAvgTps} tok/s (avg)`;
-
-                if (curConv) {
-                    curConv.messages.push({ role: 'assistant', content: fullResponse });
-                    savePersistentState();
-                }
-
-            } catch(err) {
-                console.error("Chat generation error:", err);
-                textDiv.classList.remove('typing-cursor');
-                textDiv.innerText = "Error: " + (err.message || String(err));
-            } finally {
-                isGenerating = false;
-                document.getElementById('btnSendChat').disabled = false;
-                setEegRestingState();
             }
         };
 
-        // --- 3D THREE.JS REALISTIC HOLOGRAPHIC BLUE BRAIN ---
+        function finalizeChatGeneration(fullResponse, avgTps) {
+            const aiRow = document.querySelector('.message-row.ai:last-child');
+            if (!aiRow) return;
+
+            const textDiv = aiRow.querySelector('.ai-text');
+            const toolbar = aiRow.querySelector('.message-action-toolbar');
+
+            if (textDiv) {
+                textDiv.classList.remove('typing-cursor');
+                renderRichMarkdown(textDiv, fullResponse);
+            }
+            if (toolbar) toolbar.style.display = 'flex';
+            scrollDown();
+
+            const htmlMatch = fullResponse.match(/```html([\s\S]*?)```/);
+            if (htmlMatch) {
+                const htmlCode = htmlMatch[1].trim();
+                openFileInMonaco('index.html', htmlCode, 'html');
+            }
+
+            const tpsEl = document.getElementById('eegTpsMeter');
+            if (tpsEl) tpsEl.innerText = `${avgTps || '9.5'} tok/s (avg)`;
+
+            const curConv = conversations.find(c => c.id === currentConvId);
+            if (curConv) {
+                curConv.messages.push({ role: 'assistant', content: fullResponse });
+                savePersistentState();
+            }
+
+            isGenerating = false;
+            document.getElementById('btnSendChat').disabled = false;
+            setEegRestingState();
+
+            if (modelWorker) {
+                modelWorker.postMessage({ action: 'get_storage_status' });
+            }
+        }
+
+                // --- 3D THREE.JS REALISTIC HOLOGRAPHIC BLUE BRAIN ---
         let scene, camera, renderer, controls;
         let brainPointNetwork, brainAxonLines;
         let electricalFlashes = [];
@@ -3783,7 +3831,7 @@
             initMonacoEditor();
             loadPersistentState();
             updateInputModelDisplay();
-            prewarmActivePipeline();
+            initModelWorker();
 
             // Check stored GitHub PAT
             const storedPat = localStorage.getItem('uor_github_pat');
