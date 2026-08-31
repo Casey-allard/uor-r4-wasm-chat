@@ -52,7 +52,17 @@ export OPENAI_API_KEY="uor-local"
 export MODEL_NAME="qwen2.5-0.5b"
 
 # 4. Launch Hermes Desktop GUI
-echo "🖥️  [3/3] Launching Hermes Desktop App connected to Qwen 2.5 / GLM-5.3..."
-cd "$DIR/hermes-agent/apps/desktop"
-npm run dev
+if [ "$1" == "tauri" ] || [ "$1" == "--tauri" ]; then
+    echo "🦀 [3/3] Launching Pure Rust Tauri v2 Desktop Application..."
+    cargo run --manifest-path "$DIR/src-tauri/Cargo.toml"
+else
+    echo "🖥️  [3/3] Launching Hermes Desktop GUI..."
+    if [ -d "$DIR/hermes-agent/apps/desktop" ]; then
+        cd "$DIR/hermes-agent/apps/desktop"
+        npm run dev
+    else
+        echo "ℹ️  Launching Tauri v2 native desktop app by default..."
+        cargo run --manifest-path "$DIR/src-tauri/Cargo.toml"
+    fi
+fi
 
