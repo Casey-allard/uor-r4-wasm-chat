@@ -691,8 +691,11 @@
             border: 1px solid var(--border-subtle);
         }
 
+        /* ZERO GHOST BUBBLE SAFETY RULES */
         .ai-bubble {
-            background: transparent;
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
             color: var(--text-primary);
             font-size: 0.86rem;
             line-height: 1.55;
@@ -702,7 +705,14 @@
             gap: 0.4rem;
         }
 
-        .ai-text {
+        .ai-text:empty,
+        .model-progress-hud-card,
+        .hud-progress-track,
+        .message-row.ai:has(.ai-text:empty:not(.typing-cursor)) {
+            display: none !important;
+        }
+
+                .ai-text {
             word-break: break-word;
         }
 
@@ -734,56 +744,7 @@
             padding: 0.35rem 0;
         }
 
-        /* COMPILATION & DOWNLOAD PROGRESS HUD */
-        .model-progress-hud-card {
-            background: rgba(16, 19, 29, 0.98);
-            border: 1.5px solid rgba(0, 216, 255, 0.4);
-            border-radius: var(--radius-md);
-            padding: 0.65rem 0.85rem;
-            margin: 0.5rem 0;
-            display: flex;
-            flex-direction: column;
-            gap: 0.45rem;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6), 0 0 15px rgba(0, 216, 255, 0.15);
-            animation: fadeIn 0.2s ease-out;
-        }
-
-        .hud-top-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.72rem;
-            font-weight: 700;
-            color: #ffffff;
-        }
-
-        .hud-progress-track {
-            width: 100%;
-            height: 6px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 4px;
-            overflow: hidden;
-            position: relative;
-        }
-
-        .hud-progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #00d8ff, #00ff88);
-            border-radius: 4px;
-            transition: width 0.2s ease;
-            box-shadow: 0 0 10px rgba(0, 216, 255, 0.5);
-        }
-
-        .hud-stage-desc {
-            font-size: 0.68rem;
-            font-family: var(--font-mono);
-            color: var(--accent-cyan);
-            display: flex;
-            align-items: center;
-            gap: 0.35rem;
-        }
-
-                /* CODE BLOCK WITH COPY BUTTON HEADER */
+        /* CODE BLOCK WITH COPY BUTTON HEADER */
         .code-block-container {
             background: #080a10;
             border: 1px solid var(--border);
@@ -3308,7 +3269,15 @@
         function loadPersistentState() {
             try {
                 const saved = localStorage.getItem('uor_conversations');
-                if (saved) conversations = JSON.parse(saved);
+                if (saved) {
+                    conversations = JSON.parse(saved);
+                    // Sanitize conversations to purge any empty or corrupt messages
+                    conversations.forEach(conv => {
+                        if (conv.messages) {
+                            conv.messages = conv.messages.filter(m => m && m.content && m.content.trim() && !m.content.includes('model-progress-hud-card'));
+                        }
+                    });
+                }
                 currentConvId = localStorage.getItem('uor_current_conv_id');
                 if (!conversations.length || !currentConvId) {
                     startNewChat();
@@ -3321,7 +3290,7 @@
             }
         }
 
-        function renderCurrentChatMessages() {
+                function renderCurrentChatMessages() {
             const container = document.getElementById('chatMessagesContainer');
             if (!container) return;
             container.innerHTML = '';
@@ -3371,8 +3340,9 @@
         };
 
         function appendMessageToDom(role, content) {
+            if (!content || !content.trim()) return null;
             const container = document.getElementById('chatMessagesContainer');
-            if (!container) return;
+            if (!container) return null;
 
             const row = document.createElement('div');
             row.className = `message-row ${role === 'assistant' ? 'ai' : role}`;
@@ -3410,7 +3380,7 @@
             return row;
         }
 
-        function scrollDown() {
+                function scrollDown() {
             const scrollArea = document.getElementById('chatScrollArea');
             if (scrollArea) scrollArea.scrollTop = scrollArea.scrollHeight;
         }
