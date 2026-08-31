@@ -51,18 +51,14 @@ export OPENAI_BASE_URL="http://127.0.0.1:8000/v1"
 export OPENAI_API_KEY="uor-local"
 export MODEL_NAME="qwen2.5-0.5b"
 
-# 4. Launch Hermes Desktop GUI
-if [ "$1" == "tauri" ] || [ "$1" == "--tauri" ]; then
-    echo "🦀 [3/3] Launching Pure Rust Tauri v2 Desktop Application..."
-    cargo run --manifest-path "$DIR/src-tauri/Cargo.toml"
+# 4. Launch Hermes Desktop Studio
+if [ "$1" == "electron" ] || [ "$1" == "--electron" ]; then
+    echo "🖥️  [3/3] Launching Legacy Electron Hermes Desktop..."
+    cd "$DIR/hermes-agent/apps/desktop"
+    npm run dev
 else
-    echo "🖥️  [3/3] Launching Hermes Desktop GUI..."
-    if [ -d "$DIR/hermes-agent/apps/desktop" ]; then
-        cd "$DIR/hermes-agent/apps/desktop"
-        npm run dev
-    else
-        echo "ℹ️  Launching Tauri v2 native desktop app by default..."
-        cargo run --manifest-path "$DIR/src-tauri/Cargo.toml"
-    fi
+    echo "🦀 [3/3] Launching Pure Native Rust Tauri v2 Hermes Studio..."
+    cargo run --manifest-path "$DIR/src-tauri/Cargo.toml"
 fi
+
 

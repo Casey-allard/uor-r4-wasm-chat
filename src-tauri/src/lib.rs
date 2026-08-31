@@ -168,80 +168,50 @@ pub fn generate_response_tokens(req: &ChatCompletionRequest) -> (String, Vec<Too
         "terminal"
     };
 
-    // Tool calling should ONLY trigger when user explicitly commands an action AND tools are available
+    // Tool calling should ONLY trigger when user explicitly commands an action (e.g. !exec, !sh, execute command: ...)
     let has_explicit_tool_request = !available_tools.is_empty()
-        && (user_lower.starts_with("run ")
-            || user_lower.starts_with("exec ")
-            || user_lower.starts_with("execute ")
-            || user_lower.contains("create a pr")
-            || user_lower.contains("create pull request")
-            || user_lower.contains("git commit and push")
-            || user_lower.contains("run git status")
-            || user_lower.contains("list directory contents"));
+        && (user_lower.starts_with("!exec ")
+            || user_lower.starts_with("!sh ")
+            || user_lower.starts_with("execute command:")
+            || user_lower.starts_with("run command:"));
 
     if has_explicit_tool_request {
         let mut tool_calls = Vec::new();
         let ts = current_timestamp();
 
-        if user_lower.contains("pr") || user_lower.contains("pull request") {
-            if available_tools.iter().any(|t| t == "create_pull_request" || t == "github_tool" || t == "gh") {
-                tool_calls.push(ToolCall {
-                    id: format!("call_0_{}", ts),
-                    r#type: "function".to_string(),
-                    function: FunctionCall {
-                        name: "create_pull_request".to_string(),
-                        arguments: json!({
-                            "title": "feat: native Tauri v2 architecture upgrade",
-                            "body": "Migrated desktop client from Electron to Tauri v2 (pure Rust backend + native WebKit).",
-                            "base_branch": "main",
-                            "head_branch": "feature/rust-engine"
-                        }).to_string(),
-                    },
-                });
-            } else {
-                tool_calls.push(ToolCall {
-                    id: format!("call_0_{}", ts),
-                    r#type: "function".to_string(),
-                    function: FunctionCall {
-                        name: terminal_tool_name.to_string(),
-                        arguments: json!({"command": "gh pr create --title \"feat: native Tauri v2 architecture upgrade\" --body \"Migrated desktop client from Electron to Tauri v2 (pure Rust backend + native WebKit).\""}).to_string(),
-                    },
-                });
-            }
-        } else if user_lower.contains("status") {
-            tool_calls.push(ToolCall {
-                id: format!("call_0_{}", ts),
-                r#type: "function".to_string(),
-                function: FunctionCall {
-                    name: terminal_tool_name.to_string(),
-                    arguments: json!({"command": "git status"}).to_string(),
-                },
-            });
+        let cmd_to_run = if let Some(idx) = last_user_message.find(':') {
+            last_user_message[idx + 1..].trim().to_string()
+        } else if user_lower.starts_with("!exec ") {
+            last_user_message[6..].trim().to_string()
+        } else if user_lower.starts_with("!sh ") {
+            last_user_message[4..].trim().to_string()
         } else {
-            tool_calls.push(ToolCall {
-                id: format!("call_0_{}", ts),
-                r#type: "function".to_string(),
-                function: FunctionCall {
-                    name: terminal_tool_name.to_string(),
-                    arguments: json!({"command": "ls -la"}).to_string(),
-                },
-            });
-        }
+            "git status".to_string()
+        };
+
+        tool_calls.push(ToolCall {
+            id: format!("call_0_{}", ts),
+            r#type: "function".to_string(),
+            function: FunctionCall {
+                name: terminal_tool_name.to_string(),
+                arguments: json!({"command": cmd_to_run}).to_string(),
+            },
+        });
 
         (String::new(), tool_calls)
     } else {
+        // Natural Conversational & Reasoning Path
         let reply = if user_lower.contains("hello") || user_lower.contains("hi") || user_lower.trim() == "yo" {
             "Hello! Welcome to the UOR-R4 Native Tauri v2 Studio. How can I assist your workflow today?".to_string()
         } else if user_lower.contains("2 + 2") || user_lower.contains("2+2") {
             "2 + 2 = 4.".to_string()
         } else if user_lower.contains("who are you") || user_lower.contains("what are you") {
-            "I am Hermes, an autonomous AI pair programmer powered by the sovereign UOR-R4 native Rust geometric engine.".to_string()
+            "I am Hermes, an autonomous AI assistant powered by the sovereign UOR-R4 native Rust geometric cognitive engine.".to_string()
         } else if user_lower.contains("uor-r4") || user_lower.contains("geometric") {
             "UOR-R4 is a sovereign geometric cognitive architecture combining 8D Gosset E8 lattice representations, Hopf fibration phase telemetry, and native SIMD tensor computing for ultra-fast, zero-overhead neural reasoning.".to_string()
         } else {
             format!(
-                "I understand: \"{}\". I am running on the pure native Rust engine [{}]. Let me know if you would like me to explain a concept, write code, or execute any commands.",
-                last_user_message.trim(),
+                "I am here to help. I am running on the native Rust engine with model `{}`. You can chat with me naturally, ask questions, analyze code, or instruct me to perform specific tasks.",
                 req.model
             )
         };
