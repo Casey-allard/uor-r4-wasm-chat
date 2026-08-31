@@ -587,6 +587,58 @@ pub async fn chat_completions_handler(
 // Server Entry Point
 // =====================================================================
 
+pub async fn api_status_handler() -> impl IntoResponse {
+    Json(json!({
+        "ok": true,
+        "status": "ready",
+        "model": "qwen2.5-0.5b",
+        "engine": "uor-r4-rust",
+        "ready": true,
+        "uptime": 100
+    }))
+}
+
+pub async fn api_profiles_handler() -> impl IntoResponse {
+    Json(json!([
+        {
+            "id": "default",
+            "name": "Default Profile",
+            "active": true,
+            "model": "qwen2.5-0.5b",
+            "provider": "uor-rust"
+        }
+    ]))
+}
+
+pub async fn api_sessions_handler() -> impl IntoResponse {
+    Json(json!([]))
+}
+
+pub async fn api_config_handler() -> impl IntoResponse {
+    Json(json!({
+        "model": "qwen2.5-0.5b",
+        "provider": "uor-rust",
+        "temperature": 0.35,
+        "system_prompt": "You are Hermes AI Agent powered by UOR-R4."
+    }))
+}
+
+pub async fn api_skills_handler() -> impl IntoResponse {
+    Json(json!([]))
+}
+
+pub async fn api_tools_handler() -> impl IntoResponse {
+    Json(json!([]))
+}
+
+pub async fn api_cron_handler() -> impl IntoResponse {
+    Json(json!([]))
+}
+
+pub async fn api_plugins_handler() -> impl IntoResponse {
+    Json(json!([]))
+}
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("===========================================================");
@@ -644,6 +696,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .route("/api/v1/models", get(list_models_handler))
         .route("/v1/models/:model_id", get(get_model_handler))
         .route("/api/v1/models/:model_id", get(get_model_handler))
+        // Hermes Gateway Compatibility Routes
+        .route("/api/status", get(api_status_handler))
+        .route("/api/profiles", get(api_profiles_handler))
+        .route("/api/sessions", get(api_sessions_handler))
+        .route("/api/config", get(api_config_handler))
+        .route("/api/skills", get(api_skills_handler))
+        .route("/api/tools", get(api_tools_handler))
+        .route("/api/cron", get(api_cron_handler))
+        .route("/api/plugins", get(api_plugins_handler))
         // Ollama / Hermes Fallback Endpoints
         .route("/api/tags", get(ollama_tags_handler))
         .route("/api/models", get(ollama_tags_handler))

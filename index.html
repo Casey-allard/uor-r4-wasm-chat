@@ -2024,6 +2024,39 @@
             }
         }
 
+        let tokenTelemetryQueue = [];
+        let isTelemetryProcessing = false;
+
+        function enqueueTelemetryToken(token) {
+            if (!token || typeof token !== 'string') return;
+            const clean = token.trim();
+            if (clean.length === 0) return;
+            tokenTelemetryQueue.push(clean);
+            scheduleTelemetryDrain();
+        }
+
+        function scheduleTelemetryDrain() {
+            if (isTelemetryProcessing) return;
+            if (tokenTelemetryQueue.length === 0) return;
+            
+            isTelemetryProcessing = true;
+            requestAnimationFrame(() => {
+                if (!dynamicSession || tokenTelemetryQueue.length === 0) {
+                    isTelemetryProcessing = false;
+                    return;
+                }
+                const chunk = tokenTelemetryQueue.shift();
+                try {
+                    const tRes = JSON.parse(dynamicSession.process_input_dynamic(chunk, 1));
+                    updateTelemetry(tRes.snapped, tRes.chi, tRes.delta, tRes.alpha, tRes.winner);
+                } catch(e) {}
+                isTelemetryProcessing = false;
+                if (tokenTelemetryQueue.length > 0) {
+                    scheduleTelemetryDrain();
+                }
+            });
+        }
+
         let isModelLoading = false;
         let modelLoadingPromise = null;
 
@@ -2220,14 +2253,7 @@
                 savePersistentState();
             }
 
-            if(dynamicSession) {
-                try {
-                    const geomRes = JSON.parse(dynamicSession.process_input_dynamic(userPrompt || fullPromptWithContext, 10));
-                    updateTelemetry(geomRes.snapped, geomRes.chi, geomRes.delta, geomRes.alpha, geomRes.winner);
-                } catch(e) {
-                    console.warn(e);
-                }
-            }
+            enqueueTelemetryToken(userPrompt || fullPromptWithContext);
 
             async function generateResponse() {
                 let fullResponse = "";
@@ -2330,13 +2356,7 @@
                                 }
 
                                 scheduleStreamRender(false);
-
-                                if(dynamicSession && chunk.trim().length > 1) {
-                                    try {
-                                        const tRes = JSON.parse(dynamicSession.process_input_dynamic(chunk, 1));
-                                        updateTelemetry(tRes.snapped, tRes.chi, tRes.delta, tRes.alpha, tRes.winner);
-                                    } catch(e){}
-                                }
+                                enqueueTelemetryToken(chunk);
                             }
                         });
 
@@ -2407,13 +2427,7 @@
                                         }
 
                                         scheduleStreamRender(false);
-
-                                        if(dynamicSession && delta.trim().length > 1) {
-                                            try {
-                                                const tRes = JSON.parse(dynamicSession.process_input_dynamic(delta, 1));
-                                                updateTelemetry(tRes.snapped, tRes.chi, tRes.delta, tRes.alpha, tRes.winner);
-                                            } catch(e){}
-                                        }
+                                        enqueueTelemetryToken(delta);
                                     }
                                 } catch(parseErr){}
                             }
