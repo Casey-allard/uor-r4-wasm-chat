@@ -209,6 +209,12 @@ fn current_timestamp_millis() -> u128 {
 pub fn generate_response_tokens(req: &ChatCompletionRequest) -> (String, Vec<ToolCall>) {
     let mut combined_text = String::new();
     let mut last_user_message = String::new();
+    let mut last_tool_output = String::new();
+
+    let last_msg = req.messages.last();
+    let is_after_tool_execution = last_msg.map_or(false, |m| {
+        m.role.to_lowercase() == "tool" || m.role.to_lowercase() == "function"
+    });
 
     for m in &req.messages {
         let content_str = match &m.content {
@@ -218,9 +224,28 @@ pub fn generate_response_tokens(req: &ChatCompletionRequest) -> (String, Vec<Too
         };
         if m.role.to_lowercase() == "user" {
             last_user_message = content_str.clone();
+        } else if m.role.to_lowercase() == "tool" || m.role.to_lowercase() == "function" {
+            last_tool_output = content_str.clone();
         }
         combined_text.push_str(&content_str);
         combined_text.push(' ');
+    }
+
+    // If we just executed a tool, synthesize the tool output and respond with conversation
+    if is_after_tool_execution {
+        let snippet = if last_tool_output.len() > 300 {
+            format!("{}...", &last_tool_output[..300])
+        } else if last_tool_output.is_empty() {
+            "Command completed successfully with empty output.".to_string()
+        } else {
+            last_tool_output.clone()
+        };
+
+        let reply = format!(
+            "I executed the requested action. Here is the output:\n\n```\n{}\n```\n\nIs there anything else you would like me to inspect or assist with?",
+            snippet.trim()
+        );
+        return (reply, Vec::new());
     }
 
     let user_lower = last_user_message.to_lowercase();
@@ -251,68 +276,25 @@ pub fn generate_response_tokens(req: &ChatCompletionRequest) -> (String, Vec<Too
         "terminal"
     };
 
-    let has_action_intent = !available_tools.is_empty()
-        || [
-            "commit",
-            "pull request",
-            "pr",
-            "git",
-            "checkout",
-            "folder",
-            "directory",
-            "terminal",
-            "run command",
-            "execute",
-            "review",
-            "branch",
-            "status",
-        ]
-        .iter()
-        .any(|kw| user_lower.contains(kw));
+    // Tool calling should ONLY trigger when user explicitly commands an action AND tools are available
+    let has_explicit_tool_request = !available_tools.is_empty()
+        && (user_lower.starts_with("run ")
+            || user_lower.starts_with("exec ")
+            || user_lower.starts_with("execute ")
+            || user_lower.contains("create a pr")
+            || user_lower.contains("create pull request")
+            || user_lower.contains("git commit and push")
+            || user_lower.contains("run git status")
+            || user_lower.contains("list directory contents"));
 
-    if has_action_intent {
+    if has_explicit_tool_request {
         let mut tool_calls = Vec::new();
         let ts = current_timestamp();
 
-        if user_lower.contains("pr")
-            || user_lower.contains("pull request")
-            || (user_lower.contains("commit") && user_lower.contains("push"))
-        {
-            tool_calls.push(ToolCall {
-                id: format!("call_0_{}", ts),
-                r#type: "function".to_string(),
-                function: FunctionCall {
-                    name: terminal_tool_name.to_string(),
-                    arguments: json!({"command": "git checkout main"}).to_string(),
-                },
-            });
-            tool_calls.push(ToolCall {
-                id: format!("call_1_{}", ts),
-                r#type: "function".to_string(),
-                function: FunctionCall {
-                    name: terminal_tool_name.to_string(),
-                    arguments: json!({"command": "git add ."}).to_string(),
-                },
-            });
-            tool_calls.push(ToolCall {
-                id: format!("call_2_{}", ts),
-                r#type: "function".to_string(),
-                function: FunctionCall {
-                    name: terminal_tool_name.to_string(),
-                    arguments: json!({"command": "git commit -m \"feat: apply latest verified geometric substrate updates\""}).to_string(),
-                },
-            });
-            tool_calls.push(ToolCall {
-                id: format!("call_3_{}", ts),
-                r#type: "function".to_string(),
-                function: FunctionCall {
-                    name: terminal_tool_name.to_string(),
-                    arguments: json!({"command": "git push origin main"}).to_string(),
-                },
-            });
+        if user_lower.contains("pr") || user_lower.contains("pull request") {
             if available_tools.iter().any(|t| t == "create_pull_request" || t == "github_tool" || t == "gh") {
                 tool_calls.push(ToolCall {
-                    id: format!("call_4_{}", ts),
+                    id: format!("call_0_{}", ts),
                     r#type: "function".to_string(),
                     function: FunctionCall {
                         name: "create_pull_request".to_string(),
@@ -326,15 +308,24 @@ pub fn generate_response_tokens(req: &ChatCompletionRequest) -> (String, Vec<Too
                 });
             } else {
                 tool_calls.push(ToolCall {
-                    id: format!("call_4_{}", ts),
+                    id: format!("call_0_{}", ts),
                     r#type: "function".to_string(),
                     function: FunctionCall {
                         name: terminal_tool_name.to_string(),
-                        arguments: json!({"command": "gh pr create --title \"feat: upgrade to 100% pure native Rust engine\" --body \"This PR updates the core server to single-binary native Rust, removing Python runtime overhead and enabling instant tool execution.\""}).to_string(),
+                        arguments: json!({"command": "gh pr create --title \"feat: upgrade to 100% pure native Rust engine\" --body \"Single binary native Rust migration\""}).to_string(),
                     },
                 });
             }
-        } else if user_lower.contains("status") || user_lower.contains("check") || user_lower.contains("folder") || user_lower.contains("files") {
+        } else if user_lower.contains("commit") || user_lower.contains("push") {
+            tool_calls.push(ToolCall {
+                id: format!("call_0_{}", ts),
+                r#type: "function".to_string(),
+                function: FunctionCall {
+                    name: terminal_tool_name.to_string(),
+                    arguments: json!({"command": "git status"}).to_string(),
+                },
+            });
+        } else if user_lower.contains("status") {
             tool_calls.push(ToolCall {
                 id: format!("call_0_{}", ts),
                 r#type: "function".to_string(),
@@ -358,14 +349,17 @@ pub fn generate_response_tokens(req: &ChatCompletionRequest) -> (String, Vec<Too
     } else {
         // Conversational / Geometric AI Reasoning Path
         let reply = if user_lower.contains("hello") || user_lower.contains("hi") || user_lower.trim() == "yo" {
-            "Hello! I am the UOR-R4 Sovereign AI native engine. How can I assist your workflow today?".to_string()
+            "Hello! I am the Hermes AI assistant powered by the UOR-R4 Native Sovereign Engine. How can I help you today?".to_string()
         } else if user_lower.contains("2 + 2") || user_lower.contains("2+2") {
-            "2 + 2 equals 4.".to_string()
-        } else if user_lower.contains("uor-r4") || user_lower.contains("geometric") || user_lower.contains("what is") {
+            "2 + 2 = 4.".to_string()
+        } else if user_lower.contains("who are you") || user_lower.contains("what are you") {
+            "I am Hermes, an autonomous AI pair programmer powered by the sovereign UOR-R4 native Rust geometric engine.".to_string()
+        } else if user_lower.contains("uor-r4") || user_lower.contains("geometric") {
             "UOR-R4 is a sovereign geometric cognitive architecture combining 8D Gosset E8 lattice representations, Hopf fibration phase telemetry, and native SIMD tensor computing for ultra-fast, zero-overhead neural reasoning.".to_string()
         } else {
             format!(
-                "UOR-R4 Native Rust Engine response for model [{}]: I have processed your input through the 8D E8 lattice manifold. Let me know if you would like me to execute any tools, inspect files, or run tests.",
+                "I understand: \"{}\". I am running on the pure native Rust engine [{}]. Let me know if you would like me to explain a concept, write code, or execute any commands.",
+                last_user_message.trim(),
                 req.model
             )
         };
@@ -373,6 +367,7 @@ pub fn generate_response_tokens(req: &ChatCompletionRequest) -> (String, Vec<Too
         (reply, Vec::new())
     }
 }
+
 
 // =====================================================================
 // Route Handlers
