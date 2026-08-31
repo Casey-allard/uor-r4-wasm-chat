@@ -2087,6 +2087,7 @@
             let aiRow = createAiMessageElement();
             let contentDiv = aiRow.querySelector('.ai-text');
             contentDiv.classList.add('typing-cursor');
+            contentDiv.innerHTML = '<div style="display:flex; align-items:center; gap:0.5rem; color:var(--text-muted); font-size:0.84rem; padding:0.2rem 0;"><span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--accent-cyan); box-shadow:0 0 8px var(--accent-cyan);"></span><span>Thinking...</span></div>';
 
             const userMsg = { 
                 role: 'user', 
@@ -2117,6 +2118,33 @@
                 let generatedTokenCount = 0;
                 const genStartTime = performance.now();
                 let firstTokenTime = null;
+                let lastRenderTime = 0;
+                let streamRenderTimer = null;
+
+                function scheduleStreamRender(isFinal = false) {
+                    if (isFinal) {
+                        if (streamRenderTimer) clearTimeout(streamRenderTimer);
+                        contentDiv.classList.remove('typing-cursor');
+                        renderRichMarkdown(contentDiv, fullResponse);
+                        scrollDown();
+                        return;
+                    }
+                    const now = performance.now();
+                    if (now - lastRenderTime > 60) {
+                        lastRenderTime = now;
+                        if (streamRenderTimer) clearTimeout(streamRenderTimer);
+                        streamRenderTimer = null;
+                        contentDiv.innerText = fullResponse;
+                        scrollDown();
+                    } else if (!streamRenderTimer) {
+                        streamRenderTimer = setTimeout(() => {
+                            lastRenderTime = performance.now();
+                            streamRenderTimer = null;
+                            contentDiv.innerText = fullResponse;
+                            scrollDown();
+                        }, 60);
+                    }
+                }
 
                 updateSpeedMeter(null, true);
 
@@ -2160,7 +2188,7 @@
                                 ) {
                                     isStreamStopped = true;
                                     fullResponse = cleanAssistantResponse(fullResponse);
-                                    renderRichMarkdown(contentDiv, fullResponse);
+                                    scheduleStreamRender(true);
                                     return;
                                 }
 
@@ -2174,8 +2202,7 @@
                                     updateSpeedMeter(liveTps, true);
                                 }
 
-                                renderRichMarkdown(contentDiv, fullResponse);
-                                scrollDown();
+                                scheduleStreamRender(false);
 
                                 if(dynamicSession && chunk.trim().length > 1) {
                                     try {
@@ -2196,6 +2223,7 @@
                         });
 
                         fullResponse = cleanAssistantResponse(fullResponse);
+                        scheduleStreamRender(true);
 
                     } else {
                         // --- Local or Remote OpenAI-Compatible REST SSE Stream ---
@@ -2251,8 +2279,7 @@
                                             updateSpeedMeter(liveTps, true);
                                         }
 
-                                        renderRichMarkdown(contentDiv, fullResponse);
-                                        scrollDown();
+                                        scheduleStreamRender(false);
 
                                         if(dynamicSession && delta.trim().length > 1) {
                                             try {
@@ -2266,6 +2293,7 @@
                         }
 
                         fullResponse = cleanAssistantResponse(fullResponse);
+                        scheduleStreamRender(true);
                     }
 
                 } catch(err) {
@@ -2391,14 +2419,21 @@
 
         function startBrainVisualizer() {
             const canvas = document.getElementById('brainCanvas');
+            if (!canvas) return;
             const ctx = canvas.getContext('2d');
             let t = 0;
 
             function resize() {
-                canvas.width = canvas.parentElement.clientWidth * window.devicePixelRatio;
-                canvas.height = canvas.parentElement.clientHeight * window.devicePixelRatio;
+                const parent = canvas.parentElement;
+                const pw = parent ? parent.clientWidth : 0;
+                const ph = parent ? parent.clientHeight : 0;
+                canvas.width = (pw > 0 ? pw : 380) * (window.devicePixelRatio || 1);
+                canvas.height = (ph > 0 ? ph : 380) * (window.devicePixelRatio || 1);
             }
             window.addEventListener('resize', resize);
+            if (canvas.parentElement && window.ResizeObserver) {
+                new ResizeObserver(resize).observe(canvas.parentElement);
+            }
             resize();
 
             const numNodes = 48;
@@ -2432,6 +2467,10 @@
 
                 const width = canvas.width;
                 const height = canvas.height;
+                if (width === 0 || height === 0) {
+                    requestAnimationFrame(render);
+                    return;
+                }
                 const cx = width / 2;
                 const cy = height / 2;
                 const scale = Math.min(width, height) * 0.46;
@@ -2568,26 +2607,29 @@
 
                 requestAnimationFrame(render);
             }
-
-            render();
+            requestAnimationFrame(render);
         }
 
         function startWaveformVisualizer() {
             const canvas = document.getElementById('waveCanvas');
+            if (!canvas) return;
             const ctx = canvas.getContext('2d');
-            let phase = 0;
+            let t = 0;
 
             function resize() {
-                canvas.width = canvas.parentElement.clientWidth * window.devicePixelRatio;
-                canvas.height = canvas.parentElement.clientHeight * window.devicePixelRatio;
+                const parent = canvas.parentElement;
+                const pw = parent ? parent.clientWidth : 0;
+                const ph = parent ? parent.clientHeight : 0;
+                canvas.width = (pw > 0 ? pw : 340) * (window.devicePixelRatio || 1);
+                canvas.height = (ph > 0 ? ph : 70) * (window.devicePixelRatio || 1);
             }
             window.addEventListener('resize', resize);
+            if (canvas.parentElement && window.ResizeObserver) {
+                new ResizeObserver(resize).observe(canvas.parentElement);
+            }
             resize();
 
             function renderWave() {
-                phase += 0.03;
-                const width = canvas.width;
-                const height = canvas.height;
                 const cy = height / 2;
 
                 ctx.clearRect(0, 0, width, height);
