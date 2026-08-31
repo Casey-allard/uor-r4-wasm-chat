@@ -14,6 +14,7 @@ import os
 import sys
 import time
 import json
+import re
 import asyncio
 from typing import List, Optional, Dict, Any, Union
 from pydantic import BaseModel, Field
@@ -306,7 +307,7 @@ async def chat_completions(req: ChatCompletionRequest):
         if im_end_id:
             eos_token_ids.append(im_end_id)
 
-    tool_call_regex = re.compile(r'<tool_call>\s*(\{.*?\})\s*</tool_call>', re.DOTALL)
+    tool_call_regex = re.compile(r'<tool_call>\s*(\{.*?\})(?:\s*</tool_call>|$)', re.DOTALL)
 
     if req.stream:
         # Server-Sent Events (SSE) Stream Generator
