@@ -1415,7 +1415,9 @@
     <script type="module">
         import { pipeline, env, TextStreamer } from 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.3.3';
 
-        env.allowLocalModels = false;
+        env.allowLocalModels = true;
+        env.allowRemoteModels = true;
+        env.localModelPath = './models/';
         env.useBrowserCache = true;
 
         if (window.pdfjsLib) {
@@ -1425,12 +1427,14 @@
         const MODEL_INFO = {
             'qwen2.5-0.5b': {
                 name: 'Qwen 2.5 (0.5B)',
-                source: 'onnx-community/Qwen2.5-0.5B-Instruct',
+                source: './models/qwen2.5-0.5b',
+                fallback: 'onnx-community/Qwen2.5-0.5B-Instruct',
                 sysPrompt: 'You are a helpful, intelligent, and concise AI assistant. Answer directly, naturally, and conversationally. Do not include robotic self-introductions, disclaimers, or mentions of your internal substrate. Format mathematical equations using $$...$$ for display blocks and $...$ for inline terms. Stop when your answer is complete.'
             },
             'gemma4-flash': {
                 name: 'Gemma-4 (Flash)',
-                source: 'onnx-community/Qwen2.5-0.5B-Instruct',
+                source: './models/qwen2.5-0.5b',
+                fallback: 'onnx-community/Qwen2.5-0.5B-Instruct',
                 sysPrompt: 'You are a helpful, thoughtful AI assistant. Answer clearly and concisely without unnecessary self-referential preambles. Format mathematical equations using unified LaTeX $$...$$ blocks and stop when finished.'
             },
             'qwen3.8-flash-next': {
@@ -1440,7 +1444,8 @@
             },
             'glm-5.3-flash': {
                 name: 'GLM-5.3 (Flash)',
-                source: 'onnx-community/Qwen2.5-0.5B-Instruct',
+                source: './models/glm5.3-flash',
+                fallback: 'onnx-community/Qwen2.5-0.5B-Instruct',
                 sysPrompt: 'You are a helpful, intelligent, and concise AI assistant. Answer questions directly, naturally, and proportionally without robotic disclaimers, self-introductions, or mentioning internal substrates. Format equations using unified LaTeX $$...$$ blocks. Stop as soon as your answer is complete.'
             }
         };
@@ -2080,28 +2085,55 @@
             activeDevice = device;
 
             try {
-                generator = await pipeline('text-generation', model.source, {
-                    dtype: 'q4',
-                    device: device,
-                    progress_callback: (p) => {
-                        if (p.status === 'initiate') {
-                            stage.innerText = `Starting ${p.file ? p.file.slice(-18) : ''}...`;
-                        } else if (p.status === 'download') {
-                            stage.innerText = `Downloading ${p.file ? p.file.slice(-18) : ''}...`;
-                        } else if (p.status === 'progress') {
-                            const loadedPct = Math.round(p.progress || 0);
-                            bar.style.width = `${loadedPct}%`;
-                            pct.innerText = `${loadedPct}%`;
-                            if (p.loaded && p.total) {
-                                stage.innerText = `Streaming ${(p.loaded / (1024*1024)).toFixed(1)} MB / ${(p.total / (1024*1024)).toFixed(1)} MB`;
+                try {
+                    generator = await pipeline('text-generation', model.source, {
+                        dtype: 'q4',
+                        device: device,
+                        progress_callback: (p) => {
+                            if (p.status === 'initiate') {
+                                stage.innerText = `Starting ${p.file ? p.file.slice(-18) : ''}...`;
+                            } else if (p.status === 'download') {
+                                stage.innerText = `Downloading ${p.file ? p.file.slice(-18) : ''}...`;
+                            } else if (p.status === 'progress') {
+                                const loadedPct = Math.round(p.progress || 0);
+                                bar.style.width = `${loadedPct}%`;
+                                pct.innerText = `${loadedPct}%`;
+                                if (p.loaded && p.total) {
+                                    stage.innerText = `Streaming ${(p.loaded / (1024*1024)).toFixed(1)} MB / ${(p.total / (1024*1024)).toFixed(1)} MB`;
+                                }
+                            } else if (p.status === 'done') {
+                                bar.style.width = `100%`;
+                                pct.innerText = `100%`;
+                                stage.innerText = `Substrate Cached in IndexedDB`;
                             }
-                        } else if (p.status === 'done') {
-                            bar.style.width = `100%`;
-                            pct.innerText = `100%`;
-                            stage.innerText = `Substrate Cached in IndexedDB`;
                         }
+                    });
+                } catch(cdnErr) {
+                    if (model.fallback && model.fallback !== model.source) {
+                        console.warn(`CDN path ${model.source} not found, falling back to Hub ${model.fallback}:`, cdnErr);
+                        generator = await pipeline('text-generation', model.fallback, {
+                            dtype: 'q4',
+                            device: device,
+                            progress_callback: (p) => {
+                                if (p.status === 'initiate') {
+                                    stage.innerText = `Starting ${p.file ? p.file.slice(-18) : ''}...`;
+                                } else if (p.status === 'download') {
+                                    stage.innerText = `Downloading ${p.file ? p.file.slice(-18) : ''}...`;
+                                } else if (p.status === 'progress') {
+                                    const loadedPct = Math.round(p.progress || 0);
+                                    bar.style.width = `${loadedPct}%`;
+                                    pct.innerText = `${loadedPct}%`;
+                                } else if (p.status === 'done') {
+                                    bar.style.width = `100%`;
+                                    pct.innerText = `100%`;
+                                    stage.innerText = `Substrate Cached in IndexedDB`;
+                                }
+                            }
+                        });
+                    } else {
+                        throw cdnErr;
                     }
-                });
+                }
 
                 compiledModels.add(modelId);
                 activeModelId = modelId;
@@ -2149,12 +2181,23 @@
             activeDevice = device;
 
             try {
-                generator = await pipeline('text-generation', model.source, {
-                    dtype: 'q4',
-                    device: device
-                });
+                try {
+                    generator = await pipeline('text-generation', model.source, {
+                        dtype: 'q4',
+                        device: device
+                    });
+                } catch(cdnErr) {
+                    if (model.fallback && model.fallback !== model.source) {
+                        generator = await pipeline('text-generation', model.fallback, {
+                            dtype: 'q4',
+                            device: device
+                        });
+                    } else {
+                        throw cdnErr;
+                    }
+                }
                 badgeText.innerText = `${model.name} (${label})`;
-                showToast(`🚀 ${model.name} Activated from Local Storage!`);
+                showToast(`🚀 ${model.name} Activated from Storage!`);
 
                 const emptyState = document.getElementById('emptyStatePrompt');
                 if(emptyState) emptyState.remove();

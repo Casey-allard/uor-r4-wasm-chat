@@ -60,15 +60,25 @@ jobs:
         # Compiles the Rust module using wasm-bindgen target 'web' for direct browser imports
         run: wasm-pack build --target web --release --out-dir pkg
 
-      - name: Package Dashboard Bundle & Static Models
-        # Consolidates index.html, pkg/, assets/, and static models into distribution workspace
+      - name: Setup Python for Model Packaging
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Package Dashboard Bundle & Static Assets
+        # Consolidates index.html, pkg/, assets/ into distribution workspace
         run: |
           mkdir -p dist
           cp index.html dist/
           cp coi-serviceworker.js dist/ 2>/dev/null || true
           cp -r pkg dist/
           cp -r assets dist/ 2>/dev/null || true
-          cp -r models dist/ 2>/dev/null || true
+
+      - name: Download, Compile & Package Static Weights for GitHub Pages CDN
+        # Downloads quantized neural weights and generates static /v1/models endpoint
+        run: |
+          pip install huggingface_hub
+          python3 scripts/package_models.py
 
       - name: Setup GitHub Pages
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
