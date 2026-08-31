@@ -2059,7 +2059,8 @@
 
     <!-- ================= SCRIPTS & MODULES ================= -->
     <script type="module">
-        import init, { InteractiveChatSession } from './pkg/uor_r4_wasm_bridge.js';
+        let init = null;
+        let InteractiveChatSession = null;
 
         // Utility: HTML Escaper
         function escapeHtml(str) {
@@ -3667,8 +3668,7 @@
             scrollDown();
 
             // Extract code blocks and automatically load into Monaco Editor and Live Preview
-            const codeBlockMatch = fullResponse.match(/```([a-zA-Z0-9_-]*)
-([\s\S]*?)```/);
+            const codeBlockMatch = fullResponse.match(new RegExp('```([a-zA-Z0-9_-]*)[\\r\\n]+([\\s\\S]*?)```'));
             if (codeBlockMatch) {
                 let lang = (codeBlockMatch[1] || '').toLowerCase().trim();
                 let code = codeBlockMatch[2].trim();
@@ -4129,8 +4129,21 @@
 
         // --- INITIALIZATION ---
         window.addEventListener('DOMContentLoaded', async () => {
-            await init();
-            window.wasmChatSession = new InteractiveChatSession();
+            try {
+                const wasmModule = await import('./pkg/uor_r4_wasm_bridge.js').catch(() => null);
+                if (wasmModule) {
+                    init = wasmModule.default;
+                    InteractiveChatSession = wasmModule.InteractiveChatSession;
+                    if (typeof init === 'function') {
+                        await init();
+                        if (typeof InteractiveChatSession !== 'undefined') {
+                            window.wasmChatSession = new InteractiveChatSession();
+                        }
+                    }
+                }
+            } catch(wasmErr) {
+                console.warn("WASM bridge initialized in fallback mode:", wasmErr);
+            }
             initThreeVisualizer();
             initEegOscilloscope();
             initMonacoEditor();
