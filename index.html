@@ -1661,6 +1661,86 @@
             backdrop-filter: blur(20px);
             animation: fadeIn 0.2s ease-out;
         }
+
+        .editor-tabs-strip {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            overflow-x: auto;
+            max-width: 450px;
+        }
+        .editor-tab {
+            font-size: 0.72rem;
+            font-family: var(--font-mono);
+            padding: 0.25rem 0.65rem;
+            border-radius: 6px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        .editor-tab:hover {
+            color: var(--text-primary);
+            background: rgba(255,255,255,0.07);
+        }
+        .editor-tab.active {
+            color: var(--cyan-400);
+            background: rgba(0,229,255,0.08);
+            border-color: rgba(0,229,255,0.3);
+            font-weight: 600;
+        }
+        .quick-refactor-bar {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            margin-left: 0.5rem;
+        }
+        .quick-pill {
+            font-size: 0.68rem;
+            font-family: var(--font-mono);
+            padding: 0.2rem 0.5rem;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .quick-pill:hover {
+            background: rgba(0,229,255,0.12);
+            color: var(--cyan-300);
+            border-color: rgba(0,229,255,0.4);
+            transform: translateY(-1px);
+        }
+        .terminal-dock {
+            height: 160px;
+            background: #090d14;
+            border-top: 1px solid rgba(255,255,255,0.08);
+            display: flex;
+            flex-direction: column;
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+        }
+        .terminal-dock-header {
+            display: flex;
+            align-items: center;
+            padding: 0.35rem 0.85rem;
+            background: rgba(255,255,255,0.02);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            color: var(--text-muted);
+            font-size: 0.7rem;
+            justify-content: space-between;
+        }
+        .terminal-dock-body {
+            flex: 1;
+            padding: 0.5rem 0.85rem;
+            overflow-y: auto;
+            color: #4ade80;
+            line-height: 1.5;
+        }
+
     </style>
 </head>
 <body>
@@ -2899,7 +2979,87 @@
                         .hero-card { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 12px; padding: 2rem; max-width: 480px; }
                         h2 { color: #00d8ff; margin-bottom: 0.5rem; }
                         p { color: #94a3b8; font-size: 0.85rem; line-height: 1.5; }
-                    </style>
+                
+        .editor-tabs-strip {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            overflow-x: auto;
+            max-width: 450px;
+        }
+        .editor-tab {
+            font-size: 0.72rem;
+            font-family: var(--font-mono);
+            padding: 0.25rem 0.65rem;
+            border-radius: 6px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        .editor-tab:hover {
+            color: var(--text-primary);
+            background: rgba(255,255,255,0.07);
+        }
+        .editor-tab.active {
+            color: var(--cyan-400);
+            background: rgba(0,229,255,0.08);
+            border-color: rgba(0,229,255,0.3);
+            font-weight: 600;
+        }
+        .quick-refactor-bar {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            margin-left: 0.5rem;
+        }
+        .quick-pill {
+            font-size: 0.68rem;
+            font-family: var(--font-mono);
+            padding: 0.2rem 0.5rem;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .quick-pill:hover {
+            background: rgba(0,229,255,0.12);
+            color: var(--cyan-300);
+            border-color: rgba(0,229,255,0.4);
+            transform: translateY(-1px);
+        }
+        .terminal-dock {
+            height: 160px;
+            background: #090d14;
+            border-top: 1px solid rgba(255,255,255,0.08);
+            display: flex;
+            flex-direction: column;
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+        }
+        .terminal-dock-header {
+            display: flex;
+            align-items: center;
+            padding: 0.35rem 0.85rem;
+            background: rgba(255,255,255,0.02);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            color: var(--text-muted);
+            font-size: 0.7rem;
+            justify-content: space-between;
+        }
+        .terminal-dock-body {
+            flex: 1;
+            padding: 0.5rem 0.85rem;
+            overflow-y: auto;
+            color: #4ade80;
+            line-height: 1.5;
+        }
+
+    </style>
                 </head>
                 <body>
                     <div class="hero-card">
@@ -2922,7 +3082,87 @@
                         body { margin: 0; padding: 0; background: #050608; color: #fff; font-family: sans-serif; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; width: 100vw; }
                         canvas { display: block; max-width: 100%; max-height: 100%; border-radius: 8px; box-shadow: 0 0 25px rgba(0, 216, 255, 0.25); }
                         #app { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-                    </style>
+                
+        .editor-tabs-strip {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            overflow-x: auto;
+            max-width: 450px;
+        }
+        .editor-tab {
+            font-size: 0.72rem;
+            font-family: var(--font-mono);
+            padding: 0.25rem 0.65rem;
+            border-radius: 6px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        .editor-tab:hover {
+            color: var(--text-primary);
+            background: rgba(255,255,255,0.07);
+        }
+        .editor-tab.active {
+            color: var(--cyan-400);
+            background: rgba(0,229,255,0.08);
+            border-color: rgba(0,229,255,0.3);
+            font-weight: 600;
+        }
+        .quick-refactor-bar {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            margin-left: 0.5rem;
+        }
+        .quick-pill {
+            font-size: 0.68rem;
+            font-family: var(--font-mono);
+            padding: 0.2rem 0.5rem;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .quick-pill:hover {
+            background: rgba(0,229,255,0.12);
+            color: var(--cyan-300);
+            border-color: rgba(0,229,255,0.4);
+            transform: translateY(-1px);
+        }
+        .terminal-dock {
+            height: 160px;
+            background: #090d14;
+            border-top: 1px solid rgba(255,255,255,0.08);
+            display: flex;
+            flex-direction: column;
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+        }
+        .terminal-dock-header {
+            display: flex;
+            align-items: center;
+            padding: 0.35rem 0.85rem;
+            background: rgba(255,255,255,0.02);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            color: var(--text-muted);
+            font-size: 0.7rem;
+            justify-content: space-between;
+        }
+        .terminal-dock-body {
+            flex: 1;
+            padding: 0.5rem 0.85rem;
+            overflow-y: auto;
+            color: #4ade80;
+            line-height: 1.5;
+        }
+
+    </style>
                 </head>
                 <body>
                     <div id="app">
@@ -3411,6 +3651,45 @@
             if (scrollArea) scrollArea.scrollTop = scrollArea.scrollHeight;
         }
 
+        // --- UNICODE MATHEMATICAL CHARACTERS & BROKEN DERIVATION NORMALIZER ---
+        function normalizeUnicodeMathAndFractions(text) {
+            if (!text) return '';
+            let s = text;
+
+            // 1. Map Unicode Mathematical Italic & Bold alphanumeric characters to clean ASCII LaTeX
+            const unicodeMathMap = {
+                '𝑀': 'M', '𝑝': 'p', '𝑟': 'r', '𝑡': 't', '𝜃': '\\theta', '𝑜': 'o',
+                '𝑠': 's', '𝑆': 'S', '𝐿': 'L', '𝑇': 'T', '𝑊': 'W', '𝑉': 'V',
+                '𝐶': 'C', '𝐷': 'D', '𝑋': 'X', '𝐹': 'F', '𝐾': 'K', '𝑄': 'Q',
+                '𝛿': '\\delta', '𝑖': 'i', '𝑗': 'j', '𝑚': 'm', '𝑛': 'n', '𝑥': 'x',
+                '𝑦': 'y', '𝑧': 'z', '𝜑': '\\varphi', '𝜓': '\\psi', '𝜀': '\\varepsilon',
+                '𝛼': '\\alpha', '𝛽': '\\beta', '𝛾': '\\gamma', '𝜏': '\\tau', '𝜒': '\\chi',
+                '𝜈': '\\nu', '𝜇': '\\mu', '𝜌': '\\rho', '𝜎': '\\sigma', '𝜔': '\\omega',
+                'ℏ': '\\hbar', '∇': '\\nabla', 'Δ': '\\Delta', 'Ω': '\\Omega',
+                '∫': '\\int', '∑': '\\sum', '∂': '\\partial', '→': '\\to',
+                '≈': '\\approx', '≠': '\\neq', '≤': '\\le', '≥': '\\ge', '∈': '\\in'
+            };
+
+            for (const [uChar, lStr] of Object.entries(unicodeMathMap)) {
+                s = s.split(uChar).join(lStr.startsWith('\\') ? lStr : lStr);
+            }
+
+            // 2. Collapse split math lines and sub-index tokens (e.g. p\n0\np\n0 -> p_0)
+            s = s.replace(/([a-zA-Z])\s*[\r\n]+\s*([0-9]+)\s*[\r\n]+\s*\1\s*[\r\n]+\s*\2/g, '$$$1_$2$$');
+            s = s.replace(/([a-zA-Z])\s*[\r\n]+\s*([0-9]+)/g, '$$$1_$2$$');
+            s = s.replace(/([a-zA-Z])\s*\(\s*([a-zA-Z])\s*\)\s*[\r\n]+\s*\1\s*\(\s*\2\s*\)/g, '$$$1($2)$$');
+
+            // 3. Normalize fractured variable lines (e.g. r\ninitial -> r_{initial})
+            s = s.replace(/([a-zA-Z])\s*[\r\n]+\s*(initial|final|path|total|min|max|eff)/gi, '$$$1_{\\text{$2}}$$');
+
+            // 4. Remove broken LaTeX labels and non-standard commands
+            s = s.replace(/\\label[a-zA-Z0-9_:]+/gi, '');
+            s = s.replace(/\\require\s*\{[^}]*\}/gi, '');
+            s = s.replace(/\\labellleg/gi, '');
+
+            return s;
+        }
+
         // --- ROCK-SOLID LATEX & MARKDOWN RENDERING PIPELINE ---
         function sanitizeLatexMath(latex) {
             let clean = (latex || '')
@@ -3446,7 +3725,7 @@
 
         function renderRichMarkdown(targetEl, text) {
             if (!targetEl) return;
-            let cleanText = (text || '')
+            let cleanText = normalizeUnicodeMathAndFractions(text || '')
                 .replace(/<\|im_end\|>/g, '')
                 .replace(/<\|endoftext\|>/g, '')
                 .replace(/<\|im_start\|>/g, '');
@@ -3774,72 +4053,85 @@
         };
 
         function finalizeChatGeneration(genId, fullResponse, avgTps, tokenCount) {
-            let aiRow = document.getElementById(`msg_row_${genId}`);
-            if (!aiRow) {
-                aiRow = document.querySelector('.message-row.ai:last-child');
-            }
-
-            if (aiRow) {
-                const textDiv = aiRow.querySelector('.ai-text');
-                const toolbar = aiRow.querySelector('.message-action-toolbar') || document.getElementById(`streamActionToolbar_${genId}`);
-
-                const thinkingBox = aiRow.querySelector('.ai-thinking-state');
-                if (thinkingBox) thinkingBox.style.display = 'none';
-
-                if (textDiv) {
-                    textDiv.style.display = 'block';
-                    textDiv.classList.remove('typing-cursor');
-                    renderRichMarkdown(textDiv, fullResponse);
+            try {
+                let aiRow = document.getElementById(`msg_row_${genId}`);
+                if (!aiRow) {
+                    aiRow = document.querySelector('.message-row.ai:last-child');
                 }
-                if (toolbar) {
-                    toolbar.style.display = 'flex';
-                    const modelSpan = toolbar.querySelector('.model-tag-span') || toolbar.querySelector('span:last-child');
-                    if (modelSpan) {
-                        const mName = MODEL_CONFIGS[activeModelId] ? MODEL_CONFIGS[activeModelId].name : 'GLM-5.3';
-                        const countStr = tokenCount ? ` • ${tokenCount} tokens` : '';
-                        const tpsStr = avgTps ? ` • ${avgTps} tok/s` : '';
-                        modelSpan.innerText = `${mName}${countStr}${tpsStr}`;
+
+                if (aiRow) {
+                    const textDiv = aiRow.querySelector('.ai-text');
+                    const toolbar = aiRow.querySelector('.message-action-toolbar') || document.getElementById(`streamActionToolbar_${genId}`);
+
+                    const thinkingBox = aiRow.querySelector('.ai-thinking-state');
+                    if (thinkingBox) thinkingBox.style.display = 'none';
+
+                    if (textDiv) {
+                        textDiv.style.display = 'block';
+                        textDiv.classList.remove('typing-cursor');
+                        renderRichMarkdown(textDiv, fullResponse);
+                    }
+                    if (toolbar) {
+                        toolbar.style.display = 'flex';
+                        const modelSpan = toolbar.querySelector('.model-tag-span') || toolbar.querySelector('span:last-child');
+                        if (modelSpan) {
+                            const mName = MODEL_CONFIGS[activeModelId] ? MODEL_CONFIGS[activeModelId].name : 'GLM-5.3';
+                            const countStr = tokenCount ? ` • ${tokenCount} tokens` : '';
+                            const tpsStr = avgTps ? ` • ${avgTps} tok/s` : '';
+                            modelSpan.innerText = `${mName}${countStr}${tpsStr}`;
+                        }
                     }
                 }
-            }
-            scrollDown();
+                scrollDown();
 
-            // Extract code blocks and automatically load into Monaco Editor and Live Preview
-            const codeBlockMatch = fullResponse.match(new RegExp('```([a-zA-Z0-9_-]*)[\\r\\n]+([\\s\\S]*?)```'));
-            if (codeBlockMatch) {
-                let lang = (codeBlockMatch[1] || '').toLowerCase().trim();
-                let code = codeBlockMatch[2].trim();
+                // Extract code blocks and automatically load into Monaco Editor and Live Preview
+                const codeBlockMatch = fullResponse.match(new RegExp('```([a-zA-Z0-9_-]*)[\\r\\n]+([\\s\\S]*?)```'));
+                if (codeBlockMatch) {
+                    let lang = (codeBlockMatch[1] || '').toLowerCase().trim();
+                    let code = codeBlockMatch[2].trim();
 
-                if (!lang || lang === 'code') {
-                    if (code.includes('<html') || code.includes('<!DOCTYPE') || code.includes('<div') || code.includes('<canvas')) {
-                        lang = 'html';
-                    } else {
-                        lang = 'javascript';
+                    if (!lang || lang === 'code') {
+                        if (code.includes('<html') || code.includes('<!DOCTYPE') || code.includes('<div') || code.includes('<canvas')) {
+                            lang = 'html';
+                        } else {
+                            lang = 'javascript';
+                        }
                     }
+
+                    const fileName = (lang === 'html') ? 'index.html' : `app.${getExtForLang(lang)}`;
+                    
+                    openFileInMonaco(fileName, code, lang);
+                    refreshLivePreview(code, lang);
+                    showToast(`🚀 Generated ${fileName} & loaded in Live Preview!`);
                 }
 
-                const fileName = (lang === 'html') ? 'index.html' : `app.${getExtForLang(lang)}`;
-                
-                openFileInMonaco(fileName, code, lang);
-                refreshLivePreview(code, lang);
-                showToast(`🚀 Generated ${fileName} & loaded in Live Preview!`);
-            }
+                const tpsEl = document.getElementById('eegTpsMeter');
+                if (tpsEl) tpsEl.innerText = `${avgTps || '9.5'} tok/s (avg)`;
 
-            const tpsEl = document.getElementById('eegTpsMeter');
-            if (tpsEl) tpsEl.innerText = `${avgTps || '9.5'} tok/s (avg)`;
+                const curConv = conversations.find(c => c.id === currentConversationId);
+                if (curConv) {
+                    curConv.messages.push({
+                        id: genId,
+                        role: 'ai',
+                        content: fullResponse,
+                        tokenCount: tokenCount || 0,
+                        avgTps: avgTps || 0,
+                        timestamp: Date.now()
+                    });
+                    savePersistentState();
+                }
+            } catch(err) {
+                console.error("Error finalizing chat generation:", err);
+            } finally {
+                // Guaranteed unfreeze of the UI and prompt input
+                isGenerating = false;
+                const sendBtn = document.getElementById('btnSendChat');
+                if (sendBtn) sendBtn.disabled = false;
+                setEegRestingState();
 
-            const curConv = conversations.find(c => c.id === currentConvId);
-            if (curConv) {
-                curConv.messages.push({ role: 'assistant', content: fullResponse });
-                savePersistentState();
-            }
-
-            isGenerating = false;
-            document.getElementById('btnSendChat').disabled = false;
-            setEegRestingState();
-
-            if (modelWorker) {
-                modelWorker.postMessage({ action: 'get_storage_status' });
+                if (modelWorker) {
+                    modelWorker.postMessage({ action: 'get_storage_status' });
+                }
             }
         }
 
