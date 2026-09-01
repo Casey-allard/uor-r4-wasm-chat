@@ -3754,11 +3754,15 @@
             // 2. Normalize Unicode Math & fractured variable lines ONLY on non-code prose
             let cleanText = normalizeUnicodeMathAndFractions(raw);
 
-            // 3. Shield Block Math ($$...$$, \begin{aligned}...\end{aligned}, \[...\])
+            // 3. Unescape escaped dollar signs and LaTeX parenthesis delimiters
+            cleanText = cleanText.replace(/\\\$/g, '$');
+            cleanText = cleanText.replace(/\\\(/g, '$').replace(/\\\)/g, '$');
+            cleanText = cleanText.replace(/\\\[/g, '$$$$').replace(/\\\]/g, '$$$$');
+
+            // 4. Shield Block Math ($$...$$, \begin{aligned}...\end{aligned})
             const mathBlocks = [];
             cleanText = cleanText.replace(/^[ \t]*\[\s*(\\[a-zA-Z]+|[a-zA-Z0-9_]+[ \t]*=)(.*?)(?:\]|\n\n|$)/gm, '\n\n$$$$ $1$2 $$$$\n\n');
             cleanText = cleanText.replace(/^[ \t]*([a-zA-Z0-9_\{\}]+\s*=\s*\\[a-zA-Z]+[\s\S]*?)$/gm, '\n\n$$$$ $1 $$$$\n\n');
-            cleanText = cleanText.replace(/\\\[([\s\S]*?)\\\]/g, '\n\n$$$$$1$$$$\n\n');
             cleanText = cleanText.replace(/\\begin\{(aligned|align\*?|equation\*?|gather\*?|matrix|pmatrix|bmatrix)\}([\s\S]*?)\\end\{\1\}/g, '\n\n$$$$ \\begin{$1}$2\\end{$1} $$$$\n\n');
             
             cleanText = cleanText.replace(/\$\$([\s\S]*?)\$\$/g, (match, mathContent) => {
@@ -3766,14 +3770,13 @@
                 return `QQQMATHBLOCK${mathBlocks.length - 1}QQQ`;
             });
 
-            // 4. Shield Inline Math ($...$, \(...\))
-            cleanText = cleanText.replace(/\\\(([\s\S]*?)\\\)/g, '$$$1$$');
+            // 5. Shield Inline Math ($...$)
             cleanText = cleanText.replace(/\$([^$\n\r]+)\$/g, (match, mathContent) => {
                 mathBlocks.push({ content: sanitizeLatexMath(mathContent), isBlock: false });
                 return `QQQMATHINLINE${mathBlocks.length - 1}QQQ`;
             });
 
-            // 5. Parse non-math Markdown via Marked
+            // 6. Parse non-math Markdown via Marked
             let parsedHtml = cleanText;
             if (typeof marked !== 'undefined') {
                 try {
@@ -3783,7 +3786,7 @@
                 }
             }
 
-            // 6. Restore Math using direct KaTeX rendering (immune to markdown italics/underscore bugs)
+            // 7. Restore Math using direct KaTeX rendering (immune to markdown italics/underscore bugs)
             parsedHtml = parsedHtml.replace(/QQQMATHBLOCK(\d+)QQQ/g, (match, idx) => {
                 const item = mathBlocks[parseInt(idx, 10)];
                 if (!item) return match;
@@ -3810,7 +3813,7 @@
                 return `$${item.content}$`;
             });
 
-            // 7. Restore Code Blocks via Marked for beautiful syntax highlighting
+            // 8. Restore Code Blocks via Marked for beautiful syntax highlighting
             parsedHtml = parsedHtml.replace(/QQQCODEBLOCK(\d+)QQQ/g, (match, idx) => {
                 const codeRaw = codeBlocks[parseInt(idx, 10)];
                 if (!codeRaw) return match;
