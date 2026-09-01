@@ -2613,6 +2613,26 @@
         }
         window.getLangForExt = getLangForExt;
 
+        function updateGitWorktreeStatusUI() {
+            const count = window.modifiedWorktreeFiles ? window.modifiedWorktreeFiles.size : 0;
+            const badge = document.getElementById('gitStatusBadge');
+            const ind = document.getElementById('gitStatusIndicator');
+            const txt = document.getElementById('gitStatusText');
+            const btnPush = document.getElementById('btnGitCommitPush');
+
+            if (count > 0) {
+                if (badge) { badge.className = 'git-status-badge modified'; }
+                if (ind) ind.innerText = '🟡';
+                if (txt) txt.innerText = `${count} modified`;
+                if (btnPush) btnPush.style.display = 'inline-flex';
+            } else {
+                if (badge) { badge.className = 'git-status-badge clean'; }
+                if (ind) ind.innerText = '🟢';
+                if (txt) txt.innerText = 'Clean';
+            }
+        }
+        window.updateGitWorktreeStatusUI = updateGitWorktreeStatusUI;
+
         window.switchEditorTab = function(fileName) {
             if (!window.workspaceFiles[fileName]) {
                 window.workspaceFiles[fileName] = { content: '// New File\n', lang: getLangForExt(fileName) };
@@ -3514,25 +3534,6 @@
                 showToast(`Failed to read ${item.name}: ${e.message}`);
             }
         };
-
-        function updateGitWorktreeStatusUI() {
-            const count = modifiedWorktreeFiles.size;
-            const badge = document.getElementById('gitStatusBadge');
-            const ind = document.getElementById('gitStatusIndicator');
-            const txt = document.getElementById('gitStatusText');
-            const btnPush = document.getElementById('btnGitCommitPush');
-
-            if (count > 0) {
-                if (badge) { badge.className = 'git-status-badge modified'; }
-                if (ind) ind.innerText = '🟡';
-                if (txt) txt.innerText = `${count} modified`;
-                if (btnPush) btnPush.style.display = 'inline-flex';
-            } else {
-                if (badge) { badge.className = 'git-status-badge clean'; }
-                if (ind) ind.innerText = '🟢';
-                if (txt) txt.innerText = 'Clean';
-            }
-        }
 
         window.openCommitPushModal = function() {
             if (!githubToken || !activeRepo) {
