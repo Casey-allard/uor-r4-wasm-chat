@@ -1,6 +1,6 @@
 // =====================================================================
 // UOR-R4 SOVEREIGN IN-BROWSER MODEL WORKER (Web Worker)
-// Multi-Threaded WASM SIMD & WebGPU Inference with Repo-Hosted Priority
+// Strict Single-Pipeline RAM Management & Multi-Threaded WASM/WebGPU
 // =====================================================================
 
 import { pipeline, env, TextStreamer } from 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.3.3';
@@ -10,7 +10,7 @@ env.allowRemoteModels = true;
 env.useBrowserCache = true;
 
 if (env.backends && env.backends.onnx && env.backends.onnx.wasm) {
-    env.backends.onnx.wasm.numThreads = Math.min(8, (typeof navigator !== 'undefined' && navigator.hardwareConcurrency) ? navigator.hardwareConcurrency : 4);
+    env.backends.onnx.wasm.numThreads = Math.min(4, (typeof navigator !== 'undefined' && navigator.hardwareConcurrency) ? Math.floor(navigator.hardwareConcurrency / 2) : 2);
     env.backends.onnx.wasm.simd = true;
 }
 
@@ -44,7 +44,9 @@ const MODEL_REGISTRY = {
     }
 };
 
-const loadedPipelines = {};
+// Strict single active pipeline to guarantee memory safety (<400MB RAM total)
+let activePipeline = null;
+let activeModelId = null;
 let isGenerating = false;
 
 async function getStorageEstimate() {
@@ -64,8 +66,12 @@ async function getStorageEstimate() {
 }
 
 async function purgeAllCaches() {
-    for (const k in loadedPipelines) {
-        delete loadedPipelines[k];
+    if (activePipeline) {
+        if (activePipeline.model && activePipeline.model.dispose) {
+            try { await activePipeline.model.dispose(); } catch(e) {}
+        }
+        activePipeline = null;
+        activeModelId = null;
     }
     if ('caches' in self) {
         const keys = await caches.keys();
@@ -106,7 +112,19 @@ async function resolveModelSource(modelId) {
 }
 
 async function getOrLoadPipeline(modelId, onProgress) {
-    if (loadedPipelines[modelId]) return loadedPipelines[modelId];
+    if (activePipeline && activeModelId === modelId) {
+        return activePipeline;
+    }
+
+    // Explicitly dispose and clean previous pipeline to prevent RAM overflow
+    if (activePipeline) {
+        console.log(`Disposing active pipeline (${activeModelId}) to free application memory...`);
+        if (activePipeline.model && activePipeline.model.dispose) {
+            try { await activePipeline.model.dispose(); } catch(e) {}
+        }
+        activePipeline = null;
+        activeModelId = null;
+    }
 
     const { source, isLocal, dtype, device: preferredDevice, model } = await resolveModelSource(modelId);
 
@@ -127,7 +145,8 @@ async function getOrLoadPipeline(modelId, onProgress) {
             }
         });
 
-        loadedPipelines[modelId] = pipe;
+        activePipeline = pipe;
+        activeModelId = modelId;
         return pipe;
     } catch(err) {
         console.warn(`Pipeline load error on ${device}:`, err);
@@ -140,7 +159,8 @@ async function getOrLoadPipeline(modelId, onProgress) {
                     if (onProgress) onProgress(p);
                 }
             });
-            loadedPipelines[modelId] = pipe;
+            activePipeline = pipe;
+            activeModelId = modelId;
             return pipe;
         }
         throw err;
@@ -203,8 +223,8 @@ self.onmessage = async function(e) {
                     text: '✓ Neural Substrate Ready. Streaming tokens...'
                 });
 
-                // Sanitize input messages
-                const cleanMessages = messages.map(m => ({
+                // Sanitize input messages & keep last 8 to keep KV cache memory footprint tiny
+                const cleanMessages = messages.slice(-8).map(m => ({
                     role: m.role,
                     content: (m.content || '')
                         .replace(/<\|im_start\|>/g, '')
@@ -238,7 +258,7 @@ self.onmessage = async function(e) {
                 });
 
                 const out = await pipe(cleanMessages, {
-                    max_new_tokens: options.max_new_tokens || 512,
+                    max_new_tokens: Math.min(options.max_new_tokens || 384, 512),
                     temperature: options.temperature || 0.7,
                     top_p: options.top_p || 0.9,
                     streamer: streamer

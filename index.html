@@ -1030,7 +1030,33 @@
             margin-left: 1px;
         }
 
+
+        .input-model-dropdown-wrapper {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+        }
         .input-model-dropdown-menu {
+            position: absolute;
+            bottom: calc(100% + 8px);
+            left: 0;
+            min-width: 240px;
+            background: rgba(14, 17, 26, 0.98);
+            border: 1px solid rgba(0, 243, 255, 0.35);
+            border-radius: 8px;
+            box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.8), 0 0 15px rgba(0, 243, 255, 0.15);
+            padding: 0.35rem;
+            display: none;
+            flex-direction: column;
+            gap: 0.25rem;
+            z-index: 1000;
+            backdrop-filter: blur(20px);
+        }
+        .input-model-dropdown-menu.show {
+            display: flex !important;
+        }
+
+        .input-model-dropdown-menu-legacy {
             position: absolute;
             bottom: calc(100% + 8px);
             left: 0;
