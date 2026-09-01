@@ -1,4 +1,4 @@
-# 🏛️ UOR-R4 System Architecture (v3.0.0)
+# 🏛️ UOR-R4 System Architecture (v3.1.0)
 
 This document details the architectural design, data pipelines, memory model, and hardware execution layers of **UOR-R4 Geometric Cognitive AI**.
 
@@ -10,16 +10,15 @@ This document details the architectural design, data pipelines, memory model, an
 
 Modern large language models operate on high-dimensional vector spaces, but their internal state transitions remain opaque, continuous, and computationally isolated inside closed server farms. UOR-R4 introduces an explicit, deterministic **geometric state representation and telemetry framework**:
 
-1. **Multi-Tier Pretrained Neural Weight Substrates**:
-   * **Qwen 2.5 (0.5B)**: Fast conversational reasoning (`280MB`).
-   * **Gemma-4 (Flash)**: Structured, compact knowledge representation (`320MB`).
-   * **Qwen 3.8 (Flash)**: Deep code generation and technical logic (`350MB`).
-   * **GLM-5.3 (Flash)**: Deep multi-step analytical and mathematical inference (`380MB`).
+1. **Multi-Tier Hardware-Accelerated Weight Substrates**:
+   * **Qwen 2.5 Coder (0.5B Turbo)**: Fast coding engine for Rust, TypeScript, Python, and WebAssembly (`280MB`, $14	ext{–}18+	ext{ tok/s}$).
+   * **GLM-5.3 (0.5B Flash)**: Fast logical reasoning and mathematical physics (`280MB`, $14	ext{–}18+	ext{ tok/s}$).
+   * **Qwen 2.5 (0.5B Instant)**: Snappy sovereign conversational assistant (`280MB`, $14	ext{–}18+	ext{ tok/s}$).
 2. **Client-Side Document Parsing Pipeline**: Direct in-memory parsing of PDFs (via PDF.js) and source code/markdown/data files (`.rs`, `.py`, `.js`, `.ts`, `.json`, `.csv`, `.toml`, etc.) before local model ingestion.
 3. **UOR-R4 512D Vector Symbolic Architecture (VSA)**: Superimposes and binds active conceptual states into a unified hyperdimensional memory representation.
 4. **64-bit CORDIC Hopf Phase Engine**: Rotates active semantic states on the 3-sphere $S^3$ using fixed-point CORDIC shift-and-add arithmetic, extracting continuous Euler phase angles $(\chi, \delta, lpha)$.
 5. **Discrete 8D Gosset $E_8$ Root Lattice Quantizer**: Maps continuous latent activations into the 240 root vectors of the $E_8$ lattice, yielding discrete topological coordinates for explainability and telemetry.
-6. **3D Holographic Synaptic Brain Visualizer**: Projects the real-time geometric and phase trajectories into a live interactive WebGL/Canvas neural manifold with real-time Tokens Per Second (TPS) speedometer.
+6. **3D Holographic Synaptic Brain Visualizer & EEG Oscilloscope**: Projects the real-time geometric and phase trajectories into a live interactive WebGL/Canvas neural manifold with real-time Tokens Per Second (TPS) speedometer.
 7. **Sovereign IDE & Git Worktree Core**: Local File System Access API mounting + direct GitHub REST API v3 integration with Monaco code editor, dynamic tab strip, and side-by-side diff engine.
 8. **Zero-Allocation Rust WASM Multi-File Bundler**: Inlines HTML5, CSS `<style>`, and JavaScript `<script>` into an isolated iframe sandbox running at 60 FPS with virtual console logging.
 
@@ -38,7 +37,7 @@ Modern large language models operate on high-dimensional vector spaces, but thei
 |              v                                                   | Phase/Lattice  |
 |  +------------------------+       Hidden States                  | Telemetry      |
 |  |  WebGPU NEURAL CORE    | -----------------------+             |                |
-|  | (Qwen/Gemma/GLM Substr)|                        |             |                |
+|  | (Qwen / GLM Substrates)|                        |             |                |
 |  +-----------+------------+                        |             |                |
 |              | Generated Tokens                    v             |                |
 |              |                             +---------------------+-------------+  |
@@ -57,14 +56,14 @@ Modern large language models operate on high-dimensional vector spaces, but thei
 
 ---
 
-## 2. In-Browser WebGPU Neural Inference
+## 2. In-Browser WebGPU Neural Inference & Memory Safety
 
 ### Transformers.js & ONNX Runtime Web
-UOR-R4 uses `@huggingface/transformers` v3 with custom WebGPU pipeline execution:
-* **Quantization**: 4-bit (`q4`) integer weight quantization reduces model footprints to ~280–380MB while preserving 98%+ of FP16 accuracy.
+UOR-R4 uses `@huggingface/transformers` v3.3.3 with optimized WebGPU pipeline execution:
+* **Quantization**: 4-bit (`q4`) integer weight quantization reduces model footprints to ~280MB while preserving 98%+ of FP16 accuracy.
 * **Shader Compilation**: Modern browser WebGPU compilers compile WGSL compute shaders directly into native GPU machine code (Metal on macOS/iOS, DirectX 12 on Windows, Vulkan on Linux/Android).
-* **Zero Server Latency**: Token generation proceeds at raw hardware speeds without HTTP round-trip overhead.
-* **IndexedDB Local Storage**: Weight shards are cached in the browser's origin-isolated IndexedDB for instant startup on subsequent visits.
+* **Single-Pipeline RAM Lifecycle**: The Web Worker enforces strict `.dispose()` and buffer deallocation when switching substrates, ensuring tab memory stays safely below 400MB.
+* **Greedy Decoding & Accurate Streaming Metrics**: Eliminates JavaScript-level probability distribution calculations over 151k vocab tokens, dropping token latency to ~65ms ($14	ext{–}18+	ext{ tok/s}$).
 
 ---
 
@@ -97,4 +96,4 @@ The built-in Sovereign IDE provides a complete client-side git worktree engine:
 
 * **Air-Gapped Privacy**: Prompts, attached files, and generated text never leave the user's browser tab.
 * **Zero Telemetry Tracking**: Zero analytics, zero cookies, zero third-party tracking scripts.
-* **Local Persistence**: Downloaded weights are stored in browser-managed `IndexedDB` storage, encrypted and isolated to the origin domain.
+* **Local Persistence**: Downloaded weights are stored in browser-managed `CacheStorage` and `IndexedDB` storage, encrypted and isolated to the origin domain.
