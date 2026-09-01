@@ -14,13 +14,6 @@ if (env.backends && env.backends.onnx && env.backends.onnx.wasm) {
 }
 
 const MODEL_REGISTRY = {
-    'qwen3-1.7b': {
-        id: 'qwen3-1.7b',
-        name: 'Qwen 3 (1.7B SOTA Flagship)',
-        source: 'onnx-community/Qwen3-1.7B-ONNX',
-        size_mb: 1100,
-        dtype: 'q4f16'
-    },
     'qwen2.5-coder-1.5b': {
         id: 'qwen2.5-coder-1.5b',
         name: 'Qwen 2.5 Coder (1.5B Flagship)',
@@ -35,11 +28,11 @@ const MODEL_REGISTRY = {
         size_mb: 980,
         dtype: 'q4f16'
     },
-    'qwen3-0.6b': {
-        id: 'qwen3-0.6b',
-        name: 'Qwen 3 Flash (0.6B Ultra-Fast)',
-        source: 'onnx-community/Qwen3-0.6B-ONNX',
-        size_mb: 380,
+    'llama3.2-1b': {
+        id: 'llama3.2-1b',
+        name: 'Llama 3.2 (1B Instruct)',
+        source: 'onnx-community/Llama-3.2-1B-Instruct-ONNX',
+        size_mb: 750,
         dtype: 'q4f16'
     },
     'glm5.3-flash': {
@@ -256,38 +249,52 @@ self.onmessage = async function(e) {
     }
 };
 
+let lastProgressPostTime = 0;
+let lastProgressPct = -1;
+
 function handleProgressCallback(p, id, targetModelId) {
+    if (!p) return;
+    const now = Date.now();
+    
     if (p.status === 'initiate') {
         self.postMessage({
             action: 'compile_stage',
             id,
             modelId: targetModelId,
-            stage: 'initiate',
-            progress: 2,
-            text: `Connecting to Hugging Face for ${p.file || 'model files'}...`,
+            stage: 'downloading',
+            progress: 1,
+            text: `📥 Connecting to Hugging Face for ${p.file || 'model components'}...`,
             file: p.file
         });
-    } else if (p.status === 'progress') {
-        const pct = Math.min(99, Math.round(p.progress || 0));
-        const loadedMB = ((p.loaded || 0) / (1024 * 1024)).toFixed(1);
-        const totalMB = ((p.total || 280 * 1024 * 1024) / (1024 * 1024)).toFixed(1);
+        return;
+    } 
+    
+    if (p.status === 'progress') {
+        const pct = Math.min(99, Math.round(p.progress || ((p.loaded / (p.total || 1)) * 100)));
         
-        let text = `📥 Downloading ${p.file || 'ONNX weights'} (${pct}% • ${loadedMB}MB / ${totalMB}MB)`;
-        if (pct >= 99) {
-            text = `⚡ Compiling ONNX execution graph & allocating WebGPU/WASM tensors...`;
-        }
+        // Throttle progress updates to at most once per 80ms or on percentage tick
+        if (pct !== lastProgressPct && (now - lastProgressPostTime > 80 || pct === 100 || pct === 0)) {
+            lastProgressPostTime = now;
+            lastProgressPct = pct;
+            
+            const loadedMB = ((p.loaded || 0) / (1024 * 1024)).toFixed(1);
+            const totalMB = p.total ? ((p.total) / (1024 * 1024)).toFixed(1) : null;
+            
+            let text = `📥 Downloading ${p.file || 'weights'} • ${pct}%`;
+            if (totalMB) {
+                text += ` (${loadedMB}MB / ${totalMB}MB)`;
+            }
 
-        self.postMessage({
-            action: 'compile_stage',
-            id,
-            modelId: targetModelId,
-            stage: pct >= 99 ? 'compiling' : 'downloading',
-            progress: pct,
-            loadedMB,
-            totalMB,
-            text: text,
-            file: p.file
-        });
+            self.postMessage({
+                action: 'compile_stage',
+                id,
+                modelId: targetModelId,
+                stage: 'downloading',
+                progress: pct,
+                text: text,
+                file: p.file
+            });
+        }
     } else if (p.status === 'done') {
         self.postMessage({
             action: 'compile_stage',
@@ -295,7 +302,7 @@ function handleProgressCallback(p, id, targetModelId) {
             modelId: targetModelId,
             stage: 'compiling',
             progress: 99,
-            text: `⚡ Allocating WebGPU/WASM tensors & building ONNX execution graph...`,
+            text: `⚡ Compiling ONNX execution graph & WebGPU shaders (99%)...`,
             file: p.file
         });
     } else if (p.status === 'ready') {
@@ -305,7 +312,7 @@ function handleProgressCallback(p, id, targetModelId) {
             modelId: targetModelId,
             stage: 'ready',
             progress: 100,
-            text: `✓ Model Substrate Compiled & Active in Memory`
+            text: `⚡ Neural substrate ready.`
         });
     }
 }

@@ -2091,19 +2091,63 @@
                             <!-- IN-PROMPT MODEL SELECTOR -->
                             <div class="input-model-selector-wrapper" id="inputModelSelectorWrapper">
                                 <button type="button" class="input-model-pill-btn" onclick="toggleInputModelDropdown(event)" title="Select Neural Model">
-                                    <span id="inputActiveModelIcon">⚡</span>
-                                    <span id="inputActiveModelName">Qwen 3 (1.7B)</span>
+                                    <span id="inputActiveModelIcon">💻</span>
+                                    <span id="inputActiveModelName">Qwen 2.5 Coder</span>
                                     <span class="pill-arrow">▼</span>
                                 </button>
                                 
                                 <div class="input-model-dropdown-menu" id="inputModelDropdownMenu">
-                                    <div class="input-model-opt active" id="opt-qwen3-1.7b" onclick="selectModelFromInput('qwen3-1.7b')">
+                                    <div class="input-model-opt active" id="opt-qwen2.5-coder-1.5b" onclick="selectModelFromInput('qwen2.5-coder-1.5b')">
                                         <div class="opt-left">
-                                            <span class="opt-icon">⚡</span>
+                                            <span class="opt-icon">💻</span>
                                             <div class="opt-info">
-                                                <span class="opt-name">Qwen 3 (1.7B)</span>
-                                                <span class="opt-tier">Newest SOTA Flagship (~1.1GB)</span>
+                                                <span class="opt-name">Qwen 2.5 Coder</span>
+                                                <span class="opt-tier">1.5B Code Specialist (~980MB)</span>
                                             </div>
+                                        </div>
+                                        <span class="opt-check" id="check-qwen2.5-coder-1.5b">✓</span>
+                                    </div>
+                                    <div class="input-model-opt" id="opt-deepseek-r1-1.5b" onclick="selectModelFromInput('deepseek-r1-1.5b')">
+                                        <div class="opt-left">
+                                            <span class="opt-icon">🧬</span>
+                                            <div class="opt-info">
+                                                <span class="opt-name">DeepSeek R1</span>
+                                                <span class="opt-tier">1.5B Reasoning CoT (~980MB)</span>
+                                            </div>
+                                        </div>
+                                        <span class="opt-check" id="check-deepseek-r1-1.5b" style="display:none;">✓</span>
+                                    </div>
+                                    <div class="input-model-opt" id="opt-llama3.2-1b" onclick="selectModelFromInput('llama3.2-1b')">
+                                        <div class="opt-left">
+                                            <span class="opt-icon">🦙</span>
+                                            <div class="opt-info">
+                                                <span class="opt-name">Llama 3.2 (1B)</span>
+                                                <span class="opt-tier">1B Meta SOTA (~750MB)</span>
+                                            </div>
+                                        </div>
+                                        <span class="opt-check" id="check-llama3.2-1b" style="display:none;">✓</span>
+                                    </div>
+                                    <div class="input-model-opt" id="opt-glm5.3-flash" onclick="selectModelFromInput('glm5.3-flash')">
+                                        <div class="opt-left">
+                                            <span class="opt-icon">📐</span>
+                                            <div class="opt-info">
+                                                <span class="opt-name">GLM-5.3</span>
+                                                <span class="opt-tier">0.5B Fast Logic (~280MB)</span>
+                                            </div>
+                                        </div>
+                                        <span class="opt-check" id="check-glm5.3-flash" style="display:none;">✓</span>
+                                    </div>
+                                    <div class="input-model-opt" id="opt-qwen2.5-0.5b" onclick="selectModelFromInput('qwen2.5-0.5b')">
+                                        <div class="opt-left">
+                                            <span class="opt-icon">💬</span>
+                                            <div class="opt-info">
+                                                <span class="opt-name">Qwen 2.5</span>
+                                                <span class="opt-tier">0.5B Instant (~280MB)</span>
+                                            </div>
+                                        </div>
+                                        <span class="opt-check" id="check-qwen2.5-0.5b" style="display:none;">✓</span>
+                                    </div>
+                                </div>
                                         </div>
                                         <span class="opt-check" id="check-qwen3-1.7b">✓</span>
                                     </div>
@@ -2582,17 +2626,6 @@
             marked.use({ renderer: renderer });
         }        // --- MODEL DEFINITIONS ---
         window.MODEL_CONFIGS = {
-            'qwen3-1.7b': {
-                id: 'qwen3-1.7b',
-                name: 'Qwen 3 (1.7B)',
-                fullName: 'Qwen 3 (1.7B SOTA Flagship)',
-                icon: '⚡',
-                source: 'onnx-community/Qwen3-1.7B-ONNX',
-                size_mb: 1100,
-                tier: '1.7B SOTA Flagship',
-                dtype: 'q4f16',
-                desc: 'Brand new SOTA Qwen 3 architecture. Maximum reasoning & multilingual capability with 25-32 tok/s WebGPU speed.'
-            },
             'qwen2.5-coder-1.5b': {
                 id: 'qwen2.5-coder-1.5b',
                 name: 'Qwen 2.5 Coder',
@@ -2615,16 +2648,16 @@
                 dtype: 'q4f16',
                 desc: 'DeepSeek R1 reasoning model with autonomous multi-step Chain-of-Thought (<think>) reflection.'
             },
-            'qwen3-0.6b': {
-                id: 'qwen3-0.6b',
-                name: 'Qwen 3 Flash',
-                fullName: 'Qwen 3 Flash (0.6B Ultra-Fast)',
-                icon: '⚡',
-                source: 'onnx-community/Qwen3-0.6B-ONNX',
-                size_mb: 380,
-                tier: '0.6B Ultra-Fast',
+            'llama3.2-1b': {
+                id: 'llama3.2-1b',
+                name: 'Llama 3.2 (1B)',
+                fullName: 'Llama 3.2 (1B Instruct)',
+                icon: '🦙',
+                source: 'onnx-community/Llama-3.2-1B-Instruct-ONNX',
+                size_mb: 750,
+                tier: '1B Fast SOTA',
                 dtype: 'q4f16',
-                desc: 'Brand new Qwen 3 compact architecture. Blazing 50+ tok/s generation speed on any device.'
+                desc: 'Meta Llama 3.2 instruction-tuned model. Exceptionally fast, balanced reasoning on WebGPU.'
             },
             'glm5.3-flash': {
                 id: 'glm5.3-flash',
@@ -2651,7 +2684,7 @@
         };
 
         // --- STATE ---
-        window.activeModelId = localStorage.getItem('uor_active_model') || 'qwen3-1.7b';
+        window.activeModelId = localStorage.getItem('uor_active_model') || 'qwen2.5-coder-1.5b';
         if (!MODEL_CONFIGS[window.activeModelId]) {
             window.activeModelId = 'glm5.3-flash';
         }
