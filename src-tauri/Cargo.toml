@@ -1,6 +1,6 @@
 [package]
 name = "uor-r4-sovereign-studio"
-version = "2.0.0"
+version = "3.0.0"
 description = "UOR-R4 Sovereign AI Developer Studio - Desktop Edition"
 edition = "2021"
 default-run = "uor-r4-sovereign-studio"

@@ -1,4 +1,4 @@
-# 📚 UOR-R4 API Reference (v2.0.0)
+# 📚 UOR-R4 API Reference (v3.0.0)
 
 This document provides the complete API specifications, usage guides, and data structures for the **UOR-R4 Rust WebAssembly Engine** and **JavaScript WebGPU Bridge**.
 

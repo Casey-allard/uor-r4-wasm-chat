@@ -25,7 +25,7 @@ from fastapi.responses import StreamingResponse, JSONResponse
 # Initialize FastAPI App
 app = FastAPI(
     title="UOR-R4 Sovereign AI API Server",
-    version="2.0.0",
+    version="3.0.0",
     description="OpenAI-Compatible REST API Server for UOR-R4 Neural Substrates & Geometric Cognitive Telemetry"
 )
 
@@ -143,7 +143,7 @@ def health_check():
     return {
         "status": "healthy",
         "engine": "UOR-R4 Geometric Cognitive AI API",
-        "version": "2.0.0",
+        "version": "3.0.0",
         "models_count": len(MODELS_CATALOG)
     }
 

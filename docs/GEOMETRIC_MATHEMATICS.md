@@ -1,4 +1,4 @@
-# 📐 Geometric Mathematics in UOR-R4 (v2.0.0)
+# 📐 Geometric Mathematics in UOR-R4 (v3.0.0)
 
 This document details the formal mathematical principles, theorems, and algorithmic implementations underpinning the geometric state representations, CORDIC rotations, and $E_8$ lattice quantization in UOR-R4.
 

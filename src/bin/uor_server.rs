@@ -445,7 +445,7 @@ pub async fn health_handler() -> impl IntoResponse {
     Json(json!({
         "status": "healthy",
         "engine": "UOR-R4 Native Rust Core",
-        "version": "2.0.0",
+        "version": "3.0.0",
         "runtime": "pure-rust",
         "timestamp": current_timestamp()
     }))
@@ -713,7 +713,7 @@ pub async fn chat_completions_handler(
 pub async fn api_status_handler() -> impl IntoResponse {
     let mut headers = HeaderMap::new();
     headers.insert("x-hermes-desktop-contract", HeaderValue::from_static("6"));
-    headers.insert("x-hermes-version", HeaderValue::from_static("2.0.0-uor4-rust"));
+    headers.insert("x-hermes-version", HeaderValue::from_static("3.0.0-uor4-rust"));
     (headers, Json(json!({
         "status": "ready",
         "connected": true,
@@ -725,7 +725,7 @@ pub async fn api_status_handler() -> impl IntoResponse {
         "engine": "uor-r4-rust",
         "desktop_contract": 6,
         "contract": 6,
-        "version": "2.0.0-uor4-rust",
+        "version": "3.0.0-uor4-rust",
         "model": "uor-r4-geometric",
         "provider": "uor-rust",
         "authenticated": true,
@@ -1433,7 +1433,7 @@ async fn handle_socket(mut socket: WebSocket, state: Arc<AppState>) {
                                 "provider_configured": true,
                                 "installed": true,
                                 "engine": "uor-r4-rust",
-                                "version": "2.0.0",
+                                "version": "3.0.0",
                                 "model": "uor-r4-geometric",
                                 "provider": "uor-rust",
                                 "desktop_contract": 6,

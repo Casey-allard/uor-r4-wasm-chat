@@ -2,11 +2,11 @@
 
 ![UOR-R4 Hero Banner](assets/images/hero_banner.jpg)
 
-# 🌐 UOR-R4 Geometric Cognitive AI (v2.0.0)
+# 🌐 UOR-R4 Geometric Cognitive AI (v3.0.0)
 ### *The 100% Sovereign In-Browser AI Studio • High-Dimensional Geometric Substrates • Native Git Worktree & Live Monaco IDE*
 
 [![Live Demo](https://img.shields.io/badge/🌐_Live_App-GitHub_Pages-00f3ff?style=for-the-badge&logo=googlechrome&logoColor=white)](https://casey-allard.github.io/uor-r4-wasm-chat/)
-[![Release v2.0.0](https://img.shields.io/github/v/release/Casey-allard/uor-r4-wasm-chat?style=for-the-badge&color=8A2BE2&label=Release)](https://github.com/Casey-allard/uor-r4-wasm-chat/releases/tag/v2.0.0)
+[![Release v3.0.0](https://img.shields.io/github/v/release/Casey-allard/uor-r4-wasm-chat?style=for-the-badge&color=8A2BE2&label=Release)](https://github.com/Casey-allard/uor-r4-wasm-chat/releases/tag/v3.0.0)
 [![CI/CD](https://img.shields.io/github/actions/workflow/status/Casey-allard/uor-r4-wasm-chat/deploy.yml?branch=main&style=for-the-badge&label=WASM%20Build%20%26%20Deploy)](https://github.com/Casey-allard/uor-r4-wasm-chat/actions)
 [![Rust](https://img.shields.io/badge/Rust-2021_Edition-orange?style=for-the-badge&logo=rust)](https://www.rust-lang.org/)
 [![WebGPU](https://img.shields.io/badge/WebGPU-Hardware_Accelerated-green?style=for-the-badge&logo=webgpu)](https://www.w3.org/TR/webgpu/)

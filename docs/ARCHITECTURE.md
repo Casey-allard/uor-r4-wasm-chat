@@ -1,4 +1,4 @@
-# 🏛️ UOR-R4 System Architecture (v2.0.0)
+# 🏛️ UOR-R4 System Architecture (v3.0.0)
 
 This document details the architectural design, data pipelines, memory model, and hardware execution layers of **UOR-R4 Geometric Cognitive AI**.
 
