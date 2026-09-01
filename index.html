@@ -2097,12 +2097,32 @@
                                 </button>
                                 
                                 <div class="input-model-dropdown-menu" id="inputModelDropdownMenu">
+                                    <div class="input-model-opt" id="opt-qwen2.5-coder-1.5b" onclick="selectModelFromInput('qwen2.5-coder-1.5b')">
+                                        <div class="opt-left">
+                                            <span class="opt-icon">💻</span>
+                                            <div class="opt-info">
+                                                <span class="opt-name">Qwen 2.5 Coder</span>
+                                                <span class="opt-tier">1.5B SOTA Flagship (~980MB)</span>
+                                            </div>
+                                        </div>
+                                        <span class="opt-check" id="check-qwen2.5-coder-1.5b" style="display:none;">✓</span>
+                                    </div>
+                                    <div class="input-model-opt" id="opt-deepseek-r1-1.5b" onclick="selectModelFromInput('deepseek-r1-1.5b')">
+                                        <div class="opt-left">
+                                            <span class="opt-icon">🧬</span>
+                                            <div class="opt-info">
+                                                <span class="opt-name">DeepSeek R1</span>
+                                                <span class="opt-tier">1.5B Reasoning CoT (~980MB)</span>
+                                            </div>
+                                        </div>
+                                        <span class="opt-check" id="check-deepseek-r1-1.5b" style="display:none;">✓</span>
+                                    </div>
                                     <div class="input-model-opt active" id="opt-glm5.3-flash" onclick="selectModelFromInput('glm5.3-flash')">
                                         <div class="opt-left">
                                             <span class="opt-icon">📐</span>
                                             <div class="opt-info">
                                                 <span class="opt-name">GLM-5.3</span>
-                                                <span class="opt-tier">SOTA Logic 0.5B</span>
+                                                <span class="opt-tier">0.5B Fast Logic (~280MB)</span>
                                             </div>
                                         </div>
                                         <span class="opt-check" id="check-glm5.3-flash">✓</span>
@@ -2112,7 +2132,7 @@
                                             <span class="opt-icon">💬</span>
                                             <div class="opt-info">
                                                 <span class="opt-name">Qwen 2.5</span>
-                                                <span class="opt-tier">0.5B Instruct</span>
+                                                <span class="opt-tier">0.5B Instant (~280MB)</span>
                                             </div>
                                         </div>
                                         <span class="opt-check" id="check-qwen2.5-0.5b" style="display:none;">✓</span>
@@ -2542,27 +2562,49 @@
             marked.use({ renderer: renderer });
         }        // --- MODEL DEFINITIONS ---
         window.MODEL_CONFIGS = {
+            'qwen2.5-coder-1.5b': {
+                id: 'qwen2.5-coder-1.5b',
+                name: 'Qwen 2.5 Coder',
+                fullName: 'Qwen 2.5 Coder (1.5B SOTA Flagship)',
+                icon: '💻',
+                source: 'onnx-community/Qwen2.5-Coder-1.5B-Instruct',
+                size_mb: 980,
+                tier: '1.5B SOTA Flagship',
+                dtype: 'q4f16',
+                desc: 'SOTA 1.5B code generation, mathematical analysis, and complex multi-file engineering model. 25–35 tok/s on WebGPU.'
+            },
+            'deepseek-r1-1.5b': {
+                id: 'deepseek-r1-1.5b',
+                name: 'DeepSeek R1',
+                fullName: 'DeepSeek R1 (1.5B Reasoning)',
+                icon: '🧬',
+                source: 'onnx-community/DeepSeek-R1-Distill-Qwen-1.5B-ONNX',
+                size_mb: 980,
+                tier: '1.5B Chain-of-Thought',
+                dtype: 'q4f16',
+                desc: 'DeepSeek R1 reasoning model with autonomous multi-step Chain-of-Thought (<think>) reflection.'
+            },
             'glm5.3-flash': {
                 id: 'glm5.3-flash',
                 name: 'GLM-5.3',
-                fullName: 'GLM-5.3 (SOTA Logic 0.5B)',
+                fullName: 'GLM-5.3 (Flash 0.5B)',
                 icon: '📐',
                 source: 'onnx-community/Qwen2.5-0.5B-Instruct',
                 size_mb: 280,
-                tier: 'SOTA Logic',
+                tier: '0.5B Fast Logic',
                 dtype: 'q4',
-                desc: 'Flagship instruction-tuned neural model paired with 512D Gosset lattice geometric attention.'
+                desc: 'Ultra-fast, lightweight neural substrate for quick conversational tasks on any device.'
             },
             'qwen2.5-0.5b': {
                 id: 'qwen2.5-0.5b',
                 name: 'Qwen 2.5',
-                fullName: 'Qwen 2.5 (0.5B Instruct)',
+                fullName: 'Qwen 2.5 (0.5B Instant)',
                 icon: '💬',
                 source: 'onnx-community/Qwen2.5-0.5B-Instruct',
                 size_mb: 280,
-                tier: 'General Dialogue',
+                tier: '0.5B Lightweight',
                 dtype: 'q4',
-                desc: 'Fast, compact instruction-tuned model for general multi-turn reasoning and dialogue.'
+                desc: 'Fast, compact instruction-tuned model for instant responses on mobile and low-power devices.'
             }
         };
 
@@ -3903,7 +3945,7 @@
             if (nameEl) nameEl.innerText = meta.name;
             if (iconEl) iconEl.innerText = meta.icon;
 
-            ['glm5.3-flash', 'qwen2.5-0.5b'].forEach(id => {
+            Object.keys(MODEL_CONFIGS).forEach(id => {
                 const opt = document.getElementById(`opt-${id}`);
                 const chk = document.getElementById(`check-${id}`);
                 if (opt) opt.classList.toggle('active', id === modelId);
@@ -3932,7 +3974,7 @@
             if (nameEl) nameEl.innerText = meta.name;
             if (iconEl) iconEl.innerText = meta.icon;
 
-            ['glm5.3-flash', 'qwen2.5-0.5b'].forEach(id => {
+            Object.keys(MODEL_CONFIGS).forEach(id => {
                 const opt = document.getElementById(`opt-${id}`);
                 const chk = document.getElementById(`check-${id}`);
                 if (opt) opt.classList.toggle('active', id === activeModelId);

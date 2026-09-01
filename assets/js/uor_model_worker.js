@@ -14,6 +14,20 @@ if (env.backends && env.backends.onnx && env.backends.onnx.wasm) {
 }
 
 const MODEL_REGISTRY = {
+    'qwen2.5-coder-1.5b': {
+        id: 'qwen2.5-coder-1.5b',
+        name: 'Qwen 2.5 Coder (1.5B Flagship)',
+        source: 'onnx-community/Qwen2.5-Coder-1.5B-Instruct',
+        size_mb: 980,
+        dtype: 'q4f16'
+    },
+    'deepseek-r1-1.5b': {
+        id: 'deepseek-r1-1.5b',
+        name: 'DeepSeek R1 (1.5B Reasoning)',
+        source: 'onnx-community/DeepSeek-R1-Distill-Qwen-1.5B-ONNX',
+        size_mb: 980,
+        dtype: 'q4f16'
+    },
     'glm5.3-flash': {
         id: 'glm5.3-flash',
         name: 'GLM-5.3 (SOTA Logic 0.5B)',
