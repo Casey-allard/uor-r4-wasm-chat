@@ -1834,6 +1834,103 @@
             color: #000;
         }
 
+
+        /* WEB SEARCH & KNOWLEDGE GROUNDING */
+        .input-tool-pill-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.22rem 0.55rem;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 9999px;
+            color: var(--text-muted);
+            font-size: 0.72rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+            user-select: none;
+        }
+        .input-tool-pill-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.2);
+            color: var(--text-main);
+        }
+        .input-tool-pill-btn.active {
+            background: rgba(0, 243, 255, 0.12);
+            border-color: rgba(0, 243, 255, 0.4);
+            color: var(--accent-cyan);
+            box-shadow: 0 0 12px rgba(0, 243, 255, 0.2);
+        }
+        .searching-web-banner {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 0.85rem;
+            background: rgba(0, 243, 255, 0.08);
+            border: 1px solid rgba(0, 243, 255, 0.25);
+            border-radius: 8px;
+            font-size: 0.75rem;
+            color: var(--accent-cyan);
+            margin: 0.5rem 0;
+            animation: pulseSearch 1.5s infinite alternate;
+        }
+        @keyframes pulseSearch {
+            from { opacity: 0.7; transform: translateY(0); }
+            to { opacity: 1.0; transform: translateY(-1px); }
+        }
+        .web-sources-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.45rem;
+            margin-top: 0.75rem;
+            padding-top: 0.6rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.07);
+        }
+        .web-sources-title {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .web-source-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.2rem 0.5rem;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.09);
+            border-radius: 6px;
+            color: var(--text-main);
+            font-size: 0.7rem;
+            text-decoration: none;
+            transition: all 0.15s ease;
+            max-width: 240px;
+        }
+        .web-source-chip:hover {
+            background: rgba(0, 243, 255, 0.08);
+            border-color: rgba(0, 243, 255, 0.3);
+            color: var(--accent-cyan);
+            transform: translateY(-1px);
+        }
+        .source-index {
+            color: var(--accent-cyan);
+            font-weight: 700;
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+        }
+        .source-title-text {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .source-domain-tag {
+            font-size: 0.6rem;
+            color: var(--text-muted);
+        }
+
     </style>
 </head>
 <body>
@@ -1984,6 +2081,12 @@
                                 📎
                             </button>
                             <input type="file" id="fileUploadInput" multiple style="display:none;" onchange="handleFileUpload(this.files)">
+
+                            <!-- WEB SEARCH TOGGLE -->
+                            <button type="button" class="input-tool-pill-btn active" id="btnToggleWebSearch" onclick="toggleWebSearch()" title="Toggle Web Search & Knowledge Grounding (Wikipedia & Live Web)">
+                                <span id="webSearchIcon">🌐</span>
+                                <span id="webSearchLabel">Search</span>
+                            </button>
                             
                             <!-- IN-PROMPT MODEL SELECTOR -->
                             <div class="input-model-selector-wrapper" id="inputModelSelectorWrapper">
@@ -4388,6 +4491,86 @@
             }
         };
 
+
+        // ================= 🌐 LIVE WEB SEARCH & GROUNDING ENGINE =================
+        window.isWebSearchActive = localStorage.getItem('uor_web_search') !== 'false'; // default ON
+
+        window.toggleWebSearch = function() {
+            window.isWebSearchActive = !window.isWebSearchActive;
+            localStorage.setItem('uor_web_search', window.isWebSearchActive ? 'true' : 'false');
+            updateWebSearchBtnUI();
+            showToast(window.isWebSearchActive ? "🌐 Web Search & Knowledge Grounding: ENABLED" : "🌐 Web Search: DISABLED");
+        };
+
+        function updateWebSearchBtnUI() {
+            const btn = document.getElementById('btnToggleWebSearch');
+            if (!btn) return;
+            if (window.isWebSearchActive) {
+                btn.classList.add('active');
+                btn.innerHTML = `<span id="webSearchIcon">🌐</span> <span>Search</span>`;
+            } else {
+                btn.classList.remove('active');
+                btn.innerHTML = `<span id="webSearchIcon" style="opacity:0.5;">🌐</span> <span style="opacity:0.5;">Search</span>`;
+            }
+        }
+        window.updateWebSearchBtnUI = updateWebSearchBtnUI;
+
+        async function fetchLiveWebKnowledge(query) {
+            const sources = [];
+            const cleanQuery = query.replace(/[^a-zA-Z0-9\s-]/g, ' ').trim().slice(0, 100);
+            if (!cleanQuery) return { text: '', sources: [] };
+
+            try {
+                // 1. Wikipedia Full-Text Search API (100% CORS-friendly)
+                const wikiUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(cleanQuery)}&utf8=&format=json&origin=*`;
+                const wikiRes = await fetch(wikiUrl);
+                const wikiData = await wikiRes.json();
+                
+                if (wikiData?.query?.search?.length > 0) {
+                    const topHits = wikiData.query.search.slice(0, 3);
+                    for (const hit of topHits) {
+                        const snippetClean = hit.snippet.replace(/<[^>]*>?/gm, '').trim();
+                        sources.push({
+                            title: hit.title,
+                            snippet: snippetClean,
+                            url: `https://en.wikipedia.org/wiki/${encodeURIComponent(hit.title.replace(/ /g, '_'))}`,
+                            domain: 'en.wikipedia.org'
+                        });
+                    }
+                }
+            } catch (e) {
+                console.warn("Wikipedia search failed:", e);
+            }
+
+            // 2. DuckDuckGo Instant Answer API fallback
+            try {
+                const ddgUrl = `https://api.duckduckgo.com/?q=${encodeURIComponent(cleanQuery)}&format=json&origin=*`;
+                const ddgRes = await fetch(ddgUrl);
+                const ddgData = await ddgRes.json();
+                if (ddgData.AbstractText) {
+                    sources.push({
+                        title: ddgData.Heading || cleanQuery,
+                        snippet: ddgData.AbstractText,
+                        url: ddgData.AbstractURL || ('https://duckduckgo.com/?q=' + encodeURIComponent(cleanQuery)),
+                        domain: 'duckduckgo.com'
+                    });
+                }
+            } catch (e) {}
+
+            if (sources.length === 0) {
+                return { text: '', sources: [] };
+            }
+
+            let groundingContext = `\n\n--- 🌐 Live Web Search Grounding (${sources.length} sources) ---\n`;
+            sources.forEach((src, idx) => {
+                groundingContext += `[Source ${idx + 1}]: "${src.title}" (${src.url})\nSummary: ${src.snippet}\n\n`;
+            });
+            groundingContext += `Instructions for model: Incorporate these live facts where appropriate. You may reference them with inline citation markers like [1], [2].\n`;
+
+            return { text: groundingContext, sources };
+        }
+        window.fetchLiveWebKnowledge = fetchLiveWebKnowledge;
+
         window.sendChat = async function() {
             if (isGenerating) return;
             const input = document.getElementById('chatInput');
@@ -4441,6 +4624,30 @@
             isGenerating = true;
             document.getElementById('btnSendChat').disabled = true;
 
+            let activeWebSources = [];
+            if (window.isWebSearchActive && userPrompt.length > 3) {
+                const searchBanner = document.createElement('div');
+                searchBanner.className = 'searching-web-banner';
+                searchBanner.id = 'searchingWebBanner';
+                searchBanner.innerHTML = `<span>🔍</span> Searching Wikipedia & Live Web for "${escapeHtml(userPrompt.slice(0, 40))}"...`;
+                container.appendChild(searchBanner);
+                chatScrollArea.scrollTop = chatScrollArea.scrollHeight;
+
+                try {
+                    const searchRes = await fetchLiveWebKnowledge(userPrompt);
+                    if (searchRes.sources && searchRes.sources.length > 0) {
+                        activeWebSources = searchRes.sources;
+                        window.lastActiveWebSources = searchRes.sources;
+                        fullContext += searchRes.text;
+                    }
+                } catch(e) {
+                    console.warn("Live web search failed:", e);
+                } finally {
+                    const banner = document.getElementById('searchingWebBanner');
+                    if (banner) banner.remove();
+                }
+            }
+
             if (wasmChatSession) {
                 try {
                     const geoResJson = wasmChatSession.process_input_run(userPrompt);
@@ -4449,9 +4656,13 @@
                 } catch(e) {}
             }
 
+            let systemPromptText = 'You are a helpful, direct, and conversational AI assistant. Answer all questions naturally, concisely, and thoughtfully. When asked to write code or programs, provide complete, runnable code with inline styles and scripts inside markdown code blocks (```html or ```javascript). Never start responses with repetitive self-referential preambles.';
+            if (activeWebSources.length > 0) {
+                systemPromptText += ' Use the provided live web search results to accurately ground your answer with up-to-date facts, citing sources as [1], [2], etc.';
+            }
             const systemMsg = {
                 role: 'system',
-                content: 'You are a helpful, direct, and conversational AI assistant. Answer all questions naturally, concisely, and thoughtfully. When asked to write code or programs, provide complete, runnable code with inline styles and scripts inside markdown code blocks (```html or ```javascript). Never start responses with repetitive self-referential preambles.'
+                content: systemPromptText
             };
 
             // Keep recent history laser-focused (last 3 messages) and truncate heavy code blocks to prevent CPU prefill lag
