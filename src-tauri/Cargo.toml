@@ -1,26 +1,19 @@
 [package]
-name = "uor-hermes-desktop"
+name = "uor-r4-sovereign-studio"
 version = "2.0.0"
-description = "UOR-R4 Sovereign AI & Hermes Studio Native Desktop App"
+description = "UOR-R4 Sovereign AI Developer Studio - Desktop Edition"
 edition = "2021"
-
-[lib]
-name = "uor_hermes_desktop_lib"
-crate-type = ["rlib"]
+default-run = "uor-r4-sovereign-studio"
 
 [build-dependencies]
-tauri-build = { version = "2.0.0", features = [] }
+tauri-build = { version = "2.0", features = [] }
 
 [dependencies]
-tauri = { version = "2.0.0", features = [] }
+tauri = { version = "2.0", features = [] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 tokio = { version = "1", features = ["full"] }
-axum = { version = "0.7", features = ["macros", "ws"] }
-tower-http = { version = "0.5", features = ["cors", "trace", "fs"] }
-tower = "0.4"
-regex = "1.10"
-futures = "0.3"
-async-stream = "0.3"
-chrono = "0.4"
-uor_r4_wasm_bridge = { path = ".." }
+
+[features]
+default = ["custom-protocol"]
+custom-protocol = ["tauri/custom-protocol"]
