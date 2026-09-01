@@ -2105,8 +2105,8 @@
                 <span id="storageSummaryLabel" style="font-family:var(--font-mono); color:var(--accent-emerald);">Active</span>
             </div>
             <div style="display:flex; justify-content:space-between; align-items:center; margin-top:2px;">
-                <span id="browserCacheUsageLabel" style="font-size:0.62rem; color:var(--text-muted);">Cache: Calculating...</span>
-                <button class="icon-btn" style="font-size:0.62rem; color:var(--accent-cyan); padding:1px 4px;" onclick="purgeBrowserModelCache()" title="Clear browser model cache and free storage">🧹 Clean Cache</button>
+                <span id="browserCacheUsageLabel" style="font-size:0.62rem; color:var(--text-muted); cursor:pointer;" onclick="openModelManagerModal()">Storage: Calculating...</span>
+                <button class="icon-btn" style="font-size:0.62rem; color:var(--accent-cyan); padding:1px 4px;" onclick="openModelManagerModal()" title="Manage Sovereign Neural Substrates">⚙️ Manage Models</button>
             </div>
             <div style="font-size:0.6rem; color:var(--text-muted); margin-top:2px;">Web Worker • WebGPU/WASM • GitHub Pages</div>
         </div>
@@ -2145,6 +2145,15 @@
             </div>
 
             <div class="nav-right">
+                <!-- DETACHED BACKGROUND COMPILE PILL -->
+                <div class="detached-compile-pill" id="detachedCompilePill" style="display:none;" onclick="openModelManagerModal()" title="View Detached Substrate Compilation Details">
+                    <span class="pulse-dot"></span>
+                    <span id="detachedCompileText">📥 Compiling (0%)</span>
+                    <div class="detached-mini-progress">
+                        <div class="detached-mini-progress-fill" id="detachedMiniProgressFill"></div>
+                    </div>
+                </div>
+
                 <button class="btn-github-auth" id="btnGithubAuth" onclick="openGithubModal()">
                     <span>🐙</span>
                     <span id="githubAuthLabel">Connect GitHub</span>
