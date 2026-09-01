@@ -3413,7 +3413,7 @@
 
         // --- ROCK-SOLID LATEX & MARKDOWN RENDERING PIPELINE ---
         function sanitizeLatexMath(latex) {
-            return latex
+            let clean = (latex || '')
                 .replace(/\\label\s*\{[^}]*\}/gi, '')
                 .replace(/\\label[a-zA-Z0-9_:]+/gi, '')
                 .replace(/\\require\s*\{[^}]*\}/gi, '')
@@ -3423,8 +3423,25 @@
                 .replace(/\\\s+&/g, '\\\\ &')
                 .replace(/\\mathcal\s*\{([a-zA-Z0-9]+)\}\s*\{([a-zA-Z0-9]+)\}/g, '\\mathcal{$1}_{$2}')
                 .replace(/\\mathbb\s*\{([a-zA-Z0-9]+)\}\s*\{([a-zA-Z0-9]+)\}/g, '\\mathbb{$1}_{$2}')
+                .replace(/^[ \t]*\[\s*/, '')
+                .replace(/\s*\][ \t]*$/, '')
                 .replace(/\$+/g, '')
                 .trim();
+
+            let openBraces = (clean.match(/\{/g) || []).length;
+            let closeBraces = (clean.match(/\}/g) || []).length;
+            while (openBraces > closeBraces) {
+                clean += '}';
+                closeBraces++;
+            }
+            while (closeBraces > openBraces) {
+                const lastIdx = clean.lastIndexOf('}');
+                if (lastIdx !== -1) {
+                    clean = clean.substring(0, lastIdx) + clean.substring(lastIdx + 1);
+                }
+                closeBraces--;
+            }
+            return clean;
         }
 
         function renderRichMarkdown(targetEl, text) {
@@ -3442,7 +3459,7 @@
             });
 
             // 2. Normalize naked bracket math and display LaTeX
-            cleanText = cleanText.replace(/^[ \t]*\[\s*([a-zA-Z0-9_\\\+\-\=\(\)\^\/\{\}\s\*\,\.\;\:]+?)\s*\]?[ \t]*$/gm, '\n\n$$$$ $1 $$$$\n\n');
+            cleanText = cleanText.replace(/^[ \t]*\[\s*([\\a-zA-Z0-9_\+\-\=\(\)\^\/\{\}\s\*\,\.\;\:\|\<\>]+?)\s*\]?[ \t]*$/gm, '\n\n$$$$ $1 $$$$\n\n');
             cleanText = cleanText.replace(/^[ \t]*([a-zA-Z0-9_\{\}]+\s*=\s*\\[a-zA-Z]+[\s\S]*?)$/gm, '\n\n$$$$ $1 $$$$\n\n');
             cleanText = cleanText.replace(/\\\[([\s\S]*?)\\\]/g, '\n\n$$$$$1$$$$\n\n');
             cleanText = cleanText.replace(/\\begin\{(aligned|align\*?|equation\*?|gather\*?|matrix|pmatrix|bmatrix)\}([\s\S]*?)\\end\{\1\}/g, '\n\n$$$$ \\begin{$1}$2\\end{$1} $$$$\n\n');
