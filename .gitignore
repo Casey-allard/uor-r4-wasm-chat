@@ -9,3 +9,5 @@ server/.venv/
 hermes-agent/
 .hermes/
 models/
+
+*.app/

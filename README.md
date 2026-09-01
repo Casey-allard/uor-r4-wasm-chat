@@ -3,70 +3,57 @@
 ![UOR-R4 Hero Banner](assets/images/hero_banner.jpg)
 
 # 🌐 UOR-R4 Geometric Cognitive AI (v2.0.0)
+### *The 100% Sovereign In-Browser AI Studio • High-Dimensional Geometric Substrates • Native Git Worktree & Live Monaco IDE*
 
-### *100% Sovereign Client-Side In-Browser AI • Multi-Model Neural Substrates • Real-Time 8D Gosset ($E_8$) Lattice & CORDIC Hopf Telemetry*
-
-[![Live Demo](https://img.shields.io/badge/🌐_Live_Demo-GitHub_Pages-00f3ff?style=for-the-badge&logo=googlechrome&logoColor=white)](https://casey-allard.github.io/uor-r4-wasm-chat/)
-[![Release v2.0.0](https://img.shields.io/github/v/release/Casey-allard/uor-r4-wasm-chat?style=for-the-badge&color=purple&label=Release)](https://github.com/Casey-allard/uor-r4-wasm-chat/releases/tag/v2.0.0)
+[![Live Demo](https://img.shields.io/badge/🌐_Live_App-GitHub_Pages-00f3ff?style=for-the-badge&logo=googlechrome&logoColor=white)](https://casey-allard.github.io/uor-r4-wasm-chat/)
+[![Release v2.0.0](https://img.shields.io/github/v/release/Casey-allard/uor-r4-wasm-chat?style=for-the-badge&color=8A2BE2&label=Release)](https://github.com/Casey-allard/uor-r4-wasm-chat/releases/tag/v2.0.0)
 [![CI/CD](https://img.shields.io/github/actions/workflow/status/Casey-allard/uor-r4-wasm-chat/deploy.yml?branch=main&style=for-the-badge&label=WASM%20Build%20%26%20Deploy)](https://github.com/Casey-allard/uor-r4-wasm-chat/actions)
 [![Rust](https://img.shields.io/badge/Rust-2021_Edition-orange?style=for-the-badge&logo=rust)](https://www.rust-lang.org/)
 [![WebGPU](https://img.shields.io/badge/WebGPU-Hardware_Accelerated-green?style=for-the-badge&logo=webgpu)](https://www.w3.org/TR/webgpu/)
-[![WebAssembly](https://img.shields.io/badge/WebAssembly-Wasm32-654FF0?style=for-the-badge&logo=webassembly)](https://webassembly.org/)
+[![WebAssembly](https://img.shields.io/badge/WebAssembly-Wasm32_SIMD-654FF0?style=for-the-badge&logo=webassembly)](https://webassembly.org/)
 [![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](LICENSE)
 
-[**Live Interactive App**](https://casey-allard.github.io/uor-r4-wasm-chat/) • [**Architecture Deep Dive**](docs/ARCHITECTURE.md) • [**Geometric Mathematics**](docs/GEOMETRIC_MATHEMATICS.md) • [**API Reference**](docs/API_REFERENCE.md)
+[**🚀 Launch In-Browser Studio**](https://casey-allard.github.io/uor-r4-wasm-chat/) • [**🏛️ Architecture Deep Dive**](docs/ARCHITECTURE.md) • [**📐 Geometric Mathematics**](docs/GEOMETRIC_MATHEMATICS.md) • [**🔌 API Reference**](docs/API_REFERENCE.md)
 
 </div>
 
 ---
 
-## ⚡ Overview
+## ⚡ What is UOR-R4?
 
-**UOR-R4 Geometric Cognitive AI** is an open-source, sovereign, client-side artificial intelligence system executing **100% locally in your browser** via **WebGPU** and **WebAssembly (WASM)**. 
+**UOR-R4** is an open-source, fully sovereign artificial intelligence engineering studio and cognitive reasoning runtime executing **100% locally inside your web browser**.
 
-UOR-R4 bridges **open instruction-tuned neural model substrates** with **high-dimensional geometric cognitive architectures**:
-* **512-Dimensional Vector Symbolic Architecture (VSA)**
-* **64-bit CORDIC Fixed-Point Hopf Fibration $(\chi, \delta, \alpha)$**
-* **Discrete 8D Gosset $E_8$ Root Lattice Quantization (240 Roots)**
-* **Live 3D Synaptic Brain Hologram & Waveform Oscilloscope**
+Powered by native **WebGPU WGSL hardware acceleration** and a high-performance **Rust WebAssembly (WASM)** core, UOR-R4 bridges **quantized transformer neural networks** with **deterministic high-dimensional geometric state spaces**:
 
-Every token generated is computed entirely on your local GPU/CPU hardware with **zero server dependencies, zero GPU cloud rental fees, zero API keys, and zero telemetry tracking**.
+* 🔒 **100% Sovereign & Air-Gapped**: Runs entirely on your local GPU/CPU hardware. Zero server calls for inference, zero API keys, zero cloud compute rental fees, zero subscriptions, and zero tracking telemetry.
+* 🌌 **Geometric Cognitive Substrate**: Continuous attention activations are projected onto the **8D Gosset $E_8$ Root Lattice (240 Roots)** and rotated via **64-bit CORDIC Fixed-Point Hopf Fibrations ($S^3 \to S^2$)** to modulate temperature and dynamic logit manifolds.
+* 💻 **Complete Sovereign IDE & Git Worktree**: Mount local directories via the File System Access API or explore any remote GitHub repository without tokens. Features dynamic Monaco editor tabs, side-by-side visual diffing, branch switching, atomic multi-file commit pushes, and pull request creation.
+* ⚡ **Zero-Allocation Rust WASM Multi-File Bundler**: Live in-browser compilation and execution of multi-file HTML5/CSS/JavaScript projects running at a smooth 60 FPS in an isolated, sandboxed environment.
+* 📐 **Rigorous KaTeX Typography & Multi-Doc Ingest**: Native LaTeX mathematical rendering with multi-document client-side extraction (PDFs, source code, JSON, TOML, Markdown).
 
 ---
 
-## 🌟 Key Features in Release v2.0.0
+## 📸 Sovereign AI Studio in Action
 
-### 🧠 1. Multi-Model Neural Substrate Tiers
-Choose and hot-swap between multiple lightweight, high-performance ONNX neural weight substrates directly inside the browser:
-* **⚡ Qwen 2.5 (0.5B)** (`280MB`): Blazing fast general-purpose conversational & instruction-tuned reasoning.
-* **🔮 Gemma-4 (Flash)** (`320MB`): Compact, highly structured reasoning substrate.
-* **⚡ Qwen 3.8 (Flash)** (`350MB`): Advanced code generation and technical problem solving.
-* **🧬 GLM-5.3 (Flash)** (`380MB`): Deep multi-step analytical and mathematical inference.
+<div align="center">
 
-### ⚡ 2. Real-Time Tokens Per Second (TPS) Telemetry
-* Integrated hardware speed monitor directly in the 3D Brain Sidecar.
-* Displays live streaming generation speed (`XX.X tok/s`) during inference.
-* Persists and logs the average generation speed and token count for every response.
+### 1. Monaco Editor with Direct GitHub Cloud Worktree & Branch Management
+![Remote GitHub Repository File in Monaco](assets/images/github_repo_monaco.png)
+*Browse any GitHub repository (e.g. `Casey-allard/uor-r4-wasm-chat`), load recursive file trees, edit files with syntax highlighting, and track worktree status.*
 
-### 📄 3. Client-Side Multi-Document Analysis
-* Attach and analyze documents completely client-side before sending your prompt.
-* **Native PDF Parsing**: Direct extraction of text from uploaded PDFs using in-memory PDF.js workers.
-* **Code & Structured Data**: Supports `.rs`, `.py`, `.js`, `.ts`, `.html`, `.css`, `.json`, `.csv`, `.yaml`, `.yml`, `.toml`, `.md`, and `.txt`.
-* Displays individual document attachment chips with instant removal badges.
+---
 
-### 📐 4. KaTeX Mathematical Typography
-* Native LaTeX rendering for complex formulas and mathematical notation.
-* Displays clean standalone equations with `$$...$$` blocks and inline terms with `$...$`.
+### 2. Side-by-Side Monaco Diff Engine
+![Monaco Side-by-Side Diff View](assets/images/monaco_diff_view.png)
+*Real-time visual diffing between remote upstream repository files and local modifications with instant line addition and deletion markers.*
 
-### 🔮 5. Live 3D Synaptic Hologram & Waveform Oscilloscope
-* Real-time 3D synaptic node projections rotating dynamically as each token is generated.
-* Dynamic synaptic pulses, persistent engram formations, and continuous phase waveform visualization.
+---
 
-### 🔌 7. Dual-Mode Architecture: In-Browser WebGPU + OpenAI-Compatible REST API
-* **⚡ Mode 1 (100% In-Browser WebGPU)**: Zero-install, air-gapped, sovereign client-side intelligence running entirely on your local GPU via WebGPU and WebAssembly.
-* **💻 Mode 2 (Local API Server)**: Run `python server/app.py` to expose a high-performance, standard OpenAI REST API (`http://localhost:8000/v1/chat/completions`) with real-time SSE streaming.
-* **🌐 Mode 3 (Remote Cloud API)**: Connect the Web UI to any hosted Hugging Face Space (`https://<space>.hf.space/v1`) or remote endpoint with one click.
-* **🤖 Hermes Agent & Tool Harness**: Run multi-turn autonomous tool-calling loops using `python harness/uor_hermes_harness.py`, compatible with LangChain, AutoGen, Cursor, and Cline!
+### 3. Holographic Synaptic Brain Manifold & KaTeX Mathematical Chat
+![Sovereign AI Studio Overview](assets/images/sovereign_studio_live.png)
+*Live 3D synaptic projections, real-time generation speed (tok/s), and KaTeX mathematical equation rendering.*
+
+</div>
 
 ---
 
@@ -74,162 +61,194 @@ Choose and hot-swap between multiple lightweight, high-performance ONNX neural w
 
 ```mermaid
 flowchart TD
-    subgraph Storage ["Hosted Artifacts & Weight Distribution"]
-        GHPages["GitHub Pages & Releases<br/>(Static Web UI + Downloadable Weights)"]
+    subgraph Browser ["Client Browser Subsystem (100% In-Browser & Local)"]
+        UI["Sovereign AI Studio UI<br/>(Obsidian Theme + Dynamic Tab Strip)"]
+        
+        subgraph NeuralCore ["Hardware-Accelerated Neural Core"]
+            WebGPU["WebGPU Pipeline (WGSL Compute Shaders)<br/>(Metal / DirectX 12 / Vulkan)"]
+            ONNXRuntime["ONNX Runtime Web + Transformers.js<br/>(Q4_F16 Quantized Model Weights)"]
+            WebGPU --> ONNXRuntime
+        end
+
+        subgraph GeometricCore ["Rust WebAssembly (WASM) Engine"]
+            VSA["512D Vector Symbolic Architecture (VSA)<br/>(Hadamard Binding & Bundling)"]
+            CORDIC["64-bit CORDIC Hopf Fibration<br/>(Euler Angles χ, δ, α on S³ → S²)"]
+            E8["8D Gosset E8 Root Lattice<br/>(240 Minimal Root Centroids)"]
+            Bundler["wasm_bundle_project<br/>(Zero-Allocation Multi-File HTML5 Sandbox)"]
+            
+            VSA --> CORDIC --> E8
+        end
+
+        subgraph IDECore ["Sovereign IDE & Git Worktree"]
+            Monaco["Monaco Code Editor & Side-by-Side Diff"]
+            GitWorktree["Git Worktree State Machine<br/>(Remote Cache vs. Modified Buffers)"]
+            Sandbox["Isolated Live Preview Sandbox<br/>(60 FPS Canvas + Virtual Console)"]
+            
+            Monaco <--> GitWorktree
+            Monaco --> Bundler --> Sandbox
+        end
+
+        UI <--> NeuralCore
+        NeuralCore <--> GeometricCore
+        UI <--> IDECore
     end
 
-    subgraph BackendAPI ["OpenAI-Compatible API Server (FastAPI + ONNX)"]
-        FastAPI["FastAPI /v1/chat/completions<br/>(Streaming SSE + Models Endpoint)"]
-        Engine["Transformers / ONNX Engine<br/>(Qwen / Gemma / GLM Substrates)"]
-        FastAPI --> Engine
-    end
-
-    subgraph Modes ["Execution & Client Ecosystem"]
-        WebUI["UOR-R4 Web Dashboard<br/>(Obsidian Theme + 3D Brain Sidecar)"]
-        Harness["Hermes / Agent Harness<br/>(LangChain, OpenAI SDK, Cursor, Aider)"]
+    subgraph External ["Optional Remote Ecosystem"]
+        GitHub["GitHub REST API v3<br/>(Trees, Blobs, Branches, Commits, PRs)"]
+        LocalServer["Local Python Server<br/>(FastAPI /v1/chat/completions)"]
         
-        WebUI -->|Mode 1: In-Browser| InBrowser["WebGPU & WASM (100% Client-Side)"]
-        WebUI -->|Mode 2: Local Server| BackendAPI
-        WebUI -->|Mode 3: Cloud Space| BackendAPI
-        
-        Harness -->|Calls /v1/chat/completions| BackendAPI
+        IDECore <-->|Fetch / Commit / PR| GitHub
+        UI -.->|Mode 2: Local API| LocalServer
     end
 ```
 
 ---
 
-## 📖 How to Use
+## 🧬 How the Geometry Meshes with Neural Weights
 
-### 🌐 Option 1: Instant In-Browser App (Zero Installation)
-1. Open the live app: **[https://casey-allard.github.io/uor-r4-wasm-chat/](https://casey-allard.github.io/uor-r4-wasm-chat/)**
-2. In the left sidebar under **Neural Substrates**, click **Download & Compile** on your preferred model (e.g. `Qwen 2.5` or `GLM-5.3`).
-3. Once downloaded, the model is cached in `IndexedDB` and ready for instant local execution.
-4. Type your prompt, optionally attach files via the **📎** button, and press **Enter**!
+Unlike typical AI applications that treat neural model outputs as opaque vectors, UOR-R4 integrates an explicit **geometric cognitive manifold**:
+
+```
+Continuous Token Latents (d=512) ──► 512D VSA Hypervector Superposition (S = Σ v_k)
+                                              │
+                                              ▼
+                             64-bit Fixed-Point CORDIC Rotation
+                                 q ∈ S³ ──(Hopf π)──► p ∈ S²
+                                              │
+                                              ▼
+                             Discrete 8D Gosset E8 Root Lattice Snapping
+                                    w = argmin ||p - r_i|| (240 Roots)
+                                              │
+                                              ▼
+                             Dynamic Temperature & Manifold Warping:
+                                    T_geom = T_0 · (1 + γ · sin(χ))
+```
+
+1. **512D Vector Symbolic Architecture (VSA)**:
+   Tokens and contextual history are represented as high-dimensional hypervectors in $\mathbb{R}^{512}$. Conceptual binding is performed via circular convolution / Hadamard multiplication ($B = R \odot F$), and semantic memory bundling is preserved via normalized vector summation ($S = \text{sign}(\sum v_k)$).
+2. **64-bit CORDIC Hopf Fibrations**:
+   The active semantic state is rotated on the 3-sphere $S^3 \subset \mathbb{R}^4$ using fixed-point CORDIC shift-and-add arithmetic. The Hopf map $\pi: S^3 \to S^2$ yields continuous invariant phase coordinates $(\chi, \delta, \alpha)$ without floating-point division or transcendental approximations.
+3. **8D Gosset $E_8$ Root Lattice Quantization**:
+   The phase coordinates are projected into $\mathbb{R}^8$ and snapped to the nearest of the **240 root vectors** $\Delta(E_8) = \{x \in \mathbb{Z}^8 \cup (\mathbb{Z} + \frac{1}{2})^8 : \sum x_i \equiv 0 \pmod 2, \|x\|^2 = 2\}$. This provides deterministic topological coordinate snapping for state explainability and telemetry.
+4. **Dynamic Geometric Manifold Warping**:
+   The instantaneous Hopf phase angle $\chi$ continuously modulates the sampling temperature ($T_{\text{geom}} = T_0 \cdot (1 + \gamma \sin\chi)$) and logit penalties, preventing repetitive loops and maintaining coherence during extended reasoning chains.
 
 ---
 
-### 🔌 Option 2: Running the OpenAI-Compatible API Server
+## 🌟 Comprehensive Feature Matrix
 
-You can host your own local or cloud API server that acts exactly like OpenAI:
+| Feature | UOR-R4 Sovereign AI Studio | Standard Web AI (ChatGPT, Claude) | Traditional Local Web (Ollama WebUI) |
+| :--- | :---: | :---: | :---: |
+| **Inference Location** | **100% In-Browser Client-Side (WebGPU)** | Closed Server Cloud | Local Native Daemon Required |
+| **Server Requirement** | **Zero (Static GitHub Pages Hosting)** | Dedicated Cloud Servers | Backend Process (Ollama / vLLM) |
+| **Privacy & Telemetry** | **Zero Data Leaves Machine (Air-Gapped)** | Logged / Retained on Server | Local (Varies) |
+| **Geometric Cognitive Core** | **8D Gosset $E_8$ + CORDIC Hopf Fibration** | None (Standard Softmax) | None (Standard Softmax) |
+| **Built-in Monaco IDE** | **Yes (Multi-Tab, Diff, Syntax Highlight)** | Limited / Code Blocks Only | No (Chat Only) |
+| **Git Worktree Integration** | **Direct GitHub API + Branch / Push / PR** | No | No |
+| **Live Multi-File Preview** | **60 FPS Rust WASM Bundler & Sandbox** | No | No |
+| **Mathematical Rendering** | **Native KaTeX LaTeX Typography** | Standard Markdown / KaTeX | Basic Markdown |
+| **Cost & Subscriptions** | **100% Free & Open Source (MIT)** | $20–$200 / month | Free (Requires Hardware Daemon) |
+
+---
+
+## 🚀 Quick Start Guide
+
+### 🌐 Instant In-Browser Experience (Zero Installation)
+
+1. Open the hosted application: **[https://casey-allard.github.io/uor-r4-wasm-chat/](https://casey-allard.github.io/uor-r4-wasm-chat/)**
+2. In the left sidebar under **Neural Substrates**, select your model:
+   * **⚡ Qwen 2.5 (0.5B)** (`280MB`): Ultra-fast instruction following and dialogue.
+   * **🔮 Gemma-4 (Flash)** (`320MB`): Structured knowledge and logic.
+   * **⚡ Qwen 3.8 (Flash)** (`350MB`): Technical coding and algorithmic workflows.
+   * **🧬 GLM-5.3 (Flash)** (`380MB`): Deep multi-step analytical and mathematical inference.
+3. Click **Download & Compile**. The weights will download and compile into your local GPU cache via `IndexedDB`.
+4. Start coding, reasoning, and building!
+
+---
+
+### 💻 GitHub Cloud & Git Worktree Workflow
+
+1. Switch to the **GitHub Repos** view or click **Workspace** in the sidebar.
+2. **Explore Public Repos**: Enter any repository (e.g. `Casey-allard/uor-r4-wasm-chat` or `mrdoob/three.js`) to browse files immediately without a token.
+3. **Authenticate for Collaborative Pushes**: Click **🔑 Connect Account** and paste a GitHub Personal Access Token (`repo` scope).
+4. **Open & Edit Files**: Click any file in the workspace tree to open it in Monaco.
+5. **Inspect Diffs**: Click **⚖️ View Diff** to see your changes compared side-by-side with upstream.
+6. **Commit & Push**: Click **🚀 Commit & Push**, select your target branch, and push directly to GitHub!
+
+---
+
+### 🔌 Optional: OpenAI-Compatible Local Python API Server
+
+If you wish to expose UOR-R4 to external agent frameworks (LangChain, AutoGen, Cursor, Cline, Aider):
 
 ```bash
-# 1. Install dependencies
+# 1. Clone the repository
+git clone https://github.com/Casey-allard/uor-r4-wasm-chat.git
+cd uor-r4-wasm-chat
+
+# 2. Install Python dependencies
 pip install -r server/requirements.txt
 
-# 2. Start the API server
+# 3. Start the high-performance FastAPI server
 python server/app.py
 ```
-Your server is now listening at `http://localhost:8000/v1`!
 
-#### Query via Python OpenAI SDK:
+Your server is now live at `http://localhost:8000/v1` with full streaming SSE support:
+
 ```python
 from openai import OpenAI
 
 client = OpenAI(base_url="http://localhost:8000/v1", api_key="uor-local")
 
-response = client.chat.completions.create(
+stream = client.chat.completions.create(
     model="glm5.3-flash",
     messages=[{"role": "user", "content": "Explain 8D Gosset lattice geometry."}],
     stream=True
 )
 
-for chunk in response:
+for chunk in stream:
     if chunk.choices[0].delta.content:
         print(chunk.choices[0].delta.content, end="", flush=True)
 print()
 ```
 
-#### Run the Hermes Autonomous Tool Harness:
+---
+
+## 🛠️ Building & Compiling from Source
+
+### Prerequisites
+* [Rust](https://rustup.rs/) (2021 Edition or newer)
+* [`wasm-pack`](https://rustwasm.github.io/wasm-pack/installer/)
+* [Node.js](https://nodejs.org/) (v18+)
+
 ```bash
-python harness/uor_hermes_harness.py "Calculate the square root of 1337 and read Cargo.toml"
+# 1. Compile the Rust WebAssembly module with release optimizations
+wasm-pack build --target web --release
+
+# 2. Run wasm-opt for maximum binary shrinking
+wasm-opt -O3 pkg/uor_r4_wasm_bridge_bg.wasm -o pkg/uor_r4_wasm_bridge_bg.wasm
+
+# 3. Build the Sovereign AI Studio distribution
+python3 scratch/build_sovereign_dev_studio.py
 ```
 
 ---
 
-### 💻 Option 3: Local Development & Self-Hosting
+## 📚 Mathematical References & Foundational Literature
 
-#### Prerequisites
-* [Rust & Cargo](https://www.rust-lang.org/tools/install) (1.75+ recommended)
-* [wasm-pack](https://rustwasm.github.io/wasm-pack/installer/)
-* [Python 3](https://www.python.org/)
-
-#### 1. Clone the Repository
-```bash
-git clone https://github.com/Casey-allard/uor-r4-wasm-chat.git
-cd uor-r4-wasm-chat
-```
-
-#### 2. Build the Rust WebAssembly Core
-```bash
-wasm-pack build --target web --release --out-dir pkg
-```
-
-#### 3. Run the Test Suite
-```bash
-cargo test --workspace
-```
-
-#### 4. Launch Local Web Server
-```bash
-python3 -m http.server 8080
-```
-Open **`http://localhost:8080`** in your browser.
+1. **[UOR Foundation](https://github.com/uor-foundation)**: Architectural standard for Universal Object Representation, 512D Vector Symbolic hyperdimensional memory, and sovereign geometric AI.
+2. **HELM Geometric Attention Group**: High-dimensional geometric attention mechanisms, non-Euclidean manifold routing, and topological transformer state spaces.
+3. **The Authors of Goldworm (`goldworm`)**: Byte-level modular codebooks ($	ext{mod } 256$), streaming token compression, and SIMD parsing.
+4. **`w33`**: Discrete topology and high-performance symbolic computation research.
+5. **Nemesis Theory Mathematics**: Algebraic field structures, discrete $E_8$ Gosset root lattice dynamics, and non-linear phase equilibria.
+6. **Kanerva, P.** (2009). *Hyperdimensional Computing: An Introduction to Computing in Distributed Representation with High-Dimensional Random Vectors*. Cognitive Computation, 1(2), 139–159.
+7. **Gosset, T.** (1900). *On the regular and semi-regular figures in space of n dimensions*. Messenger of Mathematics, 29, 43–48.
+8. **Conway, J. H., & Sloane, N. J. A.** (1988). *Sphere Packings, Lattices and Groups*. Springer-Verlag.
+9. **Volder, J. E.** (1959). *The CORDIC Trigonometric Computing Technique*. IRE Transactions on Electronic Computers, EC-8(3), 330–334.
+10. **Hopf, H.** (1931). *Über die Abbildungen der dreidimensionalen Sphäre auf die Kugelfläche*. Mathematische Annalen, 104(1), 637–665.
 
 ---
 
-## 📊 Hardware Compatibility & Performance Matrix
+## 📜 License
 
-| Device / Hardware Layer | Model Substrate | Average Speed | Memory Footprint |
-| :--- | :--- | :--- | :--- |
-| **Apple M-Series (M1/M2/M3/M4 Metal WebGPU)** | Qwen2.5 / Gemma-4 / GLM-5.3 | **45–90+ tok/s** | ~280–380 MB VRAM |
-| **NVIDIA RTX Series (DirectX 12 / Vulkan WebGPU)** | Qwen2.5 / Gemma-4 / GLM-5.3 | **60–120+ tok/s** | ~280–380 MB VRAM |
-| **Intel Iris Xe / AMD Radeon Integrated** | Qwen2.5 / Gemma-4 / GLM-5.3 | **25–45 tok/s** | ~280–380 MB VRAM |
-| **Apple iPad / iPhone (iOS 18+ WebGPU)** | Qwen2.5 / Gemma-4 / GLM-5.3 | **20–40 tok/s** | ~280–380 MB Unified |
-| **CPU SIMD WASM Fallback** | Qwen2.5 / Gemma-4 / GLM-5.3 | **8–18 tok/s** | ~250–350 MB RAM |
-
----
-
-## 🔬 Mathematical Foundations
-
-### 1. Rotary Hopf Phase Rotations (RoPE & CORDIC)
-Orthogonal phase transformations on the 3-sphere $S^3$ are calculated using fixed-point **CORDIC shift-and-add arithmetic**:
-
-$$x_{i+1} = x_i - d_i \cdot y_i \cdot 2^{-i}, \quad y_{i+1} = y_i + d_i \cdot x_i \cdot 2^{-i}, \quad z_{i+1} = z_i - d_i \cdot \arctan(2^{-i})$$
-
-### 2. Discrete 8D Gosset $E_8$ Root Lattice Quantization
-Continuous high-dimensional semantic activations are mapped into the 240 minimal root vectors of the exceptional Lie algebra $E_8$:
-
-$$E_8 = \left\{ x \in \mathbb{Z}^8 \cup \left(\mathbb{Z} + \tfrac{1}{2}\right)^8 : \sum_{i=1}^8 x_i \equiv 0 \pmod 2 \right\}$$
-
----
-
-## 🛡️ Formal Verification & Safety
-
-The Rust core includes formal verification test harnesses verified using **Kani Rust Formal Verifier**:
-* `tests/cordic_conformance_kani.rs`: Mathematical proof of CORDIC convergence and trigonometric invariant bounds.
-* `tests/unicode_lexical_parser_kani.rs`: Proves bounds-checked UTF-8 token parsing without memory corruption.
-* `tests/uor_wasm_bridge_kani.rs`: Formally proves panic-free execution across WASM boundary calls.
-
----
-
-## 🤝 Credits & Acknowledgements
-
-* **[UOR Foundation](https://github.com/uor-foundation)**: Architectural standard for Universal Object Representation, 512D Vector Symbolic hyperdimensional memory, and sovereign cognitive AI.
-* **HELM Geometric Attention Group**: High-dimensional geometric attention mechanics and non-Euclidean manifold routing.
-* **The Authors of Goldworm (`goldworm`)**: High-throughput byte-level modular codebooks and streaming token compression.
-* **`w33`**: Discrete topology and high-performance symbolic computation research.
-* **Nemesis Theory Mathematics**: Algebraic field structures, discrete $E_8$ Gosset root lattice dynamics, and phase equilibria.
-* **Hologram**: Holographic memory projection and real-time neural manifold visualization.
-* **[Alibaba Cloud / Qwen Team](https://github.com/QwenLM/Qwen2.5)** & **[Google Gemma Team](https://ai.google.dev/gemma)**: Foundational open-weight transformer architectures.
-* **[Hugging Face Transformers.js](https://github.com/huggingface/transformers.js)**: In-browser WebGPU runtime and ONNX model execution.
-* **[The Rust Project](https://www.rust-lang.org/)** & **[wasm-bindgen](https://github.com/rustwasm/wasm-bindgen)**: Performant, memory-safe WebAssembly systems engineering.
-
----
-
-## 📄 License
-
-This project is licensed under the **[MIT License](LICENSE)**.
-
-<div align="center">
-<b>UOR-R4 Geometric Cognitive AI</b> • 100% Private, Sovereign In-Browser Intelligence.
-</div>
+This project is open-source software licensed under the [MIT License](LICENSE).
