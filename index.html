@@ -3739,19 +3739,23 @@
 
         function renderRichMarkdown(targetEl, text) {
             if (!targetEl) return;
-            let cleanText = normalizeUnicodeMathAndFractions(text || '')
+            let raw = (text || '')
                 .replace(/<\|im_end\|>/g, '')
                 .replace(/<\|endoftext\|>/g, '')
                 .replace(/<\|im_start\|>/g, '');
 
-            // 1. Shield Fenced and Inline Code Blocks
+            // 1. Shield Code Blocks FIRST before touching any math or text
             const codeBlocks = [];
-            cleanText = cleanText.replace(/(```[a-zA-Z0-9_-]*[\r\n]+[\s\S]*?```|`[^`\n]+`)/g, (match) => {
+            raw = raw.replace(/(```[a-zA-Z0-9_-]*[\r\n]+[\s\S]*?```|`[^`\n\r]+`)/g, (match) => {
                 codeBlocks.push(match);
-                return `ZZZSHIELDEDCODE${codeBlocks.length - 1}ZZZ`;
+                return `__CODEBLOCK__${codeBlocks.length - 1}__`;
             });
 
-            // 2. Normalize naked bracket math and display LaTeX
+            // 2. Normalize Unicode Math & fractured variable lines ONLY on non-code prose
+            let cleanText = normalizeUnicodeMathAndFractions(raw);
+
+            // 3. Shield Block Math ($$...$$, \begin{aligned}...\end{aligned}, \[...\])
+            const mathBlocks = [];
             cleanText = cleanText.replace(/^[ \t]*\[\s*(\\[a-zA-Z]+|[a-zA-Z0-9_]+[ \t]*=)(.*?)(?:\]|\n\n|$)/gm, '\n\n$$$$ $1$2 $$$$\n\n');
             cleanText = cleanText.replace(/^[ \t]*([a-zA-Z0-9_\{\}]+\s*=\s*\\[a-zA-Z]+[\s\S]*?)$/gm, '\n\n$$$$ $1 $$$$\n\n');
             cleanText = cleanText.replace(/\\\[([\s\S]*?)\\\]/g, '\n\n$$$$$1$$$$\n\n');
@@ -3759,17 +3763,17 @@
             
             cleanText = cleanText.replace(/\$\$([\s\S]*?)\$\$/g, (match, mathContent) => {
                 mathBlocks.push({ content: sanitizeLatexMath(mathContent), isBlock: true });
-                return `ZZZSHIELDEDMATHBLOCK${mathBlocks.length - 1}ZZZ`;
+                return `__MATHBLOCK__${mathBlocks.length - 1}__`;
             });
 
-            // 3. Shield Inline Math ($...$, \(...\))
+            // 4. Shield Inline Math ($...$, \(...\))
             cleanText = cleanText.replace(/\\\(([\s\S]*?)\\\)/g, '$$$1$$');
             cleanText = cleanText.replace(/\$([^$\n\r]+)\$/g, (match, mathContent) => {
                 mathBlocks.push({ content: sanitizeLatexMath(mathContent), isBlock: false });
-                return `ZZZSHIELDEDMATHINLINE${mathBlocks.length - 1}ZZZ`;
+                return `__MATHINLINE__${mathBlocks.length - 1}__`;
             });
 
-            // 4. Parse non-math Markdown via Marked
+            // 5. Parse non-math Markdown via Marked
             let parsedHtml = cleanText;
             if (typeof marked !== 'undefined') {
                 try {
@@ -3779,8 +3783,8 @@
                 }
             }
 
-            // 5. Restore Math using direct KaTeX rendering (immune to markdown italics/underscore bugs)
-            parsedHtml = parsedHtml.replace(/ZZZSHIELDEDMATHBLOCK(\d+)ZZZ/g, (match, idx) => {
+            // 6. Restore Math using direct KaTeX rendering (immune to markdown italics/underscore bugs)
+            parsedHtml = parsedHtml.replace(/__MATHBLOCK__(\d+)__/g, (match, idx) => {
                 const item = mathBlocks[parseInt(idx, 10)];
                 if (!item) return match;
                 if (typeof katex !== 'undefined') {
@@ -3793,7 +3797,7 @@
                 return `$$ ${item.content} $$`;
             });
 
-            parsedHtml = parsedHtml.replace(/ZZZSHIELDEDMATHINLINE(\d+)ZZZ/g, (match, idx) => {
+            parsedHtml = parsedHtml.replace(/__MATHINLINE__(\d+)__/g, (match, idx) => {
                 const item = mathBlocks[parseInt(idx, 10)];
                 if (!item) return match;
                 if (typeof katex !== 'undefined') {
@@ -3806,8 +3810,8 @@
                 return `$${item.content}$`;
             });
 
-            // 6. Restore Code Blocks
-            parsedHtml = parsedHtml.replace(/ZZZSHIELDEDCODE(\d+)ZZZ/g, (match, idx) => {
+            // 7. Restore Code Blocks via Marked for beautiful syntax highlighting
+            parsedHtml = parsedHtml.replace(/__CODEBLOCK__(\d+)__/g, (match, idx) => {
                 const codeRaw = codeBlocks[parseInt(idx, 10)];
                 if (!codeRaw) return match;
                 if (typeof marked !== 'undefined') {
