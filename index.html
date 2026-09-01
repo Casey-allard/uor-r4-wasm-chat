@@ -1741,6 +1741,99 @@
             line-height: 1.5;
         }
 
+
+        .git-worktree-strip {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            margin-right: 0.5rem;
+            padding-right: 0.5rem;
+            border-right: 1px solid rgba(255,255,255,0.08);
+        }
+        .git-branch-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            font-size: 0.72rem;
+            font-family: var(--font-mono);
+            padding: 0.25rem 0.55rem;
+            border-radius: 6px;
+            background: rgba(0,229,255,0.08);
+            border: 1px solid rgba(0,229,255,0.25);
+            color: var(--cyan-300);
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .git-branch-badge:hover {
+            background: rgba(0,229,255,0.15);
+            border-color: var(--cyan-400);
+        }
+        .git-status-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.68rem;
+            font-family: var(--font-mono);
+            padding: 0.2rem 0.45rem;
+            border-radius: 6px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            color: var(--text-muted);
+        }
+        .git-status-badge.modified {
+            background: rgba(234, 179, 8, 0.1);
+            border-color: rgba(234, 179, 8, 0.3);
+            color: #facc15;
+        }
+        .git-branch-item {
+            padding: 0.4rem 0.65rem;
+            border-radius: 6px;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.06);
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--text-primary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.15s ease;
+        }
+        .git-branch-item:hover {
+            background: rgba(0,229,255,0.08);
+            border-color: rgba(0,229,255,0.3);
+            color: var(--cyan-300);
+        }
+        .git-branch-item.active {
+            background: rgba(0,229,255,0.12);
+            border-color: var(--cyan-400);
+            color: var(--cyan-300);
+            font-weight: 600;
+        }
+        .code-action-group {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+        .code-port-btn {
+            background: rgba(0,229,255,0.1);
+            border: 1px solid rgba(0,229,255,0.3);
+            color: var(--cyan-300);
+            font-size: 0.65rem;
+            padding: 0.2rem 0.45rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            font-family: var(--font-mono);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.2rem;
+        }
+        .code-port-btn:hover {
+            background: var(--cyan-400);
+            color: #000;
+        }
+
     </style>
 </head>
 <body>
@@ -1937,6 +2030,17 @@
         <div class="studio-view-container" id="viewEditor">
             <div class="editor-view-layout">
                 <div class="editor-top-toolbar">
+                    <div class="git-worktree-strip" id="gitWorktreeStrip">
+                        <div class="git-branch-badge" onclick="openBranchSwitcherModal()" title="Current Git Branch">
+                            <span>🌿</span>
+                            <span id="activeGitBranchName">main</span>
+                        </div>
+                        <div class="git-status-badge clean" id="gitStatusBadge" title="Worktree Status">
+                            <span id="gitStatusIndicator">🟢</span>
+                            <span id="gitStatusText">Clean</span>
+                        </div>
+                    </div>
+
                     <div class="editor-tabs-scroll" id="editorTabsBar">
                         <div class="editor-tab active" onclick="switchEditorTab('index.html')">index.html</div>
                         <div class="editor-tab" onclick="switchEditorTab('style.css')">style.css</div>
@@ -1952,17 +2056,21 @@
                     </div>
 
                     <div class="editor-actions-right" style="margin-left:auto;">
-                        <button class="editor-btn" onclick="exportWorkspaceZip()">
-                            <span>📦</span>
-                            <span>Export ZIP</span>
+                        <button class="editor-btn" onclick="portActiveCodeToPreview()" title="Port Active Code into Live Preview">
+                            <span>⚡</span>
+                            <span>Live Preview</span>
                         </button>
                         <button class="editor-btn" id="btnToggleDiffMode" onclick="toggleMonacoDiffView()">
                             <span>⚖️</span>
                             <span id="diffModeLabel">View Diff</span>
                         </button>
-                        <button class="editor-btn success" onclick="saveActiveFileToDisk()">
-                            <span>💾</span>
-                            <span>Save File</span>
+                        <button class="editor-btn" onclick="exportWorkspaceZip()">
+                            <span>📦</span>
+                            <span>Export ZIP</span>
+                        </button>
+                        <button class="editor-btn success" onclick="openCommitPushModal()" id="btnGitCommitPush">
+                            <span>🚀</span>
+                            <span>Commit & Push</span>
                         </button>
                         <button class="editor-btn primary" onclick="openCreatePrModal()">
                             <span>🐙</span>
@@ -1999,7 +2107,7 @@
                     </div>
                 </div>
 
-                <iframe class="sandbox-iframe" id="sandboxIframe" sandbox="allow-scripts allow-modals"></iframe>
+                <iframe class="sandbox-iframe" id="sandboxIframe" sandbox="allow-scripts allow-modals allow-forms allow-same-origin allow-popups"></iframe>
 
                 <div class="preview-console-drawer">
                     <div class="console-header">
@@ -2486,58 +2594,6 @@
             return '📄';
         }
 
-        window.tagFileToContext = async function(event, path) {
-            event.stopPropagation();
-            const item = workspaceFiles.find(f => f.path === path);
-            if (!item || item.kind !== 'file') return;
-
-            try {
-                let text = '';
-                let size = 0;
-                if (item.handle) {
-                    const file = await item.handle.getFile();
-                    text = await file.text();
-                    size = file.size;
-                } else if (item.isRemote && octokitClient && activeRepo) {
-                    const { data } = await octokitClient.rest.repos.getContent({
-                        owner: activeRepo.owner.login,
-                        repo: activeRepo.name,
-                        path: item.path
-                    });
-                    text = atob(data.content.replace(/\s/g, ''));
-                    size = data.size;
-                }
-
-                attachedFiles.push({ name: item.name, path: item.path, size: size, text: text });
-                renderAttachmentChips();
-                showToast(`Tagged @${item.name} into context`);
-            } catch(e) {
-                showToast(`Failed to read ${item.name}`);
-            }
-        };
-
-        async function openWorkspaceFileInEditor(fileItem) {
-            try {
-                let text = '';
-                if (fileItem.handle) {
-                    const file = await fileItem.handle.getFile();
-                    text = await file.text();
-                } else if (fileItem.isRemote && octokitClient && activeRepo) {
-                    const { data } = await octokitClient.rest.repos.getContent({
-                        owner: activeRepo.owner.login,
-                        repo: activeRepo.name,
-                        path: fileItem.path
-                    });
-                    text = atob(data.content.replace(/\s/g, ''));
-                }
-                const ext = fileItem.name.split('.').pop() || 'txt';
-                openFileInMonaco(fileItem.name, text, ext, fileItem);
-                switchStudioView('editor');
-            } catch(e) {
-                showToast(`Could not open file: ${e.message}`);
-            }
-        }
-
         // --- PHASE 2: GITHUB CLOUD INTEGRATION (DIRECT ROBUST REST ENGINE) ---
         window.githubToken = localStorage.getItem('uor_github_pat') || '';
         window.githubUser = null;
@@ -2961,252 +3017,127 @@
         };
 
         // --- AUTOMATED LIVE PREVIEW SANDBOX ENGINE ---
+
+        // --- PHASE 3: ROBUST MULTI-FILE LIVE PREVIEW SANDBOX & BUNDLER ---
+        window.remoteOriginalFiles = {};
+        window.modifiedWorktreeFiles = new Set();
+        window.activeGitBranch = 'main';
+
         window.refreshLivePreview = function(overrideCode = null, overrideLang = null) {
             const iframe = document.getElementById('sandboxIframe');
             if (!iframe) return;
 
-            let code = overrideCode;
-            let lang = overrideLang;
-
-            if (!code) {
-                const currentTab = openEditorTabs.find(t => t.name === activeEditorTab);
-                if (currentTab) {
-                    code = monacoEditorInstance ? monacoEditorInstance.getValue() : currentTab.content;
-                    lang = currentTab.language;
-                } else {
-                    const htmlTab = openEditorTabs.find(t => t.name.endsWith('.html'));
-                    if (htmlTab) {
-                        code = htmlTab.content;
-                        lang = 'html';
+            // Sync current Monaco value into workspace buffer
+            if (monacoEditorInstance && window.currentWorkspaceFile && workspaceFiles[currentWorkspaceFile]) {
+                const currentVal = monacoEditorInstance.getValue();
+                workspaceFiles[currentWorkspaceFile].content = currentVal;
+                
+                // Track modified state against remote original
+                if (remoteOriginalFiles[currentWorkspaceFile] !== undefined) {
+                    if (remoteOriginalFiles[currentWorkspaceFile] !== currentVal) {
+                        modifiedWorktreeFiles.add(currentWorkspaceFile);
+                    } else {
+                        modifiedWorktreeFiles.delete(currentWorkspaceFile);
                     }
+                    updateGitWorktreeStatusUI();
                 }
             }
 
-            let fullHtml = '';
-            if (!code || !code.trim()) {
-                fullHtml = `<!DOCTYPE html>
-                <html>
-                <head>
-                    <meta charset="UTF-8">
-                    <style>
-                        body { margin: 0; padding: 2rem; background: #080a10; color: #fff; font-family: -apple-system, BlinkMacSystemFont, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; box-sizing: border-box; text-align: center; }
-                        .hero-card { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 12px; padding: 2rem; max-width: 480px; }
-                        h2 { color: #00d8ff; margin-bottom: 0.5rem; }
-                        p { color: #94a3b8; font-size: 0.85rem; line-height: 1.5; }
-                
-        .editor-tabs-strip {
-            display: flex;
-            align-items: center;
-            gap: 0.35rem;
-            overflow-x: auto;
-            max-width: 450px;
-        }
-        .editor-tab {
-            font-size: 0.72rem;
-            font-family: var(--font-mono);
-            padding: 0.25rem 0.65rem;
-            border-radius: 6px;
-            background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(255,255,255,0.08);
-            color: var(--text-muted);
-            cursor: pointer;
-            transition: all 0.2s ease;
-            white-space: nowrap;
-        }
-        .editor-tab:hover {
-            color: var(--text-primary);
-            background: rgba(255,255,255,0.07);
-        }
-        .editor-tab.active {
-            color: var(--cyan-400);
-            background: rgba(0,229,255,0.08);
-            border-color: rgba(0,229,255,0.3);
-            font-weight: 600;
-        }
-        .quick-refactor-bar {
-            display: flex;
-            align-items: center;
-            gap: 0.3rem;
-            margin-left: 0.5rem;
-        }
-        .quick-pill {
-            font-size: 0.68rem;
-            font-family: var(--font-mono);
-            padding: 0.2rem 0.5rem;
-            border-radius: 12px;
-            background: rgba(255,255,255,0.04);
-            border: 1px solid rgba(255,255,255,0.1);
-            color: var(--text-secondary);
-            cursor: pointer;
-            transition: all 0.15s ease;
-        }
-        .quick-pill:hover {
-            background: rgba(0,229,255,0.12);
-            color: var(--cyan-300);
-            border-color: rgba(0,229,255,0.4);
-            transform: translateY(-1px);
-        }
-        .terminal-dock {
-            height: 160px;
-            background: #090d14;
-            border-top: 1px solid rgba(255,255,255,0.08);
-            display: flex;
-            flex-direction: column;
-            font-family: var(--font-mono);
-            font-size: 0.75rem;
-        }
-        .terminal-dock-header {
-            display: flex;
-            align-items: center;
-            padding: 0.35rem 0.85rem;
-            background: rgba(255,255,255,0.02);
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-            color: var(--text-muted);
-            font-size: 0.7rem;
-            justify-content: space-between;
-        }
-        .terminal-dock-body {
-            flex: 1;
-            padding: 0.5rem 0.85rem;
-            overflow-y: auto;
-            color: #4ade80;
-            line-height: 1.5;
-        }
+            let htmlCode = (workspaceFiles['index.html'] ? workspaceFiles['index.html'].content : '');
+            let cssCode = (workspaceFiles['style.css'] ? workspaceFiles['style.css'].content : '');
+            let jsCode = (workspaceFiles['app.js'] ? workspaceFiles['app.js'].content : '');
 
-    </style>
-                </head>
-                <body>
-                    <div class="hero-card">
-                        <h2>⚡ Sovereign Live Sandbox</h2>
-                        <p>Ask the AI to build an interactive application, or open an HTML/JS file in Monaco to preview it live.</p>
-                    </div>
-                </body>
-                </html>`;
-            } else if (lang === 'html' || code.includes('<html') || code.includes('<!DOCTYPE') || code.includes('<div') || code.includes('<canvas') || code.includes('<body')) {
-                fullHtml = code;
-            } else if (lang === 'javascript' || lang === 'js' || lang === 'typescript' || lang === 'ts') {
-                // Auto-wrap pure JavaScript/Canvas scripts in an execution harness
-                fullHtml = `<!DOCTYPE html>
-                <html>
-                <head>
-                    <meta charset="UTF-8">
-                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    <style>
-                        * { box-sizing: border-box; }
-                        body { margin: 0; padding: 0; background: #050608; color: #fff; font-family: sans-serif; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; width: 100vw; }
-                        canvas { display: block; max-width: 100%; max-height: 100%; border-radius: 8px; box-shadow: 0 0 25px rgba(0, 216, 255, 0.25); }
-                        #app { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-                
-        .editor-tabs-strip {
-            display: flex;
-            align-items: center;
-            gap: 0.35rem;
-            overflow-x: auto;
-            max-width: 450px;
-        }
-        .editor-tab {
-            font-size: 0.72rem;
-            font-family: var(--font-mono);
-            padding: 0.25rem 0.65rem;
-            border-radius: 6px;
-            background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(255,255,255,0.08);
-            color: var(--text-muted);
-            cursor: pointer;
-            transition: all 0.2s ease;
-            white-space: nowrap;
-        }
-        .editor-tab:hover {
-            color: var(--text-primary);
-            background: rgba(255,255,255,0.07);
-        }
-        .editor-tab.active {
-            color: var(--cyan-400);
-            background: rgba(0,229,255,0.08);
-            border-color: rgba(0,229,255,0.3);
-            font-weight: 600;
-        }
-        .quick-refactor-bar {
-            display: flex;
-            align-items: center;
-            gap: 0.3rem;
-            margin-left: 0.5rem;
-        }
-        .quick-pill {
-            font-size: 0.68rem;
-            font-family: var(--font-mono);
-            padding: 0.2rem 0.5rem;
-            border-radius: 12px;
-            background: rgba(255,255,255,0.04);
-            border: 1px solid rgba(255,255,255,0.1);
-            color: var(--text-secondary);
-            cursor: pointer;
-            transition: all 0.15s ease;
-        }
-        .quick-pill:hover {
-            background: rgba(0,229,255,0.12);
-            color: var(--cyan-300);
-            border-color: rgba(0,229,255,0.4);
-            transform: translateY(-1px);
-        }
-        .terminal-dock {
-            height: 160px;
-            background: #090d14;
-            border-top: 1px solid rgba(255,255,255,0.08);
-            display: flex;
-            flex-direction: column;
-            font-family: var(--font-mono);
-            font-size: 0.75rem;
-        }
-        .terminal-dock-header {
-            display: flex;
-            align-items: center;
-            padding: 0.35rem 0.85rem;
-            background: rgba(255,255,255,0.02);
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-            color: var(--text-muted);
-            font-size: 0.7rem;
-            justify-content: space-between;
-        }
-        .terminal-dock-body {
-            flex: 1;
-            padding: 0.5rem 0.85rem;
-            overflow-y: auto;
-            color: #4ade80;
-            line-height: 1.5;
-        }
-
-    </style>
-                </head>
-                <body>
-                    <div id="app">
-                        <canvas id="canvas"></canvas>
-                    </div>
-                    <script>
-                    window.addEventListener('DOMContentLoaded', () => {
-                        const canvas = document.getElementById('canvas');
-                        if (canvas && (!canvas.width || canvas.width === 300)) {
-                            canvas.width = window.innerWidth;
-                            canvas.height = window.innerHeight;
-                        }
-                        try {
-                            ${code}
-                        } catch(err) {
-                            console.error("Runtime Error in Live Preview:", err.message);
-                        }
-                    });
-                    <\/script>
-                </body>
-                </html>`;
-            } else {
-                fullHtml = `<!DOCTYPE html>
-                <html>
-                <head><meta charset="UTF-8"><style>body { background: #0d1117; color: #c9d1d9; font-family: monospace; padding: 1.5rem; white-space: pre-wrap; font-size: 13px; line-height: 1.6; }</style></head>
-                <body>${escapeHtml(code)}</body>
-                </html>`;
+            // If override is passed directly (e.g. from chat code block)
+            if (overrideCode) {
+                if (overrideLang === 'html' || overrideCode.includes('<html') || overrideCode.includes('<!DOCTYPE') || overrideCode.includes('<body') || overrideCode.includes('<div') || overrideCode.includes('<canvas')) {
+                    htmlCode = overrideCode;
+                } else if (overrideLang === 'css') {
+                    cssCode = overrideCode;
+                } else if (overrideLang === 'javascript' || overrideLang === 'js' || overrideLang === 'typescript' || overrideLang === 'ts') {
+                    jsCode = overrideCode;
+                }
             }
 
-            const injectedScript = `
+            // Build cohesive single document
+            let bundledDoc = '';
+            
+            // Try Rust WASM project bundler if available
+            try {
+                if (window.wasm_bundle_project && typeof window.wasm_bundle_project === 'function') {
+                    bundledDoc = window.wasm_bundle_project(htmlCode, cssCode, jsCode);
+                }
+            } catch(e) {
+                console.warn("WASM bundler fallback:", e);
+            }
+
+            if (!bundledDoc) {
+                if (!htmlCode.trim() && !jsCode.trim()) {
+                    bundledDoc = `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Sovereign Live Sandbox</title>
+    <style>
+        body { margin: 0; padding: 2rem; background: #080a10; color: #fff; font-family: -apple-system, BlinkMacSystemFont, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; box-sizing: border-box; text-align: center; }
+        .hero-card { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 12px; padding: 2rem; max-width: 480px; }
+        h2 { color: #00d8ff; margin-bottom: 0.5rem; }
+        p { color: #94a3b8; font-size: 0.85rem; line-height: 1.5; }
+    </style>
+</head>
+<body>
+    <div class="hero-card">
+        <h2>⚡ Sovereign Live Sandbox</h2>
+        <p>Ask the AI to build an interactive application, or open an HTML/JS file in Monaco to preview it live.</p>
+    </div>
+</body>
+</html>`;
+                } else if (htmlCode.includes('<html') || htmlCode.includes('<!DOCTYPE') || htmlCode.includes('<head>')) {
+                    bundledDoc = htmlCode;
+                    if (cssCode && !bundledDoc.includes(cssCode)) {
+                        bundledDoc = bundledDoc.replace('</head>', `<style>\n${cssCode}\n</style>\n</head>`);
+                    }
+                    if (jsCode && !bundledDoc.includes(jsCode)) {
+                        bundledDoc = bundledDoc.replace('</body>', `<script>\ntry {\n${jsCode}\n} catch(err) { console.error('Sandbox Error:', err); }\n<\/script>\n</body>`);
+                    }
+                } else {
+                    bundledDoc = `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; padding: 0; background: #050608; color: #fff; font-family: sans-serif; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; width: 100vw; }
+        canvas { display: block; max-width: 100%; max-height: 100%; border-radius: 8px; box-shadow: 0 0 25px rgba(0, 216, 255, 0.25); }
+        #app { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        ${cssCode}
+    </style>
+</head>
+<body>
+    <div id="app">
+        ${htmlCode || '<canvas id="canvas"></canvas>'}
+    </div>
+    <script>
+    window.addEventListener('DOMContentLoaded', () => {
+        const canvas = document.getElementById('canvas');
+        if (canvas && (!canvas.width || canvas.width === 300)) {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        try {
+            ${jsCode}
+        } catch(err) {
+            console.error("Runtime Error in Live Preview:", err.message);
+        }
+    });
+    <\/script>
+</body>
+</html>`;
+                }
+            }
+
+            // Injected console runtime interceptor
+            const runtimeHook = `
             <script>
                 (function() {
                     const origLog = console.log;
@@ -3230,9 +3161,48 @@
                 })();
             <\/script>`;
 
-            iframe.srcdoc = injectedScript + fullHtml;
+            if (bundledDoc.includes('<head>')) {
+                bundledDoc = bundledDoc.replace('<head>', `<head>${runtimeHook}`);
+            } else {
+                bundledDoc = runtimeHook + bundledDoc;
+            }
+
+            iframe.srcdoc = bundledDoc;
             showToast("⚡ Live Preview Updated");
         };
+
+        window.portActiveCodeToPreview = function() {
+            const currentCode = monacoEditorInstance ? monacoEditorInstance.getValue() : '';
+            const currentLang = workspaceFiles[currentWorkspaceFile]?.lang || 'html';
+            refreshLivePreview(currentCode, currentLang);
+            switchStudioView('preview');
+            showToast("🚀 Loaded current editor buffer into Live Preview!");
+        };
+
+        window.openCodeInLivePreview = function(btn) {
+            const container = btn.closest('.code-block-container');
+            if (!container) return;
+            const codeEl = container.querySelector('pre code');
+            const langEl = container.querySelector('.code-lang-label');
+            const code = codeEl ? codeEl.innerText : '';
+            const lang = langEl ? langEl.innerText.toLowerCase().trim() : 'html';
+
+            if (lang === 'html' || code.includes('<html') || code.includes('<!DOCTYPE') || code.includes('<div') || code.includes('<canvas')) {
+                workspaceFiles['index.html'] = { content: code, lang: 'html' };
+                switchEditorTab('index.html');
+            } else if (lang === 'css') {
+                workspaceFiles['style.css'] = { content: code, lang: 'css' };
+                switchEditorTab('style.css');
+            } else {
+                workspaceFiles['app.js'] = { content: code, lang: 'javascript' };
+                switchEditorTab('app.js');
+            }
+
+            refreshLivePreview(code, lang);
+            switchStudioView('preview');
+            showToast(`🚀 Ported ${lang} code block into Live Preview!`);
+        };
+
 
                 window.clearPreviewConsole = function() {
             const list = document.getElementById('consoleLogsList');
@@ -3250,7 +3220,252 @@
                 switchStudioView('chat');
                 autoResizeTextarea(input);
             }
-        };        // --- PHASE 4: IN-BROWSER MCP TOOLS & REASONING ENGINE ---
+        };
+        // --- PHASE 4: DEEP GITHUB WORKTREE & COMMIT/PUSH CONTROLLERS ---
+        async function openWorkspaceFileInEditor(fileItem) {
+            try {
+                let text = '';
+                if (fileItem.handle) {
+                    const file = await fileItem.handle.getFile();
+                    text = await file.text();
+                } else if (fileItem.isRemote && activeRepo) {
+                    showToast(`Fetching ${fileItem.name} from GitHub...`);
+                    const data = await callGithubApi(`/repos/${activeRepo.owner.login}/${activeRepo.name}/contents/${fileItem.path}?ref=${activeGitBranch}`);
+                    
+                    if (data.content) {
+                        const binaryStr = atob(data.content.replace(/\s/g, ''));
+                        const bytes = Uint8Array.from(binaryStr, c => c.charCodeAt(0));
+                        text = new TextDecoder('utf-8').decode(bytes);
+                    } else {
+                        text = '// Empty file or binary data\n';
+                    }
+                    
+                    // Store original for Git diffing
+                    remoteOriginalFiles[fileItem.name] = text;
+                }
+                
+                const ext = fileItem.name.split('.').pop() || 'txt';
+                workspaceFiles[fileItem.name] = { content: text, lang: getLangForExt(fileItem.name), remotePath: fileItem.path, sha: fileItem.sha };
+                
+                switchEditorTab(fileItem.name);
+                switchStudioView('editor');
+                showToast(`📂 Opened ${fileItem.name}`);
+            } catch(e) {
+                console.error("Failed to open file:", e);
+                showToast(`Could not open file: ${e.message}`);
+            }
+        }
+
+        window.tagFileToContext = async function(event, path) {
+            event.stopPropagation();
+            const item = workspaceFilesArray.find(f => f.path === path);
+            if (!item || item.kind !== 'file') return;
+
+            try {
+                let text = '';
+                let size = 0;
+                if (item.handle) {
+                    const file = await item.handle.getFile();
+                    text = await file.text();
+                    size = file.size;
+                } else if (item.isRemote && activeRepo) {
+                    showToast(`Tagging @${item.name}...`);
+                    const data = await callGithubApi(`/repos/${activeRepo.owner.login}/${activeRepo.name}/contents/${item.path}?ref=${activeGitBranch}`);
+                    if (data.content) {
+                        const binaryStr = atob(data.content.replace(/\s/g, ''));
+                        const bytes = Uint8Array.from(binaryStr, c => c.charCodeAt(0));
+                        text = new TextDecoder('utf-8').decode(bytes);
+                        size = data.size || text.length;
+                    }
+                }
+
+                attachedFiles.push({ name: item.name, path: item.path, size: size, text: text });
+                renderAttachmentChips();
+                showToast(`Tagged @${item.name} into context`);
+            } catch(e) {
+                showToast(`Failed to read ${item.name}: ${e.message}`);
+            }
+        };
+
+        function updateGitWorktreeStatusUI() {
+            const count = modifiedWorktreeFiles.size;
+            const badge = document.getElementById('gitStatusBadge');
+            const ind = document.getElementById('gitStatusIndicator');
+            const txt = document.getElementById('gitStatusText');
+            const btnPush = document.getElementById('btnGitCommitPush');
+
+            if (count > 0) {
+                if (badge) { badge.className = 'git-status-badge modified'; }
+                if (ind) ind.innerText = '🟡';
+                if (txt) txt.innerText = `${count} modified`;
+                if (btnPush) btnPush.style.display = 'inline-flex';
+            } else {
+                if (badge) { badge.className = 'git-status-badge clean'; }
+                if (ind) ind.innerText = '🟢';
+                if (txt) txt.innerText = 'Clean';
+            }
+        }
+
+        window.openCommitPushModal = function() {
+            if (!githubToken || !activeRepo) {
+                showToast("Please connect a GitHub repository first.");
+                openGithubModal();
+                return;
+            }
+            const modal = document.getElementById('gitCommitModal');
+            document.getElementById('commitTargetRepoLabel').innerText = `${activeRepo.full_name} (${activeGitBranch})`;
+            
+            const listEl = document.getElementById('commitModifiedFilesList');
+            if (modifiedWorktreeFiles.size === 0) {
+                listEl.innerHTML = `<div>${currentWorkspaceFile} (Active buffer)</div>`;
+            } else {
+                listEl.innerHTML = Array.from(modifiedWorktreeFiles).map(f => `<div>🟡 ${f}</div>`).join('');
+            }
+            if (modal) modal.classList.add('show');
+        };
+
+        window.closeCommitPushModal = function() {
+            const modal = document.getElementById('gitCommitModal');
+            if (modal) modal.classList.remove('show');
+        };
+
+        window.executeGitCommitPush = async function() {
+            if (!githubToken || !activeRepo) return;
+            const msgInput = document.getElementById('gitCommitMessageInput');
+            const commitMsg = (msgInput ? msgInput.value.trim() : '') || `Update ${currentWorkspaceFile} via Sovereign AI Studio`;
+            const btn = document.getElementById('btnExecuteCommit');
+            
+            if (btn) { btn.disabled = true; btn.innerText = "Pushing..."; }
+
+            try {
+                showToast("🚀 Pushing commit to GitHub...");
+                
+                // Commit each modified file to the active branch
+                const filesToCommit = modifiedWorktreeFiles.size > 0 ? Array.from(modifiedWorktreeFiles) : [currentWorkspaceFile];
+                
+                for (const fileName of filesToCommit) {
+                    const fileObj = workspaceFiles[fileName];
+                    const contentStr = fileObj ? fileObj.content : (monacoEditorInstance ? monacoEditorInstance.getValue() : '');
+                    const remotePath = fileObj?.remotePath || fileName;
+                    
+                    // Encode to base64 UTF-8
+                    const utf8Bytes = new TextEncoder().encode(contentStr);
+                    let binary = '';
+                    for (let i = 0; i < utf8Bytes.length; i++) {
+                        binary += String.fromCharCode(utf8Bytes[i]);
+                    }
+                    const base64Content = btoa(binary);
+
+                    // Get current file sha if exists
+                    let sha = fileObj?.sha;
+                    if (!sha) {
+                        try {
+                            const curData = await callGithubApi(`/repos/${activeRepo.owner.login}/${activeRepo.name}/contents/${remotePath}?ref=${activeGitBranch}`);
+                            sha = curData.sha;
+                        } catch(e) {}
+                    }
+
+                    const payload = {
+                        message: commitMsg,
+                        content: base64Content,
+                        branch: activeGitBranch
+                    };
+                    if (sha) payload.sha = sha;
+
+                    const res = await callGithubApi(`/repos/${activeRepo.owner.login}/${activeRepo.name}/contents/${remotePath}`, githubToken, {
+                        method: 'PUT',
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (res.content && res.content.sha) {
+                        if (fileObj) fileObj.sha = res.content.sha;
+                        remoteOriginalFiles[fileName] = contentStr;
+                    }
+                }
+
+                modifiedWorktreeFiles.clear();
+                updateGitWorktreeStatusUI();
+                closeCommitPushModal();
+                showToast("🎉 Successfully pushed commit to GitHub!");
+            } catch(e) {
+                console.error("Commit push failed:", e);
+                showToast(`Commit push failed: ${e.message}`);
+            } finally {
+                if (btn) { btn.disabled = false; btn.innerText = "🚀 Push Commit"; }
+            }
+        };
+
+        window.openBranchSwitcherModal = async function() {
+            if (!githubToken || !activeRepo) {
+                showToast("Please connect a GitHub repository first.");
+                openGithubModal();
+                return;
+            }
+            const modal = document.getElementById('gitBranchModal');
+            const listEl = document.getElementById('gitBranchesList');
+            if (listEl) listEl.innerHTML = '<div style="color:var(--text-muted); font-size:0.75rem;">Loading branches...</div>';
+            if (modal) modal.classList.add('show');
+
+            try {
+                const branches = await callGithubApi(`/repos/${activeRepo.owner.login}/${activeRepo.name}/branches?per_page=30`);
+                if (listEl) {
+                    listEl.innerHTML = (branches || []).map(b => `
+                        <div class="git-branch-item ${b.name === activeGitBranch ? 'active' : ''}" onclick="switchGitBranch('${b.name}')">
+                            <span>🌿 ${escapeHtml(b.name)}</span>
+                            ${b.name === activeGitBranch ? '<span style="font-size:0.7rem; color:var(--cyan-400);">Current</span>' : ''}
+                        </div>
+                    `).join('');
+                }
+            } catch(e) {
+                if (listEl) listEl.innerHTML = `<div style="color:#ff453a; font-size:0.75rem;">Failed to fetch branches: ${e.message}</div>`;
+            }
+        };
+
+        window.closeBranchSwitcherModal = function() {
+            const modal = document.getElementById('gitBranchModal');
+            if (modal) modal.classList.remove('show');
+        };
+
+        window.switchGitBranch = async function(branchName) {
+            activeGitBranch = branchName;
+            document.getElementById('activeGitBranchName').innerText = branchName;
+            closeBranchSwitcherModal();
+            showToast(`Switched active branch to: ${branchName}`);
+            if (activeRepo) {
+                loadRemoteGithubRepo(activeRepo);
+            }
+        };
+
+        window.createNewGitBranch = async function() {
+            const input = document.getElementById('newBranchNameInput');
+            const newBranch = input ? input.value.trim() : '';
+            if (!newBranch) {
+                showToast("Please enter a new branch name.");
+                return;
+            }
+
+            try {
+                showToast(`Creating branch: ${newBranch}...`);
+                // Get sha of current branch
+                const refData = await callGithubApi(`/repos/${activeRepo.owner.login}/${activeRepo.name}/git/refs/heads/${activeGitBranch}`);
+                const currentSha = refData.object.sha;
+
+                await callGithubApi(`/repos/${activeRepo.owner.login}/${activeRepo.name}/git/refs`, githubToken, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        ref: `refs/heads/${newBranch}`,
+                        sha: currentSha
+                    })
+                });
+
+                showToast(`🎉 Branch ${newBranch} created successfully!`);
+                switchGitBranch(newBranch);
+            } catch(e) {
+                showToast(`Failed to create branch: ${e.message}`);
+            }
+        };
+
+        // --- PHASE 4: IN-BROWSER MCP TOOLS & REASONING ENGINE ---
         window.executeMcpToolCall = async function(toolName, args) {
             logToolExecutionCard(toolName, args, 'running');
 

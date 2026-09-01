@@ -21,6 +21,8 @@ export const interactivechatsession_new: () => number;
 export const interactivechatsession_process_input_run: (a: number, b: number, c: number) => [number, number];
 export const interactivechatsession_reset: (a: number) => void;
 export const interactivechatsession_score_candidates_json: (a: number, b: number, c: number) => [number, number];
+export const wasm_bundle_project: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number];
+export const wasm_calculate_code_stats: (a: number, b: number) => [number, number];
 export const __wbindgen_externrefs: WebAssembly.Table;
 export const __wbindgen_malloc: (a: number, b: number) => number;
 export const __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;

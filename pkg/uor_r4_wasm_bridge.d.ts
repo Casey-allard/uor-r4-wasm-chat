@@ -64,6 +64,10 @@ export class InteractiveChatSession {
     score_candidates_json(candidates_json: string): string;
 }
 
+export function wasm_bundle_project(html_content: string, css_content: string, js_content: string): string;
+
+export function wasm_calculate_code_stats(code: string): string;
+
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
 
 export interface InitOutput {
@@ -88,6 +92,8 @@ export interface InitOutput {
     readonly interactivechatsession_process_input_run: (a: number, b: number, c: number) => [number, number];
     readonly interactivechatsession_reset: (a: number) => void;
     readonly interactivechatsession_score_candidates_json: (a: number, b: number, c: number) => [number, number];
+    readonly wasm_bundle_project: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number];
+    readonly wasm_calculate_code_stats: (a: number, b: number) => [number, number];
     readonly __wbindgen_externrefs: WebAssembly.Table;
     readonly __wbindgen_malloc: (a: number, b: number) => number;
     readonly __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;

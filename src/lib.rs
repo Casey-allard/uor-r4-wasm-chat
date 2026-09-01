@@ -1613,6 +1613,69 @@ impl DynamicSession {
     }
 }
 
+// =====================================================================
+// 12. HIGH-PERFORMANCE WEB PROJECT BUNDLER & WORKSPACE ANALYZER
+// =====================================================================
+
+#[wasm_bindgen]
+pub fn wasm_bundle_project(html_content: &str, css_content: &str, js_content: &str) -> String {
+    let mut bundled = String::with_capacity(html_content.len() + css_content.len() + js_content.len() + 1024);
+
+    let base_html = if html_content.trim().is_empty() {
+        "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"><title>Sovereign Live Sandbox</title></head><body><div id=\"app\"><canvas id=\"canvas\"></canvas></div></body></html>"
+    } else {
+        html_content
+    };
+
+    let css_tag = if !css_content.trim().is_empty() {
+        format!("\n<style>\n{}\n</style>\n", css_content)
+    } else {
+        String::new()
+    };
+
+    let js_tag = if !js_content.trim().is_empty() {
+        format!("\n<script>\ntry {{\n{}\n}} catch(err) {{ console.error('Sandbox Runtime Error:', err); }}\n</script>\n", js_content)
+    } else {
+        String::new()
+    };
+
+    if base_html.contains("</head>") {
+        let mut parts = base_html.splitn(2, "</head>");
+        bundled.push_str(parts.next().unwrap_or(""));
+        bundled.push_str(&css_tag);
+        bundled.push_str("</head>");
+        let rest = parts.next().unwrap_or("");
+        if rest.contains("</body>") {
+            let mut body_parts = rest.splitn(2, "</body>");
+            bundled.push_str(body_parts.next().unwrap_or(""));
+            bundled.push_str(&js_tag);
+            bundled.push_str("</body>");
+            bundled.push_str(body_parts.next().unwrap_or(""));
+        } else {
+            bundled.push_str(rest);
+            bundled.push_str(&js_tag);
+        }
+    } else {
+        bundled.push_str("<!DOCTYPE html><html><head><meta charset=\"UTF-8\">");
+        bundled.push_str(&css_tag);
+        bundled.push_str("</head><body>");
+        bundled.push_str(base_html);
+        bundled.push_str(&js_tag);
+        bundled.push_str("</body></html>");
+    }
+
+    bundled
+}
+
+#[wasm_bindgen]
+pub fn wasm_calculate_code_stats(code: &str) -> String {
+    let lines = code.lines().count();
+    let chars = code.chars().count();
+    let words = code.split_whitespace().count();
+    let bytes = code.len();
+    format!("{{\"lines\":{},\"chars\":{},\"words\":{},\"bytes\":{}}}", lines, chars, words, bytes)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
