@@ -3352,7 +3352,7 @@
             }
         };
         // --- PHASE 4: DEEP GITHUB WORKTREE & COMMIT/PUSH CONTROLLERS ---
-        async function openWorkspaceFileInEditor(fileItem) {
+        window.openWorkspaceFileInEditor = async function(fileItem) {
             try {
                 let text = '';
                 if (fileItem.handle) {
