@@ -4515,34 +4515,95 @@
         }
         window.updateWebSearchBtnUI = updateWebSearchBtnUI;
 
-        async function fetchLiveWebKnowledge(query) {
+        function extractSearchQuery(prompt) {
+            if (!prompt) return '';
+            let q = prompt.trim();
+            
+            // Strip common conversational prefixes and filler phrases
+            const patterns = [
+                /^(please\s+)?(can\s+you\s+)?(could\s+you\s+)?(look\s+up|search\s+for|find(\s+out)?|tell\s+me\s+about|what\s+is|who\s+is|where\s+is|give\s+me|show\s+me|get\s+me)\s+(the\s+)?(wikipedia\s+article\s+(on|for|about)\s+|wikipedia\s+page\s+(on|for|about)\s+|wikipedia\s+(on|for|about)\s+|article\s+(on|for|about)\s+|info\s+(on|for|about)\s+|information\s+(on|for|about)\s+)?/i,
+                /^(search\s+the\s+web\s+for|search\s+web\s+for|websearch|google|browse)\s+/i,
+                /\s+on\s+wikipedia$/i,
+                /\s+wikipedia\s+article$/i,
+                /\s+wikipedia\s+page$/i,
+                /\s+wikipedia$/i
+            ];
+            
+            for (const pat of patterns) {
+                q = q.replace(pat, '');
+            }
+            
+            q = q.replace(/^[\"'`]+|[\"'`?.!]+$/g, '').trim();
+            return q || prompt.trim();
+        }
+        window.extractSearchQuery = extractSearchQuery;
+
+        async function fetchLiveWebKnowledge(prompt) {
+            const cleanQuery = extractSearchQuery(prompt);
             const sources = [];
-            const cleanQuery = query.replace(/[^a-zA-Z0-9\s-]/g, ' ').trim().slice(0, 100);
-            if (!cleanQuery) return { text: '', sources: [] };
 
             try {
-                // 1. Wikipedia Full-Text Search API (100% CORS-friendly)
-                const wikiUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(cleanQuery)}&utf8=&format=json&origin=*`;
-                const wikiRes = await fetch(wikiUrl);
-                const wikiData = await wikiRes.json();
-                
-                if (wikiData?.query?.search?.length > 0) {
-                    const topHits = wikiData.query.search.slice(0, 3);
-                    for (const hit of topHits) {
-                        const snippetClean = hit.snippet.replace(/<[^>]*>?/gm, '').trim();
-                        sources.push({
-                            title: hit.title,
-                            snippet: snippetClean,
-                            url: `https://en.wikipedia.org/wiki/${encodeURIComponent(hit.title.replace(/ /g, '_'))}`,
-                            domain: 'en.wikipedia.org'
-                        });
+                // 1. Wikipedia OpenSearch API (Finds exact canonical title & URL)
+                const opensearchUrl = `https://en.wikipedia.org/w/api.php?action=opensearch&search=${encodeURIComponent(cleanQuery)}&limit=3&namespace=0&format=json&origin=*`;
+                const openRes = await fetch(opensearchUrl);
+                const openData = await openRes.json();
+
+                if (openData && Array.isArray(openData[1]) && openData[1].length > 0) {
+                    const titles = openData[1];
+                    const urls = openData[3] || [];
+
+                    for (let i = 0; i < Math.min(titles.length, 2); i++) {
+                        const title = titles[i];
+                        const pageUrl = urls[i] || `https://en.wikipedia.org/wiki/${encodeURIComponent(title.replace(/ /g, '_'))}`;
+
+                        try {
+                            const summaryUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title.replace(/ /g, '_'))}`;
+                            const sumRes = await fetch(summaryUrl);
+                            const sumData = await sumRes.json();
+                            
+                            sources.push({
+                                title: sumData.title || title,
+                                snippet: sumData.extract || sumData.description || ('Wikipedia Encyclopedia Article for ' + title),
+                                url: (sumData.content_urls && sumData.content_urls.desktop) ? sumData.content_urls.desktop.page : pageUrl,
+                                domain: 'en.wikipedia.org',
+                                thumbnail: sumData.thumbnail ? sumData.thumbnail.source : null
+                            });
+                        } catch(err) {
+                            sources.push({
+                                title: title,
+                                snippet: 'Wikipedia article for ' + title,
+                                url: pageUrl,
+                                domain: 'en.wikipedia.org'
+                            });
+                        }
                     }
                 }
-            } catch (e) {
-                console.warn("Wikipedia search failed:", e);
+            } catch(e) {
+                console.warn("Wikipedia opensearch failed:", e);
             }
 
-            // 2. DuckDuckGo Instant Answer API fallback
+            // 2. Wikipedia Full-Text Search Fallback
+            if (sources.length === 0) {
+                try {
+                    const wikiUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(cleanQuery)}&utf8=&format=json&origin=*`;
+                    const wikiRes = await fetch(wikiUrl);
+                    const wikiData = await wikiRes.json();
+
+                    if (wikiData?.query?.search?.length > 0) {
+                        for (const hit of wikiData.query.search.slice(0, 2)) {
+                            const snippetClean = hit.snippet.replace(/<[^>]*>?/gm, '').trim();
+                            sources.push({
+                                title: hit.title,
+                                snippet: snippetClean,
+                                url: `https://en.wikipedia.org/wiki/${encodeURIComponent(hit.title.replace(/ /g, '_'))}`,
+                                domain: 'en.wikipedia.org'
+                            });
+                        }
+                    }
+                } catch(e) {}
+            }
+
+            // 3. DuckDuckGo Instant Answers
             try {
                 const ddgUrl = `https://api.duckduckgo.com/?q=${encodeURIComponent(cleanQuery)}&format=json&origin=*`;
                 const ddgRes = await fetch(ddgUrl);
@@ -4558,16 +4619,19 @@
             } catch (e) {}
 
             if (sources.length === 0) {
-                return { text: '', sources: [] };
+                return { text: '', sources: [], cleanQuery };
             }
 
-            let groundingContext = `\n\n--- 🌐 Live Web Search Grounding (${sources.length} sources) ---\n`;
+            let groundingContext = `\n\n--- 🌐 VERIFIED LIVE WEB SOURCES FOR "${cleanQuery.toUpperCase()}" ---\n`;
             sources.forEach((src, idx) => {
-                groundingContext += `[Source ${idx + 1}]: "${src.title}" (${src.url})\nSummary: ${src.snippet}\n\n`;
+                groundingContext += `[Source ${idx + 1}]: "${src.title}"\nVerified URL: ${src.url}\nSummary: ${src.snippet}\n\n`;
             });
-            groundingContext += `Instructions for model: Incorporate these live facts where appropriate. You may reference them with inline citation markers like [1], [2].\n`;
+            groundingContext += `CRITICAL INSTRUCTIONS FOR AI:
+1. Answer the user's question accurately using the verified live source information above.
+2. If providing URLs or references, ONLY use the exact Verified URLs above. NEVER hallucinate or output unverified links.
+3. You can cite sources as [1], [2] or link directly using the exact URL.\n`;
 
-            return { text: groundingContext, sources };
+            return { text: groundingContext, sources, cleanQuery };
         }
         window.fetchLiveWebKnowledge = fetchLiveWebKnowledge;
 
@@ -4629,7 +4693,7 @@
                 const searchBanner = document.createElement('div');
                 searchBanner.className = 'searching-web-banner';
                 searchBanner.id = 'searchingWebBanner';
-                searchBanner.innerHTML = `<span>🔍</span> Searching Wikipedia & Live Web for "${escapeHtml(userPrompt.slice(0, 40))}"...`;
+                searchBanner.innerHTML = `<span>🔍</span> Searching Wikipedia & Live Web for "${escapeHtml(extractSearchQuery(userPrompt).slice(0, 40))}"...`;
                 container.appendChild(searchBanner);
                 chatScrollArea.scrollTop = chatScrollArea.scrollHeight;
 
