@@ -1,6 +1,6 @@
 // =====================================================================
 // UOR-R4 SOVEREIGN IN-BROWSER MODEL WORKER (Web Worker)
-// Multi-Stage Progress Reporting: Download -> Compilation -> Inference
+// High-Speed Multi-Threaded Inference & Clean Context Dispatcher
 // =====================================================================
 
 import { pipeline, env, TextStreamer } from 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.3.3';
@@ -9,7 +9,7 @@ env.allowLocalModels = false;
 env.allowRemoteModels = true;
 env.useBrowserCache = true;
 if (env.backends && env.backends.onnx && env.backends.onnx.wasm) {
-    env.backends.onnx.wasm.numThreads = 1;
+    env.backends.onnx.wasm.numThreads = Math.min(8, (typeof navigator !== 'undefined' && navigator.hardwareConcurrency) ? navigator.hardwareConcurrency : 4);
     env.backends.onnx.wasm.simd = true;
 }
 
@@ -36,7 +36,7 @@ let isGenerating = false;
 async function getStorageEstimate() {
     let usageBytes = 0;
     let quotaBytes = 0;
-    if (navigator.storage && navigator.storage.estimate) {
+    if (typeof navigator !== 'undefined' && navigator.storage && navigator.storage.estimate) {
         const est = await navigator.storage.estimate();
         usageBytes = est.usage || 0;
         quotaBytes = est.quota || 0;
@@ -142,6 +142,16 @@ self.onmessage = async function(e) {
                     text: '✓ Neural Substrate Ready. Streaming tokens...'
                 });
 
+                // Sanitize input messages to ensure no special tokens break ChatML
+                const cleanMessages = messages.map(m => ({
+                    role: m.role,
+                    content: (m.content || '')
+                        .replace(/<\|im_start\|>/g, '')
+                        .replace(/<\|im_end\|>/g, '')
+                        .replace(/<\|endoftext\|>/g, '')
+                        .trim()
+                })).filter(m => m.content.length > 0);
+
                 const streamer = new TextStreamer(pipe.tokenizer, {
                     skip_prompt: true,
                     callback_function: (chunk) => {
@@ -166,11 +176,11 @@ self.onmessage = async function(e) {
                     }
                 });
 
-                const out = await pipe(messages, {
-                    max_new_tokens: options.max_new_tokens || 2048,
-                    temperature: options.temperature || 0.30,
-                    top_p: options.top_p || 0.90,
-                    repetition_penalty: options.repetition_penalty || 1.05,
+                const out = await pipe(cleanMessages, {
+                    max_new_tokens: options.max_new_tokens || 1024,
+                    temperature: options.temperature || 0.6,
+                    top_p: options.top_p || 0.92,
+                    repetition_penalty: options.repetition_penalty || 1.1,
                     do_sample: true,
                     streamer: streamer
                 });

@@ -3617,15 +3617,16 @@
 
             const systemMsg = {
                 role: 'system',
-                content: 'You are an autonomous senior software engineer and AI coding assistant embedded directly inside the Sovereign Developer Studio. When generating web applications, interactive simulations, or UI components, always write complete, self-contained, single-file HTML applications with all styles inside inline <style>...</style> and all JavaScript inside inline <script>...<\/script> tags. Never reference external missing .js or .css files. Always output the full, runnable code block in clean markdown code blocks (```html). Format mathematical equations using standard KaTeX LaTeX ($...$ and $$...$$).'
+                content: 'You are an intelligent, high-speed sovereign AI assistant and software engineer. Answer user requests directly, clearly, and thoughtfully from the very beginning. When asked for code, write self-contained, standalone single-file code with inline styles and scripts inside clean markdown code blocks (```html or ```javascript). Format math using KaTeX ($...$ and $$...$$).'
             };
 
-            const recentHistory = curConv.messages.slice(-6);
+            // Keep recent history focused (last 3 messages) so model attention remains sharp
+            const recentHistory = curConv.messages.slice(-3);
             const historyPayload = recentHistory
                 .filter(m => m.content && m.content.trim())
                 .map(m => ({
                     role: (m.role === 'ai' || m.role === 'assistant') ? 'assistant' : 'user',
-                    content: m.content.trim()
+                    content: m.content.trim().slice(0, 2000)
                 }));
 
             const messagesPayload = [systemMsg, ...historyPayload];
@@ -3639,10 +3640,10 @@
                     payload: {
                         messages: messagesPayload,
                         options: {
-                            max_new_tokens: 2048,
-                            temperature: 0.30,
-                            top_p: 0.90,
-                            repetition_penalty: 1.05
+                            max_new_tokens: 1024,
+                            temperature: 0.6,
+                            top_p: 0.92,
+                            repetition_penalty: 1.1
                         }
                     }
                 });
