@@ -4487,22 +4487,25 @@
                     if (action === 'compile_stage') {
                         const phaseTag = document.getElementById('activePhaseTag');
                         if (phaseTag) {
-                            if (stage === 'compiling') phaseTag.innerText = `⚡ Compiling ONNX Graph...`;
+                            if (stage === 'compiling') phaseTag.innerText = `⚡ Compiling Graph (${progress || 99}%)`;
                             else if (stage === 'ready') phaseTag.innerText = `⚡ Neural Substrate Ready`;
-                            else phaseTag.innerText = `📥 ${progress || 0}%`;
+                            else phaseTag.innerText = `📥 Downloading (${progress || 0}%)`;
                         }
-                    }
 
-                    if (action === 'compile_stage' && id === activeGenerationId) {
-                        const phaseTag = document.getElementById('activePhaseTag');
-                        if (phaseTag) {
-                            if (stage === 'compiling') phaseTag.innerText = `⚡ Allocating Tensors...`;
-                            else if (stage === 'ready') phaseTag.innerText = `⚡ Synaptic Ready`;
-                            else phaseTag.innerText = `📥 ${progress || 0}%`;
-                        }
                         const thinkingLabel = document.getElementById(`thinkingLabel_${id}`);
                         if (thinkingLabel && text) {
                             thinkingLabel.innerText = text;
+                        }
+
+                        const progressBg = document.getElementById(`thinkingProgressBg_${id}`);
+                        const progressFill = document.getElementById(`thinkingProgressFill_${id}`);
+                        if (progressBg && progressFill) {
+                            if (progress > 0 && progress < 100) {
+                                progressBg.style.display = 'block';
+                                progressFill.style.width = `${progress}%`;
+                            } else if (progress >= 100) {
+                                progressFill.style.width = '100%';
+                            }
                         }
                     }
 
@@ -4833,8 +4836,13 @@
                 <div class="message-bubble">
                     <div class="ai-bubble">
                         <div class="ai-thinking-state" id="thinking_${activeGenerationId}">
-                            <span class="pulse-dot"></span>
-                            <span class="thinking-text" id="thinkingLabel_${activeGenerationId}">Thinking...</span>
+                            <div style="display:flex; align-items:center; gap:0.5rem;">
+                                <span class="pulse-dot"></span>
+                                <span class="thinking-text" id="thinkingLabel_${activeGenerationId}">Initializing neural substrate...</span>
+                            </div>
+                            <div class="thinking-progress-bar-bg" id="thinkingProgressBg_${activeGenerationId}" style="display:none; width:100%; height:4px; background:rgba(255,255,255,0.08); border-radius:2px; margin-top:6px; overflow:hidden;">
+                                <div class="thinking-progress-bar-fill" id="thinkingProgressFill_${activeGenerationId}" style="width:0%; height:100%; background:linear-gradient(90deg, var(--accent-cyan), var(--accent-blue)); transition: width 0.15s ease;"></div>
+                            </div>
                         </div>
                         <div class="ai-text typing-cursor" style="display:none;"></div>
                         <div class="message-action-toolbar" style="display:none;" id="streamActionToolbar_${activeGenerationId}">
