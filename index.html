@@ -3390,7 +3390,7 @@
                             <button class="msg-action-btn" onclick="copyEntireResponse(this)">
                                 <span>📋</span> Copy Response
                             </button>
-                            <span style="font-size:0.68rem; color:var(--text-muted); font-family:var(--font-mono); margin-left:auto;">
+                            <span class="model-tag-span" style="font-size:0.68rem; color:var(--text-muted); font-family:var(--font-mono); margin-left:auto;">
                                 ${MODEL_CONFIGS[activeModelId] ? MODEL_CONFIGS[activeModelId].name : 'GLM-5.3'}
                             </span>
                         </div>
@@ -3728,7 +3728,7 @@
                             <button class="msg-action-btn" onclick="copyEntireResponse(this)">
                                 <span>📋</span> Copy Response
                             </button>
-                            <span style="font-size:0.68rem; color:var(--text-muted); font-family:var(--font-mono); margin-left:auto;">
+                            <span class="model-tag-span" style="font-size:0.68rem; color:var(--text-muted); font-family:var(--font-mono); margin-left:auto;">
                                 ${MODEL_CONFIGS[activeModelId] ? MODEL_CONFIGS[activeModelId].name : 'GLM-5.3'}
                             </span>
                         </div>
@@ -3776,7 +3776,7 @@
                 }
                 if (toolbar) {
                     toolbar.style.display = 'flex';
-                    const modelSpan = toolbar.querySelector('span:last-child');
+                    const modelSpan = toolbar.querySelector('.model-tag-span') || toolbar.querySelector('span:last-child');
                     if (modelSpan) {
                         const mName = MODEL_CONFIGS[activeModelId] ? MODEL_CONFIGS[activeModelId].name : 'GLM-5.3';
                         const countStr = tokenCount ? ` • ${tokenCount} tokens` : '';
