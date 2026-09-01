@@ -3045,52 +3045,98 @@
             const iframe = document.getElementById('sandboxIframe');
             if (!iframe) return;
 
-            // Sync current Monaco value into workspace buffer
-            if (monacoEditorInstance && window.currentWorkspaceFile && window.workspaceFiles[window.currentWorkspaceFile]) {
-                const currentVal = monacoEditorInstance.getValue();
-                window.workspaceFiles[window.currentWorkspaceFile].content = currentVal;
-                
-                // Track modified state against remote original
-                if (window.remoteOriginalFiles[window.currentWorkspaceFile] !== undefined) {
-                    if (window.remoteOriginalFiles[window.currentWorkspaceFile] !== currentVal) {
-                        window.modifiedWorktreeFiles.add(window.currentWorkspaceFile);
-                    } else {
-                        window.modifiedWorktreeFiles.delete(window.currentWorkspaceFile);
-                    }
-                    updateGitWorktreeStatusUI();
-                }
-            }
+            let htmlCode = '';
+            let cssCode = '';
+            let jsCode = '';
 
-            let htmlCode = (workspaceFiles['index.html'] ? workspaceFiles['index.html'].content : '');
-            let cssCode = (workspaceFiles['style.css'] ? workspaceFiles['style.css'].content : '');
-            let jsCode = (workspaceFiles['app.js'] ? workspaceFiles['app.js'].content : '');
-
-            // If override is passed directly (e.g. from chat code block)
             if (overrideCode) {
-                if (overrideLang === 'html' || overrideCode.includes('<html') || overrideCode.includes('<!DOCTYPE') || overrideCode.includes('<body') || overrideCode.includes('<div') || overrideCode.includes('<canvas')) {
+                if (overrideLang === 'html' || overrideCode.includes('<html') || overrideCode.includes('<!DOCTYPE') || overrideCode.includes('<canvas') || overrideCode.includes('<div') || overrideCode.includes('<body')) {
                     htmlCode = overrideCode;
                 } else if (overrideLang === 'css') {
                     cssCode = overrideCode;
-                } else if (overrideLang === 'javascript' || overrideLang === 'js' || overrideLang === 'typescript' || overrideLang === 'ts') {
+                } else {
                     jsCode = overrideCode;
                 }
-            }
-
-            // Build cohesive single document
-            let bundledDoc = '';
-            
-            // Try Rust WASM project bundler if available
-            try {
-                if (window.wasm_bundle_project && typeof window.wasm_bundle_project === 'function') {
-                    bundledDoc = window.wasm_bundle_project(htmlCode, cssCode, jsCode);
+            } else {
+                htmlCode = (window.workspaceFiles['index.html'] ? window.workspaceFiles['index.html'].content : '');
+                cssCode = (window.workspaceFiles['style.css'] ? window.workspaceFiles['style.css'].content : '');
+                jsCode = (window.workspaceFiles['app.js'] ? window.workspaceFiles['app.js'].content : '');
+                
+                if (window.monacoEditorInstance && window.currentWorkspaceFile) {
+                    const currentVal = window.monacoEditorInstance.getValue();
+                    if (window.currentWorkspaceFile === 'index.html') htmlCode = currentVal;
+                    else if (window.currentWorkspaceFile === 'style.css') cssCode = currentVal;
+                    else if (window.currentWorkspaceFile === 'app.js') jsCode = currentVal;
                 }
-            } catch(e) {
-                console.warn("WASM bundler fallback:", e);
             }
 
-            if (!bundledDoc) {
-                if (!htmlCode.trim() && !jsCode.trim()) {
-                    bundledDoc = `<!DOCTYPE html>
+            let bundledDoc = '';
+            if (htmlCode && (htmlCode.includes('<html') || htmlCode.includes('<!DOCTYPE'))) {
+                bundledDoc = htmlCode;
+                if (cssCode && !bundledDoc.includes(cssCode) && bundledDoc.includes('</head>')) {
+                    bundledDoc = bundledDoc.replace('</head>', `<style>\n${cssCode}\n</style>\n</head>`);
+                }
+                if (jsCode && !bundledDoc.includes(jsCode) && bundledDoc.includes('</body>')) {
+                    bundledDoc = bundledDoc.replace('</body>', `<script>\ntry {\n${jsCode}\n} catch(err) { console.error('Runtime Error:', err); }\n<\/script>\n</body>`);
+                }
+            } else if (jsCode && !htmlCode) {
+                bundledDoc = `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; padding: 0; background: #050608; color: #fff; font-family: sans-serif; overflow: hidden; display: flex; align-items: center; justify-content: center; height: 100vh; width: 100vw; }
+        canvas { display: block; max-width: 100%; max-height: 100%; border-radius: 8px; box-shadow: 0 0 25px rgba(0, 216, 255, 0.25); }
+        #app { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+        ${cssCode}
+    </style>
+</head>
+<body>
+    <div id="app">
+        <canvas id="canvas"></canvas>
+    </div>
+    <script>
+    window.addEventListener('DOMContentLoaded', () => {
+        const canvas = document.getElementById('canvas');
+        if (canvas && (!canvas.width || canvas.width === 300)) {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        try {
+            ${jsCode}
+        } catch(err) {
+            console.error("Runtime Error in Live Preview:", err.message);
+        }
+    });
+    <\/script>
+</body>
+</html>`;
+            } else if (htmlCode) {
+                bundledDoc = `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; padding: 1.5rem; background: #0b0f19; color: #fff; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
+        ${cssCode}
+    </style>
+</head>
+<body>
+    ${htmlCode}
+    <script>
+    try {
+        ${jsCode}
+    } catch(err) {
+        console.error("Runtime Error in Live Preview:", err.message);
+    }
+    <\/script>
+</body>
+</html>`;
+            } else {
+                bundledDoc = `<!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
@@ -3109,49 +3155,6 @@
     </div>
 </body>
 </html>`;
-                } else if (htmlCode.includes('<html') || htmlCode.includes('<!DOCTYPE') || htmlCode.includes('<head>')) {
-                    bundledDoc = htmlCode;
-                    if (cssCode && !bundledDoc.includes(cssCode)) {
-                        bundledDoc = bundledDoc.replace('</head>', `<style>\n${cssCode}\n</style>\n</head>`);
-                    }
-                    if (jsCode && !bundledDoc.includes(jsCode)) {
-                        bundledDoc = bundledDoc.replace('</body>', `<script>\ntry {\n${jsCode}\n} catch(err) { console.error('Sandbox Error:', err); }\n<\/script>\n</body>`);
-                    }
-                } else {
-                    bundledDoc = `<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        * { box-sizing: border-box; }
-        body { margin: 0; padding: 0; background: #050608; color: #fff; font-family: sans-serif; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; width: 100vw; }
-        canvas { display: block; max-width: 100%; max-height: 100%; border-radius: 8px; box-shadow: 0 0 25px rgba(0, 216, 255, 0.25); }
-        #app { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        ${cssCode}
-    </style>
-</head>
-<body>
-    <div id="app">
-        ${htmlCode || '<canvas id="canvas"></canvas>'}
-    </div>
-    <script>
-    window.addEventListener('DOMContentLoaded', () => {
-        const canvas = document.getElementById('canvas');
-        if (canvas && (!canvas.width || canvas.width === 300)) {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        }
-        try {
-            ${jsCode}
-        } catch(err) {
-            console.error("Runtime Error in Live Preview:", err.message);
-        }
-    });
-    <\/script>
-</body>
-</html>`;
-                }
             }
 
             // Injected console runtime interceptor
