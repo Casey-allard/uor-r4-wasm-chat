@@ -240,7 +240,7 @@ python3 scratch/build_sovereign_dev_studio.py
 ## 📚 Mathematical References & Foundational Literature
 
 1. **[UOR Foundation](https://github.com/uor-foundation)**: Architectural standard for Universal Object Representation, 512D Vector Symbolic hyperdimensional memory, and sovereign geometric AI.
-2. **Omeganyn ([@Omeganyn](https://github.com/Omeganyn))**: Creator and Lead Architect of **SpiralCore** and the **Cantor-Abraxas Architecture**, Statistical Geometric Information Theory (SGIT), Information Hysteresis ($\Phi$), Semantic Holonomy ($\Delta\Phi$), the Fractal Block Structure (FBS with Collatz 4-2-1 Gearbox & $L_0=83$ atomic floor), and the RTSOM (Revised Thermodynamic Star Ocean Model / Dark Brane Gravity) cognitive framework.
+2. **Omeganyn**: Creator and Lead Architect of **SpiralCore** and the **Cantor-Abraxas Architecture**, Statistical Geometric Information Theory (SGIT), Information Hysteresis ($\Phi$), Semantic Holonomy ($\Delta\Phi$), the Fractal Block Structure (FBS with Collatz 4-2-1 Gearbox & $L_0=83$ atomic floor), and the RTSOM (Revised Thermodynamic Star Ocean Model / Dark Brane Gravity) cognitive framework.
 3. **HELM Geometric Attention Group**: High-dimensional geometric attention mechanisms, non-Euclidean manifold routing, and topological transformer state spaces.
 4. **The Authors of Goldworm (`goldworm`)**: Byte-level modular codebooks ($	ext{mod } 256$), streaming token compression, and SIMD parsing.
 5. **`w33`**: Discrete topology and high-performance symbolic computation research.
