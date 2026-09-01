@@ -3739,13 +3739,15 @@
 
         function renderRichMarkdown(targetEl, text) {
             if (!targetEl) return;
+            const codeBlocks = [];
+            const mathBlocks = [];
+
             let raw = (text || '')
                 .replace(/<\|im_end\|>/g, '')
                 .replace(/<\|endoftext\|>/g, '')
                 .replace(/<\|im_start\|>/g, '');
 
             // 1. Shield Code Blocks FIRST using markdown-immune alphanumeric tokens
-            const codeBlocks = [];
             raw = raw.replace(/(```[a-zA-Z0-9_-]*[\r\n]+[\s\S]*?```|`[^`\n\r]+`)/g, (match) => {
                 codeBlocks.push(match);
                 return `QQQCODEBLOCK${codeBlocks.length - 1}QQQ`;
@@ -3760,7 +3762,6 @@
             cleanText = cleanText.replace(/\\\[/g, '$$$$').replace(/\\\]/g, '$$$$');
 
             // 4. Shield Block Math ($$...$$, \begin{aligned}...\end{aligned})
-            const mathBlocks = [];
             cleanText = cleanText.replace(/^[ \t]*\[\s*(\\[a-zA-Z]+|[a-zA-Z0-9_]+[ \t]*=)(.*?)(?:\]|\n\n|$)/gm, '\n\n$$$$ $1$2 $$$$\n\n');
             cleanText = cleanText.replace(/^[ \t]*([a-zA-Z0-9_\{\}]+\s*=\s*\\[a-zA-Z]+[\s\S]*?)$/gm, '\n\n$$$$ $1 $$$$\n\n');
             cleanText = cleanText.replace(/\\begin\{(aligned|align\*?|equation\*?|gather\*?|matrix|pmatrix|bmatrix)\}([\s\S]*?)\\end\{\1\}/g, '\n\n$$$$ \\begin{$1}$2\\end{$1} $$$$\n\n');
