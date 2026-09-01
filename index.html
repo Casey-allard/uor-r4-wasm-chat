@@ -2209,13 +2209,40 @@
                                 </button>
                                 
                                 <div class="input-model-dropdown-menu" id="inputModelDropdownMenu">
-                                    <div class="input-model-opt active" id="opt-qwen2.5-coder-1.5b" onclick="selectModelFromInput('qwen2.5-coder-1.5b')">
+                                    <div class="input-model-opt active" id="opt-qwen2.5-coder-0.5b" onclick="selectModelFromInput('qwen2.5-coder-0.5b')">
                                         <div class="opt-left">
                                             <span class="opt-icon">💻</span>
                                             <div class="opt-info">
                                                 <span class="opt-name">Qwen 2.5 Coder</span>
-                                                <span class="opt-tier">1.5B Code Specialist (~980MB)</span>
+                                                <span class="opt-tier">0.5B Code Specialist (~290MB)</span>
                                             </div>
+                                        </div>
+                                        <span class="opt-check" id="check-qwen2.5-coder-0.5b">✓</span>
+                                    </div>
+                                    <div class="input-model-opt" id="opt-glm5.3-flash" onclick="selectModelFromInput('glm5.3-flash')">
+                                        <div class="opt-left">
+                                            <span class="opt-icon">📐</span>
+                                            <div class="opt-info">
+                                                <span class="opt-name">GLM-5.3</span>
+                                                <span class="opt-tier">0.5B Fast Logic (~280MB)</span>
+                                            </div>
+                                        </div>
+                                        <span class="opt-check" id="check-glm5.3-flash" style="display:none;">✓</span>
+                                    </div>
+                                    <div class="input-model-opt" id="opt-qwen2.5-0.5b" onclick="selectModelFromInput('qwen2.5-0.5b')">
+                                        <div class="opt-left">
+                                            <span class="opt-icon">💬</span>
+                                            <div class="opt-info">
+                                                <span class="opt-name">Qwen 2.5</span>
+                                                <span class="opt-tier">0.5B Instant (~280MB)</span>
+                                            </div>
+                                        </div>
+                                        <span class="opt-check" id="check-qwen2.5-0.5b" style="display:none;">✓</span>
+                                    </div>
+                                    <div style="padding:0.4rem 0.65rem; border-top:1px solid rgba(255,255,255,0.08); font-size:0.7rem; color:var(--accent-cyan); cursor:pointer; text-align:center; font-weight:600;" onclick="openModelManagerModal()">
+                                        ⚙️ Manage Caches & Models...
+                                    </div>
+                                </div>
                                         </div>
                                         <span class="opt-check" id="check-qwen2.5-coder-1.5b">✓</span>
                                     </div>
@@ -2707,38 +2734,17 @@
             marked.use({ renderer: renderer });
         }        // --- MODEL DEFINITIONS ---
         window.MODEL_CONFIGS = {
-            'qwen2.5-coder-1.5b': {
-                id: 'qwen2.5-coder-1.5b',
+            'qwen2.5-coder-0.5b': {
+                id: 'qwen2.5-coder-0.5b',
                 name: 'Qwen 2.5 Coder',
-                fullName: 'Qwen 2.5 Coder (1.5B Flagship)',
+                fullName: 'Qwen 2.5 Coder (0.5B Code Specialist)',
                 icon: '💻',
-                source: 'onnx-community/Qwen2.5-Coder-1.5B-Instruct',
-                size_mb: 980,
-                tier: '1.5B Code SOTA',
+                source: 'onnx-community/Qwen2.5-Coder-0.5B-Instruct',
+                localPath: './assets/models/qwen2.5-coder-0.5b',
+                size_mb: 290,
+                tier: '0.5B Code SOTA',
                 dtype: 'q4',
-                desc: 'Specialized 1.5B coding and mathematical analysis model. Trained on 5.5T tokens with exceptional coding quality.'
-            },
-            'deepseek-r1-1.5b': {
-                id: 'deepseek-r1-1.5b',
-                name: 'DeepSeek R1',
-                fullName: 'DeepSeek R1 (1.5B Reasoning)',
-                icon: '🧬',
-                source: 'onnx-community/DeepSeek-R1-Distill-Qwen-1.5B-ONNX',
-                size_mb: 980,
-                tier: '1.5B Chain-of-Thought',
-                dtype: 'q4',
-                desc: 'DeepSeek R1 reasoning model with autonomous multi-step Chain-of-Thought (<think>) reflection.'
-            },
-            'llama3.2-1b': {
-                id: 'llama3.2-1b',
-                name: 'Llama 3.2 (1B)',
-                fullName: 'Llama 3.2 (1B Instruct)',
-                icon: '🦙',
-                source: 'onnx-community/Llama-3.2-1B-Instruct-ONNX',
-                size_mb: 750,
-                tier: '1B Fast SOTA',
-                dtype: 'q4',
-                desc: 'Meta Llama 3.2 instruction-tuned model. Exceptionally fast, balanced reasoning on WebGPU.'
+                desc: 'Specialized 0.5B coding and mathematical analysis model. Exceptionally fast, reliable in-browser code synthesis.'
             },
             'glm5.3-flash': {
                 id: 'glm5.3-flash',
@@ -2746,10 +2752,11 @@
                 fullName: 'GLM-5.3 (Flash 0.5B)',
                 icon: '📐',
                 source: 'onnx-community/Qwen2.5-0.5B-Instruct',
+                localPath: './assets/models/glm5.3-flash',
                 size_mb: 280,
                 tier: '0.5B Fast Logic',
                 dtype: 'q4',
-                desc: 'Ultra-fast, lightweight neural substrate for quick conversational tasks on any device.'
+                desc: 'Ultra-fast, lightweight neural substrate for continuous mathematical reasoning on any device.'
             },
             'qwen2.5-0.5b': {
                 id: 'qwen2.5-0.5b',
@@ -2757,6 +2764,7 @@
                 fullName: 'Qwen 2.5 (0.5B Instant)',
                 icon: '💬',
                 source: 'onnx-community/Qwen2.5-0.5B-Instruct',
+                localPath: './assets/models/qwen2.5-0.5b',
                 size_mb: 280,
                 tier: '0.5B Lightweight',
                 dtype: 'q4',
@@ -2765,7 +2773,7 @@
         };
 
         // --- STATE ---
-        window.activeModelId = localStorage.getItem('uor_active_model') || 'qwen2.5-coder-1.5b';
+        window.activeModelId = localStorage.getItem('uor_active_model') || 'qwen2.5-coder-0.5b';
         if (!MODEL_CONFIGS[window.activeModelId]) {
             window.activeModelId = 'glm5.3-flash';
         }

@@ -1,6 +1,6 @@
 // =====================================================================
 // UOR-R4 SOVEREIGN IN-BROWSER MODEL WORKER (Web Worker)
-// High-Speed Multi-Threaded Inference, Repo-Hosted Crates & Auto-Fallback
+// Multi-Threaded WASM SIMD & WebGPU Inference with Repo-Hosted Priority
 // =====================================================================
 
 import { pipeline, env, TextStreamer } from 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.3.3';
@@ -8,43 +8,30 @@ import { pipeline, env, TextStreamer } from 'https://cdn.jsdelivr.net/npm/@huggi
 env.allowLocalModels = true;
 env.allowRemoteModels = true;
 env.useBrowserCache = true;
+
 if (env.backends && env.backends.onnx && env.backends.onnx.wasm) {
     env.backends.onnx.wasm.numThreads = Math.min(8, (typeof navigator !== 'undefined' && navigator.hardwareConcurrency) ? navigator.hardwareConcurrency : 4);
     env.backends.onnx.wasm.simd = true;
 }
 
 const MODEL_REGISTRY = {
-    'qwen2.5-coder-1.5b': {
-        id: 'qwen2.5-coder-1.5b',
-        name: 'Qwen 2.5 Coder (1.5B Flagship)',
-        source: 'onnx-community/Qwen2.5-Coder-1.5B-Instruct',
-        localPath: './assets/models/qwen2.5-coder-1.5b',
-        size_mb: 980,
-        dtype: 'q4'
-    },
-    'deepseek-r1-1.5b': {
-        id: 'deepseek-r1-1.5b',
-        name: 'DeepSeek R1 (1.5B Reasoning)',
-        source: 'onnx-community/DeepSeek-R1-Distill-Qwen-1.5B-ONNX',
-        localPath: './assets/models/deepseek-r1-1.5b',
-        size_mb: 980,
-        dtype: 'q4'
-    },
-    'llama3.2-1b': {
-        id: 'llama3.2-1b',
-        name: 'Llama 3.2 (1B Instruct)',
-        source: 'onnx-community/Llama-3.2-1B-Instruct-ONNX',
-        localPath: './assets/models/llama3.2-1b',
-        size_mb: 750,
-        dtype: 'q4'
+    'qwen2.5-coder-0.5b': {
+        id: 'qwen2.5-coder-0.5b',
+        name: 'Qwen 2.5 Coder (0.5B Code Specialist)',
+        source: 'onnx-community/Qwen2.5-Coder-0.5B-Instruct',
+        localPath: './assets/models/qwen2.5-coder-0.5b',
+        size_mb: 290,
+        dtype: 'q4',
+        device: 'wasm'
     },
     'glm5.3-flash': {
         id: 'glm5.3-flash',
-        name: 'GLM-5.3 (0.5B Instant)',
+        name: 'GLM-5.3 (0.5B Fast Logic)',
         source: 'onnx-community/Qwen2.5-0.5B-Instruct',
         localPath: './assets/models/glm5.3-flash',
         size_mb: 280,
-        dtype: 'q4'
+        dtype: 'q4',
+        device: 'webgpu'
     },
     'qwen2.5-0.5b': {
         id: 'qwen2.5-0.5b',
@@ -52,7 +39,8 @@ const MODEL_REGISTRY = {
         source: 'onnx-community/Qwen2.5-0.5B-Instruct',
         localPath: './assets/models/qwen2.5-0.5b',
         size_mb: 280,
-        dtype: 'q4'
+        dtype: 'q4',
+        device: 'webgpu'
     }
 };
 
@@ -100,6 +88,7 @@ async function resolveModelSource(modelId) {
                     source: model.localPath,
                     isLocal: true,
                     dtype: model.dtype || 'q4',
+                    device: model.device || 'wasm',
                     model
                 };
             }
@@ -111,6 +100,7 @@ async function resolveModelSource(modelId) {
         source: model.source,
         isLocal: false,
         dtype: model.dtype || 'q4',
+        device: model.device || 'wasm',
         model
     };
 }
@@ -118,15 +108,15 @@ async function resolveModelSource(modelId) {
 async function getOrLoadPipeline(modelId, onProgress) {
     if (loadedPipelines[modelId]) return loadedPipelines[modelId];
 
-    const { source, isLocal, dtype, model } = await resolveModelSource(modelId);
+    const { source, isLocal, dtype, device: preferredDevice, model } = await resolveModelSource(modelId);
 
-    let device = 'wasm';
-    if (typeof navigator !== 'undefined' && navigator.gpu) {
-        try {
-            const adapter = await navigator.gpu.requestAdapter();
-            if (adapter) device = 'webgpu';
-        } catch(e) {}
+    let device = preferredDevice || 'wasm';
+    if (device === 'webgpu' && !(typeof navigator !== 'undefined' && navigator.gpu)) {
+        device = 'wasm';
     }
+
+    env.allowLocalModels = isLocal;
+    env.allowRemoteModels = !isLocal;
 
     try {
         const pipe = await pipeline('text-generation', source, {
@@ -140,10 +130,9 @@ async function getOrLoadPipeline(modelId, onProgress) {
         loadedPipelines[modelId] = pipe;
         return pipe;
     } catch(err) {
-        console.warn(`Pipeline load warning for ${source} (${dtype}):`, err);
-        // Fallback to standard wasm or q4 if webgpu/float16 had browser compatibility quirks
+        console.warn(`Pipeline load error on ${device}:`, err);
         if (device === 'webgpu') {
-            console.log(`Retrying ${source} on WASM device fallback...`);
+            console.log(`Retrying on WASM backend...`);
             const pipe = await pipeline('text-generation', source, {
                 dtype: 'q4',
                 device: 'wasm',
@@ -309,7 +298,6 @@ function handleProgressCallback(p, id, targetModelId) {
     if (p.status === 'progress') {
         const pct = Math.min(99, Math.round(p.progress || ((p.loaded / (p.total || 1)) * 100)));
         
-        // Throttle progress updates to at most once per 80ms or on percentage tick
         if (pct !== lastProgressPct && (now - lastProgressPostTime > 80 || pct === 100 || pct === 0)) {
             lastProgressPostTime = now;
             lastProgressPct = pct;
