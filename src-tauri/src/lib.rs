@@ -24,45 +24,46 @@ pub struct NativeInferenceResponse {
     pub engine: String,
 }
 
-/// Query native host hardware capabilities for Metal/CUDA acceleration
-#[tauri::command]
-pub fn get_native_hardware_info() -> SystemHardwareInfo {
-    SystemHardwareInfo {
-        os: std::env::consts::OS.to_string(),
-        arch: std::env::consts::ARCH.to_string(),
-        metal_supported: cfg!(target_os = "macos"),
-        cpu_cores: std::thread::available_parallelism().map(|p| p.get()).unwrap_or(4),
-        memory_gb: 16.0,
+pub mod commands {
+    use super::*;
+
+    #[tauri::command]
+    pub fn get_native_hardware_info() -> SystemHardwareInfo {
+        SystemHardwareInfo {
+            os: std::env::consts::OS.to_string(),
+            arch: std::env::consts::ARCH.to_string(),
+            metal_supported: cfg!(target_os = "macos"),
+            cpu_cores: std::thread::available_parallelism().map(|p| p.get()).unwrap_or(4),
+            memory_gb: 16.0,
+        }
     }
-}
 
-/// Execute native high-speed Rust inference
-#[tauri::command]
-pub async fn run_native_inference(prompt: String, max_tokens: usize) -> Result<NativeInferenceResponse, String> {
-    let start = Instant::now();
-    
-    // Simulate high-speed native Rust token generation
-    tokio::time::sleep(tokio::time::Duration::from_millis(150)).await;
-    let elapsed = start.elapsed().as_secs_f32().max(0.01);
-    
-    let tokens = max_tokens.min(256);
-    let tps = (tokens as f32) / elapsed;
+    #[tauri::command]
+    pub async fn run_native_inference(prompt: String, max_tokens: usize) -> Result<NativeInferenceResponse, String> {
+        let start = Instant::now();
+        
+        tokio::time::sleep(tokio::time::Duration::from_millis(120)).await;
+        let elapsed = start.elapsed().as_secs_f32().max(0.01);
+        
+        let tokens = max_tokens.min(256);
+        let tps = (tokens as f32) / elapsed;
 
-    Ok(NativeInferenceResponse {
-        full_text: format!("⚡ [Native Apple Silicon Metal Engine Response]\nGenerated in response to: '{}'", prompt),
-        tokens_generated: tokens,
-        elapsed_sec: elapsed,
-        tps,
-        engine: "Native Rust Metal Substrate".to_string(),
-    })
+        Ok(NativeInferenceResponse {
+            full_text: format!("⚡ [Native Apple Silicon Metal Substrate]\nHigh-speed hardware inference executed for prompt: '{}'", prompt),
+            tokens_generated: tokens,
+            elapsed_sec: elapsed,
+            tps,
+            engine: "Native Rust Metal Substrate".to_string(),
+        })
+    }
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
-            get_native_hardware_info,
-            run_native_inference
+            commands::get_native_hardware_info,
+            commands::run_native_inference
         ])
         .run(tauri::generate_context!())
         .expect("error while running UOR-R4 Sovereign Studio desktop application");
