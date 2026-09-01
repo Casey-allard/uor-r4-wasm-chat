@@ -3744,11 +3744,11 @@
                 .replace(/<\|endoftext\|>/g, '')
                 .replace(/<\|im_start\|>/g, '');
 
-            // 1. Shield Code Blocks FIRST before touching any math or text
+            // 1. Shield Code Blocks FIRST using markdown-immune alphanumeric tokens
             const codeBlocks = [];
             raw = raw.replace(/(```[a-zA-Z0-9_-]*[\r\n]+[\s\S]*?```|`[^`\n\r]+`)/g, (match) => {
                 codeBlocks.push(match);
-                return `__CODEBLOCK__${codeBlocks.length - 1}__`;
+                return `QQQCODEBLOCK${codeBlocks.length - 1}QQQ`;
             });
 
             // 2. Normalize Unicode Math & fractured variable lines ONLY on non-code prose
@@ -3763,14 +3763,14 @@
             
             cleanText = cleanText.replace(/\$\$([\s\S]*?)\$\$/g, (match, mathContent) => {
                 mathBlocks.push({ content: sanitizeLatexMath(mathContent), isBlock: true });
-                return `__MATHBLOCK__${mathBlocks.length - 1}__`;
+                return `QQQMATHBLOCK${mathBlocks.length - 1}QQQ`;
             });
 
             // 4. Shield Inline Math ($...$, \(...\))
             cleanText = cleanText.replace(/\\\(([\s\S]*?)\\\)/g, '$$$1$$');
             cleanText = cleanText.replace(/\$([^$\n\r]+)\$/g, (match, mathContent) => {
                 mathBlocks.push({ content: sanitizeLatexMath(mathContent), isBlock: false });
-                return `__MATHINLINE__${mathBlocks.length - 1}__`;
+                return `QQQMATHINLINE${mathBlocks.length - 1}QQQ`;
             });
 
             // 5. Parse non-math Markdown via Marked
@@ -3784,7 +3784,7 @@
             }
 
             // 6. Restore Math using direct KaTeX rendering (immune to markdown italics/underscore bugs)
-            parsedHtml = parsedHtml.replace(/__MATHBLOCK__(\d+)__/g, (match, idx) => {
+            parsedHtml = parsedHtml.replace(/QQQMATHBLOCK(\d+)QQQ/g, (match, idx) => {
                 const item = mathBlocks[parseInt(idx, 10)];
                 if (!item) return match;
                 if (typeof katex !== 'undefined') {
@@ -3797,7 +3797,7 @@
                 return `$$ ${item.content} $$`;
             });
 
-            parsedHtml = parsedHtml.replace(/__MATHINLINE__(\d+)__/g, (match, idx) => {
+            parsedHtml = parsedHtml.replace(/QQQMATHINLINE(\d+)QQQ/g, (match, idx) => {
                 const item = mathBlocks[parseInt(idx, 10)];
                 if (!item) return match;
                 if (typeof katex !== 'undefined') {
@@ -3811,7 +3811,7 @@
             });
 
             // 7. Restore Code Blocks via Marked for beautiful syntax highlighting
-            parsedHtml = parsedHtml.replace(/__CODEBLOCK__(\d+)__/g, (match, idx) => {
+            parsedHtml = parsedHtml.replace(/QQQCODEBLOCK(\d+)QQQ/g, (match, idx) => {
                 const codeRaw = codeBlocks[parseInt(idx, 10)];
                 if (!codeRaw) return match;
                 if (typeof marked !== 'undefined') {
