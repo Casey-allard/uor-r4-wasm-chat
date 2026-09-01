@@ -1,0 +1,63 @@
+\begin{thebibliography}{99}
+
+\bibitem{vaswani2017attention}
+A.~Vaswani, N.~Shazeer, N.~Parmar, J.~Uszkoreit, L.~Jones, A.~N.~Gomez, \L.~Kaiser, and I.~Polosukhin.
+\newblock Attention is all you need.
+\newblock In \emph{Advances in Neural Information Processing Systems (NeurIPS)}, volume~30, pages 5998--6008, 2017.
+
+\bibitem{kanerva2009hyperdimensional}
+P.~Kanerva.
+\newblock Hyperdimensional computing: An introduction to computing in distributed representation with high-dimensional random vectors.
+\newblock \emph{Cognitive Computation}, 1(2):139--159, 2009.
+
+\bibitem{plate2003holographic}
+T.~A.~Plate.
+\newblock \emph{Holographic Reduced Representations: Distributed Representations for Cognitive Structures}.
+\newblock CSLI Publications, Stanford, CA, 2003.
+
+\bibitem{gayler2003vector}
+R.~W.~Gayler.
+\newblock Vector Symbolic Architectures answer Jackendoff's challenges for cognitive architecture.
+\newblock In \emph{ICCS/ASCS International Conference on Cognitive Science}, pages 133--138, 2003.
+
+\bibitem{gosset1900regular}
+T.~Gosset.
+\newblock On the regular and semi-regular figures in space of $n$ dimensions.
+\newblock \emph{Messenger of Mathematics}, 29:43--48, 1900.
+
+\bibitem{conway1988sphere}
+J.~H.~Conway and N.~J.~A.~Sloane.
+\newblock \emph{Sphere Packings, Lattices and Groups}.
+\newblock Springer-Verlag, New York, 1988.
+
+\bibitem{volder1959cordic}
+J.~E.~Volder.
+\newblock The CORDIC trigonometric computing technique.
+\newblock \emph{IRE Transactions on Electronic Computers}, EC-8(3):330--334, 1959.
+
+\bibitem{hopf1931abbildungen}
+H.~Hopf.
+\newblock \"Uber die Abbildungen der dreidimensionalen Sph\"are auf die Kugelfl\"ache.
+\newblock \emph{Mathematische Annalen}, 104(1):637--665, 1931.
+
+\bibitem{dechant2021clifford}
+P.-P.~Dechant.
+\newblock Clifford Spinors and Root System Induction: H4 and the Grand Antiprism.
+\newblock \emph{Advances in Applied Clifford Algebras}, 31(4):62, 2021.
+
+\bibitem{bronstein2017geometric}
+M.~M.~Bronstein, J.~Bruna, Y.~LeCun, A.~Szlam, and P.~Vandergheynst.
+\newblock Geometric deep learning: going beyond Euclidean data.
+\newblock \emph{IEEE Signal Processing Magazine}, 34(4):18--42, 2017.
+
+\bibitem{omeganyn2026spiralcore}
+Omeganyn.
+\newblock \emph{SpiralCore Specification: Observer Notes \& System Analogies (The Cantor-Abraxas Architecture)}.
+\newblock Technical Report v13, SpiralCore Cognitive Architecture Research Group, 2026.
+
+\bibitem{uorfoundation2026}
+{UOR Foundation Research Collective}.
+\newblock \emph{Universal Object Representation: Sovereign Geometric Cognition Specification}.
+\newblock Technical Specification, GitHub, 2026.
+
+\end{thebibliography}

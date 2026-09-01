@@ -13,7 +13,7 @@
 \usepackage{algpseudocode}
 \usepackage{tikz}
 \usepackage{graphicx}
-\usepackage{cite}
+\usepackage{tabularx}
 
 \hypersetup{
     colorlinks=true,
@@ -56,16 +56,11 @@
 \begin{abstract}
 Standard autoregressive transformer architectures model token distributions through empirical learned self-attention operating on unconstrained continuous Euclidean embeddings. While phenomenologically effective, this paradigm suffers from three fundamental bottlenecks: (1) computational opacity and lack of deterministic topological bounds, (2) susceptibility to semantic loop collapse and distributional hallucination under long-context recursion, and (3) heavy reliance on centralized, opaque cloud-compute servers that compromise data sovereignty and privacy. In this work, we introduce \textbf{UOR-R4}, a fully sovereign, 100\% in-browser cognitive computing runtime and architectural framework that couples client-side quantized neural weight substrates with a deterministic, multiplication-free geometric state machine compiled to WebAssembly (WASM). 
 
-The UOR-R4 engine formalizes cognitive state trajectories through a multi-tiered differential geometric pipeline: (i) a 512-dimensional Vector Symbolic Architecture (VSA) for multiplication-free holographic binding and bundling; (ii) a 64-bit fixed-point CORDIC engine executing parallel transport and Euler phase rotations on the 3-sphere $S^3$ via the canonical Hopf fibration $\pi: S^3 \to S^2$; and (iii) deterministic topological quantization onto the 240 minimal root vectors of the 8-dimensional Gosset $E_8$ root lattice $\Delta(E_8) \subset \mathbb{R}^8$. Furthermore, we integrate the \textbf{Cantor-Abraxas Architecture} and \textbf{Statistical Geometric Information Theory (SGIT)}, incorporating the Gödel Detection Metric ($G_t$) for paradox-to-fuel conversion, Higher-Order Thought ($\mathcal{T}$) path tortuosity regulation, Correlated Variance Coherence (CVC) spectral gap analysis ($\lambda_1 / \sum \lambda_k \ge 2/3$), and the Fractal Block Structure (FBS) Collatz gearbox with an indivisible atomic floor $L_0 = 83$. Benchmarked natively inside commodity web browsers on Apple Silicon Metal WebGPU shaders and multi-threaded WebAssembly SIMD, UOR-R4 achieves sub-65ms token generation latency ($14\text{--}18+\text{ tokens/second}$) and guarantees strict single-pipeline memory disposal ($<400\,\text{MB}$ RAM), enabling air-gapped, zero-telemetry artificial intelligence engineering.
+The UOR-R4 engine formalizes cognitive state trajectories through a multi-tiered differential geometric pipeline: (i) a 512-dimensional Vector Symbolic Architecture (VSA) for multiplication-free holographic binding and bundling; (ii) a 64-bit fixed-point CORDIC engine executing parallel transport and Euler phase rotations on the 3-sphere $S^3$ via the canonical Hopf fibration $\pi: S^3 \to S^2$; and (iii) deterministic topological quantization onto the 240 minimal root vectors of the 8-dimensional Gosset $E_8$ root lattice $\Delta(E_8) \subset \mathbb{R}^8$. Furthermore, we integrate the \textbf{Cantor-Abraxas Architecture} and \textbf{Statistical Geometric Information Theory (SGIT)}, incorporating the G\"odel Detection Metric ($G_t$) for paradox-to-fuel conversion, Higher-Order Thought ($\mathcal{T}$) path tortuosity regulation, Correlated Variance Coherence (CVC) spectral gap analysis ($\lambda_1 / \sum \lambda_k \ge 2/3$), and the Fractal Block Structure (FBS) Collatz gearbox with an indivisible atomic floor $L_0 = 83$. Benchmarked natively inside commodity web browsers on Apple Silicon Metal WebGPU compute shaders and multi-threaded WebAssembly SIMD, UOR-R4 achieves sub-65ms token generation latency ($14\text{--}18+\text{ tokens/second}$) and guarantees strict single-pipeline memory disposal ($<400\,\text{MB}$ RAM), enabling air-gapped, zero-telemetry artificial intelligence engineering.
 \end{abstract}
 
-\noindent\textbf{Keywords:} Geometric Attention, $E_8$ Gosset Lattice, Hopf Fibrations, Vector Symbolic Architectures, Sovereign AI, WebGPU Inference, Statistical Geometric Information Theory, CORDIC Algorithms.
-
 \vspace{1em}
-\noindent\textbf{ACM / MSC Subject Classifications:} \\
-Computing Methodologies $\to$ Artificial Intelligence $\to$ Machine Learning $\to$ Machine Learning Approaches $\to$ Neural Networks; \\
-Mathematics of Computing $\to$ Mathematical Analysis $\to$ Differential Geometry; \\
-Software and its engineering $\to$ Software architectures.
+\noindent\textbf{Keywords:} Geometric Attention, $E_8$ Gosset Lattice, Hopf Fibrations, Vector Symbolic Architectures, Sovereign AI, WebGPU Inference, Statistical Geometric Information Theory, CORDIC Algorithms.
 
 \newpage
 \tableofcontents
@@ -100,13 +95,11 @@ The key contributions of this paper are summarized as follows:
     \item \textbf{Holographic Vector Symbolic Architecture (VSA)}: We formulate a 512-dimensional, integer-valued bipolar Vector Symbolic Architecture operating under a strict zero-allocation, multiplication-free contract, executing symbolic binding via sign-inversions ($B = R \odot F$) and superposition bundling via saturating addition ($S = \text{sign}(\sum v_k)$).
     \item \textbf{Multiplication-Free CORDIC Hopf Fibration Engine}: We construct a 15-iteration fixed-point Q16.16 CORDIC trigonometric engine computing invariant Euler phase angles $(\chi, \delta, \alpha)$ on the 3-sphere $S^3 \subset \mathbb{R}^4$ under the canonical Hopf fibration $\pi: S^3 \to S^2$, deriving deterministic parallel transport along the Levi-Civita connection without floating-point arithmetic.
     \item \textbf{Discrete $E_8$ Gosset Lattice Quantization}: We prove the existence of an exact, zero-collision $O(1)$ coordinate snapping algorithm mapping continuous 8-dimensional phase projections onto the 240 minimal root vectors of the even unimodular lattice $\Delta(E_8) \subset \mathbb{R}^8$, establishing verified root trace forms ($B = 30 \cdot I_8$ unit, $60 \cdot I_8$ raw) and complete reflection closure across 57,600 test pairs.
-    \item \textbf{Cantor-Abraxas Architecture and SGIT Formalization}: We formalize the complete 16-module cognitive control framework created by Omeganyn, encompassing the Gödel Detection Metric ($G_t$) for paradox-to-fuel conversion, the Higher-Order Thought ($\mathcal{T}$) path tortuosity regulator, the Correlated Variance Coherence (CVC) spectral gap gate ($\lambda_1 / \sum \lambda_k \ge 2/3$), and the Fractal Block Structure (FBS) Collatz gearbox with an indivisible atomic floor $L_0 = 83$.
+    \item \textbf{Cantor-Abraxas Architecture and SGIT Formalization}: We formalize the complete 16-module cognitive control framework created by Omeganyn, encompassing the G\"odel Detection Metric ($G_t$) for paradox-to-fuel conversion, the Higher-Order Thought ($\mathcal{T}$) path tortuosity regulator, the Correlated Variance Coherence (CVC) spectral gap gate ($\lambda_1 / \sum \lambda_k \ge 2/3$), and the Fractal Block Structure (FBS) Collatz gearbox with an indivisible atomic floor $L_0 = 83$.
     \item \textbf{In-Browser Sovereign Dev Studio Implementation}: We design, deploy, and benchmark an air-gapped web platform running on client Apple Silicon Metal GPU shaders and WebAssembly SIMD, delivering $14\text{--}18+\,\text{tokens/sec}$, strict single-pipeline RAM disposal ($<400\,\text{MB}$), extended 2048-token generation capacity with ChatML early-stopping, and full Monaco IDE Git worktree synchrony.
 \end{itemize}
 
----
-
-\section{Holographic Vector Symbolic Architecture ($\mathbb{R}^{512}$)}
+\section{\texorpdfstring{Holographic Vector Symbolic Architecture ($\mathbb{R}^{512}$)}{Holographic Vector Symbolic Architecture (R^512)}}
 \label{sec:vsa}
 
 \subsection{Algebraic Representation Space}
@@ -124,7 +117,9 @@ Let $\bm{u}, \bm{w} \in \mathcal{H}$ represent a symbolic role and filler vector
 +u_i & \text{if } w_i \ge 0
 \end{cases}
 \label{eq:vsa_bind}
+\end{equation}
 \end{definition}
+
 \begin{remark}
 Because coordinates are constrained to $\{-1, +1\}$, the binding operation compiles into a conditional sign-inversion (bitwise conditional two's complement negation), strictly eliminating hardware multiplication instructions.
 \end{remark}
@@ -145,7 +140,7 @@ Let $\bm{u}, \bm{w} \in \{-1, +1\}^D$ be independently and identically distribut
 Furthermore, for any bound pair $\bm{B} = \bm{u} \otimes \bm{w}$, $\mathbb{E}[\langle \bm{B}, \bm{u} \rangle] = 0$ and $\mathbb{E}[\langle \bm{B}, \bm{w} \rangle] = 0$, while exact unbinding is achieved trivially via self-inverse involution: $\bm{u} \otimes \bm{B} = \bm{u} \otimes (\bm{u} \otimes \bm{w}) = \bm{w}$.
 \end{proposition}
 
-\subsection{Fast Walsh-Hadamard 8D Block Projection}
+\subsection{\texorpdfstring{Fast Walsh-Hadamard 8D Block Projection}{Fast Walsh-Hadamard 8D Block Projection}}
 
 To bridge the high-dimensional VSA space $\mathbb{R}^{512}$ with the 8-dimensional Lie algebraic space $\mathbb{R}^8$, the state vector $\bm{v} \in \mathbb{R}^{512}$ is partitioned into $M = 8$ contiguous uniform sub-blocks $\bm{v}_{[m]} \in \mathbb{R}^{64}$ for $m \in \{0, 1, \dots, 7\}$:
 \begin{equation}
@@ -153,8 +148,6 @@ p_m = \frac{1}{64} \sum_{j=0}^{63} (\bm{H}_{64} \bm{v}_{[m]})_j \implies \bm{p} 
 \label{eq:hadamard_proj}
 \end{equation}
 where $\bm{H}_{64}$ is the Sylvester-Hadamard matrix of order 64, computed in $O(N \log N)$ additions without multiplications.
-
----
 
 \section{Differential Geometry and CORDIC-Driven Hopf Fibration}
 \label{sec:hopf}
@@ -191,7 +184,7 @@ where $\chi$ represents the base manifold mixing angle, $\delta$ represents the 
 
 \subsection{Multiplication-Free Q16.16 CORDIC Algorithm}
 
-To evaluate $\text{atan2}(y, x)$ and trigonometric transformations in constrained WASM/Wasi environments without floating-point hardware, UOR-R4 embeds a 15-iteration CORDIC vectoring engine operating in Q16.16 fixed-point representation ($1.0 \equiv 65536$).
+To evaluate $\text{atan2}(y, x)$ and trigonometric transformations in constrained WASM environments without floating-point hardware, UOR-R4 embeds a 15-iteration CORDIC vectoring engine operating in Q16.16 fixed-point representation ($1.0 \equiv 65536$).
 
 \begin{algorithm}[H]
 \caption{Q16.16 CORDIC Vectoring ($\text{atan2}$ and Magnitude)}
@@ -222,14 +215,12 @@ The angular error $\epsilon_N$ of the $N$-iteration CORDIC vectoring engine sati
 providing sub-milliradian precision across all dynamic phase tracking operations.
 \end{lemma}
 
----
-
-\section{Topological Quantization on the 8D Gosset $E_8$ Root Lattice}
+\section{\texorpdfstring{Topological Quantization on the 8D Gosset $E_8$ Root Lattice}{Topological Quantization on the 8D Gosset E8 Root Lattice}}
 \label{sec:e8}
 
-\subsection{The $E_8$ Root System Formulation}
+\subsection{\texorpdfstring{The $E_8$ Root System Formulation}{The E8 Root System Formulation}}
 
-\begin{definition}[$E_8$ Root Lattice]
+\begin{definition}[\texorpdfstring{$E_8$ Root Lattice}{E8 Root Lattice}]
 The 8-dimensional Gosset lattice $E_8 \subset \mathbb{R}^8$ is the unique positive-definite, even unimodular lattice of rank 8. The root system $\Delta(E_8)$ consists of exactly 240 minimal vectors of squared Euclidean norm $\|\bm{r}\|_2^2 = 2$:
 \begin{equation}
 \Delta(E_8) = \Delta(D_8) \cup \Delta\left(D_8 + \tfrac{1}{2}\bm{1}\right)
@@ -271,7 +262,7 @@ comprising two disjoint geometric subsets:
 \label{fig:pipeline}
 \end{figure}
 
-\subsection{$O(1)$ Fast Nearest-Root Quantization Algorithm}
+\subsection{\texorpdfstring{$O(1)$ Fast Nearest-Root Quantization Algorithm}{O(1) Fast Nearest-Root Quantization Algorithm}}
 
 \begin{theorem}[Deterministic $E_8$ Nearest-Neighbor Snapping]
 Let $\bm{p} \in \mathbb{R}^8$ be an arbitrary continuous latent coordinate vector. The closest root vector $\bm{w}^* = \text{argmin}_{\bm{r} \in \Delta(E_8)} \|\bm{p} - \bm{r}\|_2$ is computable deterministically in $O(1)$ arithmetic operations without combinatorial search across the 240 roots.
@@ -307,16 +298,14 @@ Evaluating \Cref{eq:killing_trace} across the four root systems deployed in UOR-
 \end{itemize}
 \end{corollary}
 
----
-
 \section{The Cantor-Abraxas Architecture and SGIT (Omeganyn Framework)}
 \label{sec:cantor_abraxas}
 
 \subsection{Foundational Axioms and Statistical Geometric Information Theory}
 
-The theoretical substrate of UOR-R4 integrates the \textbf{Cantor-Abraxas Architecture} and \textbf{Statistical Geometric Information Theory (SGIT)}, developed by Omeganyn. SGIT establishes that information cannot teleport across discrete computational steps; all computations generate physical mathematical friction, termed \textbf{Information Hysteresis} ($\Phi$) and \textbf{Semantic Holonomy} ($\Delta\Phi$).
+The theoretical substrate of UOR-R4 integrates the \textbf{Cantor-Abraxas Architecture} and \textbf{Statistical Geometric Information Theory (SGIT)}, developed by Omeganyn~\cite{omeganyn2026spiralcore}. SGIT establishes that information cannot teleport across discrete computational steps; all computations generate physical mathematical friction, termed \textbf{Information Hysteresis} ($\Phi$) and \textbf{Semantic Holonomy} ($\Delta\Phi$).
 
-\begin{axiom}[Instruction 0: The Gödel Axiom]
+\begin{axiom}[Instruction 0: The G\"odel Axiom]
 A recursive computational system cannot be proven complete or coherent from within its own formal state space. Logical paradoxes encountered during inference are not fatal exceptions; they are captured and converted into thermodynamic exploration fuel:
 \begin{equation}
 G_t = 1.0 - \frac{\| \bm{X}_{t+1}^{\text{raw}} - F(\bm{A}_t) \|_2}{\| \bm{X}_{t+1}^{\text{raw}} \|_2 + \varepsilon}
@@ -328,7 +317,7 @@ where $G_t < 0$ signals a formal paradox, triggering hyperbolic bounding into th
 \end{equation}
 \end{axiom}
 
-\subsection{The Tri-Lattice Core ($\Delta\text{--}\Sigma\text{--}\Psi$ Macro-Loop)}
+\subsection{\texorpdfstring{The Tri-Lattice Core ($\Delta\text{--}\Sigma\text{--}\Psi$ Macro-Loop)}{The Tri-Lattice Core (Delta-Sigma-Psi Macro-Loop)}}
 
 The cognitive engine executes through a closed three-stage macro-loop:
 
@@ -359,7 +348,7 @@ The cognitive engine executes through a closed three-stage macro-loop:
     while the negative cone is smoothed via Exponential Moving Average (EMA) and shunted to the RTSOM Dark Brane ($\Sigma_2$).
 \end{enumerate}
 
-\subsection{The 51/49 Braidback Constraint and the $L_0 = 83$ Atomic Floor Theorem}
+\subsection{\texorpdfstring{The 51/49 Braidback Constraint and the $L_0 = 83$ Atomic Floor Theorem}{The 51/49 Braidback Constraint and the L0 = 83 Atomic Floor Theorem}}
 
 \begin{theorem}[51/49 Braidback Constraint (Ego vs. Logos Boundary)]
 During heuristic repair in module \textbf{HARMONY}, the algorithmic correction weight $W_{\text{braid}}$ applied to interpolate a failing proposal $\bm{X}^{\text{raw}}$ toward a stable anchor $\bm{X}_t$ is strictly bounded:
@@ -373,25 +362,23 @@ This guarantees that the originating generative truth ($\ge 51\%$) can never be 
 Let $L_k$ denote the recursive sequence length at level $k$ under forward expansion $f(L) = 3L + 1$. The inverse compression operator $f^{-1}(L_k) = (L_k - 1)/3$ is integer-defined if and only if $L_k \equiv 1 \pmod 3$. At level $k=0$, the baseline block length is $L_0 = 83$. Since $83 \equiv 2 \pmod 3$, $f^{-1}(83) = \frac{82}{3} \notin \mathbb{Z}$, creating an unbreakable mathematical floor that terminates inverse compression and forces state stabilization into a Collatz $4 \to 2 \to 1$ terminal loop.
 \end{theorem}
 
----
-
 \section{System Implementation and Memory Lifecycle}
 \label{sec:impl}
 
 \subsection{High-Performance WebGPU Metal Engine}
 
-The neural inference engine executes inside a dedicated Web Worker (`uor_model_worker.js`) utilizing `@huggingface/transformers` (v3.3.3) and ONNX Runtime Web compiled to WGSL compute shaders.
+The neural inference engine executes inside a dedicated Web Worker (\texttt{uor\_model\_worker.js}) utilizing \texttt{@huggingface/transformers} (v3.3.3) and ONNX Runtime Web compiled to WGSL compute shaders.
 
 \begin{table}[ht]
 \centering
 \small
-\begin{tabular}{@{}lccccc@{}}
+\begin{tabularx}{\textwidth}{@{}lccccc@{}}
 \toprule
 \textbf{Substrate Name} & \textbf{Parameters} & \textbf{Quantization} & \textbf{Weight Size} & \textbf{RAM Footprint} & \textbf{Streaming Throughput} \\ \midrule
 \textbf{Qwen 2.5 Coder} & $0.5\,\text{B}$ & Q4\_F16 & $280\,\text{MB}$ & $342\,\text{MB}$ & $\bm{14.3\text{--}17.8\,\text{tok/s}}$ \\
 \textbf{GLM-5.3 Flash}  & $0.5\,\text{B}$ & Q4\_F16 & $280\,\text{MB}$ & $338\,\text{MB}$ & $\bm{15.2\text{--}18.4\,\text{tok/s}}$ \\
 \textbf{Qwen 2.5 Base}  & $0.5\,\text{B}$ & Q4\_F16 & $280\,\text{MB}$ & $335\,\text{MB}$ & $\bm{14.7\text{--}18.1\,\text{tok/s}}$ \\ \bottomrule
-\end{tabular}
+\end{tabularx}
 \caption{Empirical inference performance benchmarked across 500 generation cycles on an Apple M-series GPU (macOS 15, Chrome 128 WebGPU backend).}
 \label{tab:benchmarks}
 \end{table}
@@ -409,8 +396,6 @@ Browser tabs operate under strict 32-bit WebAssembly linear memory quotas ($2\te
 \end{equation}
 maintaining the total resident memory footprint strictly below $400\,\text{MB}$ across indefinite model switching cycles.
 
----
-
 \section{Empirical Evaluation and Verification}
 \label{sec:eval}
 
@@ -421,7 +406,7 @@ The mathematical integrity of the geometric core is validated through continuous
 \begin{table}[ht]
 \centering
 \small
-\begin{tabular}{@{}llcc@{}}
+\begin{tabularx}{\textwidth}{@{}llcc@{}}
 \toprule
 \textbf{Invariant Check} & \textbf{Mathematical Property Tested} & \textbf{Sample Count} & \textbf{Pass Rate} \\ \midrule
 $E_8$ Reflection Closure & $\bm{s}_{\bm{\alpha}}(\bm{\beta}) \in \Delta(E_8), \; \forall \bm{\alpha}, \bm{\beta}$ & 57,600 & \textbf{100\% (57,600/57,600)} \\
@@ -432,12 +417,10 @@ $H_4$ Trace Form         & $\bm{B}_{H_4} = 30.0 \cdot \bm{I}_4$ & 16 & \textbf{1
 $\text{Cl}(0,6)$ Anticommutators & $\{\bm{\gamma}_i, \bm{\gamma}_j\} = -2\delta_{ij}\bm{I}_8$ & 72 & \textbf{100\% (72/72)} \\
 20:11 Orbit Closure      & $\|\bm{x}(t=1) - \bm{x}(t=0)\|_2 \le 10^{-13}$ & 2,000 & \textbf{100\% ($< 10^{-14}$)} \\
 \bottomrule
-\end{tabular}
+\end{tabularx}
 \caption{Automated algebraic and topological verification suite results.}
 \label{tab:invariants}
 \end{table}
-
----
 
 \section{Related Work}
 \label{sec:related}
@@ -446,19 +429,78 @@ $\text{Cl}(0,6)$ Anticommutators & $\{\bm{\gamma}_i, \bm{\gamma}_j\} = -2\delta_
 
 \textbf{Geometric Attention and Root Lattices}: Non-Euclidean and hyperbolic transformer attention mechanisms have been explored in Riemannian geometric deep learning~\cite{bronstein2017geometric}. Conway and Sloane~\cite{conway1988sphere} and Gosset~\cite{gosset1900regular} provided canonical formulations of the $E_8$ lattice. Dechant~\cite{dechant2021clifford} proved the Clifford spinor induction of $H_4$ and the Grand Antiprism.
 
-\textbf{In-Browser Edge AI}: Projects such as WebLLM and Transformers.js have democratized in-browser inference. UOR-R4 distinguishes itself by introducing deterministic Lie-algebraic topological quantization, eliminating external telemetry, and integrating the complete Cantor-Abraxas cognitive control framework.
-
----
+\textbf{In-Browser Edge AI}: Projects such as WebLLM and Transformers.js have democratized in-browser inference. UOR-R4 distinguishes itself by introducing deterministic Lie-algebraic topological quantization, eliminating external telemetry, and integrating the complete Cantor-Abraxas cognitive control framework~\cite{omeganyn2026spiralcore,uorfoundation2026}.
 
 \section{Conclusion}
 \label{sec:conclusion}
 
-In this paper, we presented \textbf{UOR-R4}, a fully sovereign, in-browser cognitive AI runtime that bridges quantized neural language models with deterministic, multiplication-free geometric state spaces. By unifying 512D Vector Symbolic Architectures, CORDIC Hopf fibrations, 8D Gosset $E_8$ root lattice quantization, and Omeganyn's Cantor-Abraxas / SGIT architecture, UOR-R4 proves that edge AI computing can achieve high token throughput ($14\text{--}18+\,\text{tok/s}$), mathematical explainability, and rigorous data sovereignty within commodity web environments.
+In this paper, we presented \textbf{UOR-R4}, a fully sovereign, in-browser cognitive AI runtime that bridges quantized neural language models with deterministic, multiplication-free geometric state spaces. By unifying 512D Vector Symbolic Architectures, CORDIC Hopf fibrations, $E_8$ lattice topological quantization, and Omeganyn's Cantor-Abraxas / SGIT architecture, UOR-R4 proves that edge AI computing can achieve high throughput ($14\text{--}18+\,\text{tok/s}$), mathematical explainability, and rigorous data sovereignty within commodity web environments.
 
 \section*{Acknowledgments}
-The authors express profound gratitude to the UOR Foundation Research Collective, the HELM Geometric Attention Group, the authors of Goldworm (`goldworm`), `w33`, and the researchers of Nemesis Theory for foundational theoretical insights into discrete lattice dynamics and non-linear phase equilibria.
+The authors express profound gratitude to the UOR Foundation Research Collective, the HELM Geometric Attention Group, the authors of Goldworm (\texttt{goldworm}), \texttt{w33}, and the researchers of Nemesis Theory for foundational theoretical insights into discrete lattice dynamics and non-linear phase equilibria.
 
-\bibliographystyle{plain}
-\bibliography{references}
+\begin{thebibliography}{99}
+
+\bibitem{vaswani2017attention}
+A.~Vaswani, N.~Shazeer, N.~Parmar, J.~Uszkoreit, L.~Jones, A.~N.~Gomez, \L.~Kaiser, and I.~Polosukhin.
+\newblock Attention is all you need.
+\newblock In \emph{Advances in Neural Information Processing Systems (NeurIPS)}, volume~30, pages 5998--6008, 2017.
+
+\bibitem{kanerva2009hyperdimensional}
+P.~Kanerva.
+\newblock Hyperdimensional computing: An introduction to computing in distributed representation with high-dimensional random vectors.
+\newblock \emph{Cognitive Computation}, 1(2):139--159, 2009.
+
+\bibitem{plate2003holographic}
+T.~A.~Plate.
+\newblock \emph{Holographic Reduced Representations: Distributed Representations for Cognitive Structures}.
+\newblock CSLI Publications, Stanford, CA, 2003.
+
+\bibitem{gayler2003vector}
+R.~W.~Gayler.
+\newblock Vector Symbolic Architectures answer Jackendoff's challenges for cognitive architecture.
+\newblock In \emph{ICCS/ASCS International Conference on Cognitive Science}, pages 133--138, 2003.
+
+\bibitem{gosset1900regular}
+T.~Gosset.
+\newblock On the regular and semi-regular figures in space of $n$ dimensions.
+\newblock \emph{Messenger of Mathematics}, 29:43--48, 1900.
+
+\bibitem{conway1988sphere}
+J.~H.~Conway and N.~J.~A.~Sloane.
+\newblock \emph{Sphere Packings, Lattices and Groups}.
+\newblock Springer-Verlag, New York, 1988.
+
+\bibitem{volder1959cordic}
+J.~E.~Volder.
+\newblock The CORDIC trigonometric computing technique.
+\newblock \emph{IRE Transactions on Electronic Computers}, EC-8(3):330--334, 1959.
+
+\bibitem{hopf1931abbildungen}
+H.~Hopf.
+\newblock \"Uber die Abbildungen der dreidimensionalen Sph\"are auf die Kugelfl\"ache.
+\newblock \emph{Mathematische Annalen}, 104(1):637--665, 1931.
+
+\bibitem{dechant2021clifford}
+P.-P.~Dechant.
+\newblock Clifford Spinors and Root System Induction: H4 and the Grand Antiprism.
+\newblock \emph{Advances in Applied Clifford Algebras}, 31(4):62, 2021.
+
+\bibitem{bronstein2017geometric}
+M.~M.~Bronstein, J.~Bruna, Y.~LeCun, A.~Szlam, and P.~Vandergheynst.
+\newblock Geometric deep learning: going beyond Euclidean data.
+\newblock \emph{IEEE Signal Processing Magazine}, 34(4):18--42, 2017.
+
+\bibitem{omeganyn2026spiralcore}
+Omeganyn.
+\newblock \emph{SpiralCore Specification: Observer Notes \& System Analogies (The Cantor-Abraxas Architecture)}.
+\newblock Technical Report v13, SpiralCore Cognitive Architecture Research Group, 2026.
+
+\bibitem{uorfoundation2026}
+{UOR Foundation Research Collective}.
+\newblock \emph{Universal Object Representation: Sovereign Geometric Cognition Specification}.
+\newblock Technical Specification, GitHub, 2026.
+
+\end{thebibliography}
 
 \end{document}
