@@ -102,6 +102,20 @@ The built-in Sovereign IDE provides a complete client-side git worktree engine:
 
 ## 6. Foundational Attributions & References
 
-* **Omeganyn ([@Omeganyn](https://github.com/Omeganyn))**: Creator and Lead Architect of **SpiralCore** and the **Cantor-Abraxas Architecture**, Statistical Geometric Information Theory (SGIT), Information Hysteresis ($\Phi$), Semantic Holonomy ($\Delta\Phi$), the Fractal Block Structure (FBS with Collatz 4-2-1 Gearbox & $L_0=83$ atomic floor), and the RTSOM (Revised Thermodynamic Star Ocean Model / Dark Brane Gravity) cognitive framework.
-* **[UOR Foundation](https://github.com/uor-foundation)**: Universal Object Representation, 512D Vector Symbolic hyperdimensional memory, and sovereign geometric AI.
-* **HELM Geometric Attention Group**: High-dimensional non-Euclidean manifold routing and topological transformer state spaces.
+## 📚 Project Attributions & References
+
+This implementation was designed, engineered, and assembled by **Casey Allard** as an open-source, sovereign in-browser cognitive computing runtime. The architecture incorporates foundational insights, mathematical research, and engineering techniques contributed across several open projects:
+
+1. **The Hologram Team**: For their foundational development and significant advancement of the Universal Object Representation (UOR) framework.
+2. **Omeganyn**: Creator of **SpiralCore** and the **Cantor-Abraxas Architecture**, Statistical Geometric Information Theory (SGIT), Information Hysteresis ($\Phi$), Semantic Holonomy ($\Delta\Phi$), and the Fractal Block Structure (FBS with Collatz 4-2-1 Gearbox & $L_0=83$ atomic floor).
+3. **DARKUnicorn**: For supporting the Goldworm (`goldworm`) project, contributing byte-level modular codebooks ($	ext{mod } 256$) and streaming token compression.
+4. **N3MESIS**: Maintainer of the Nemesis Theory repository, providing algebraic field structures, discrete $E_8$ Gosset root lattice dynamics, and non-linear phase equilibria.
+5. **Wil Dahn**: Maintainer of `w33`, providing research on discrete topology and symbolic computation.
+6. **HELM Geometric Attention Group**: Research in high-dimensional manifold routing and topological transformer state spaces.
+7. **Canonical Mathematical Literature**:
+   * **Kanerva, P.** (2009). *Hyperdimensional Computing: An Introduction to Computing in Distributed Representation with High-Dimensional Random Vectors*. Cognitive Computation, 1(2), 139–159.
+   * **Gosset, T.** (1900). *On the regular and semi-regular figures in space of n dimensions*. Messenger of Mathematics, 29, 43–48.
+   * **Conway, J. H., & Sloane, N. J. A.** (1988). *Sphere Packings, Lattices and Groups*. Springer-Verlag.
+   * **Volder, J. E.** (1959). *The CORDIC Trigonometric Computing Technique*. IRE Transactions on Electronic Computers, EC-8(3), 330–334.
+   * **Hopf, H.** (1931). *Über die Abbildungen der dreidimensionalen Sphäre auf die Kugelfläche*. Mathematische Annalen, 104(1), 637–665.
+   * **Dechant, P.-P.** (2021). *Clifford Spinors and Root System Induction: H4 and the Grand Antiprism*. Adv. Appl. Clifford Algebras, 31(4), 62.

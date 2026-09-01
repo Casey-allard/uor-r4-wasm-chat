@@ -20,6 +20,21 @@ R.~W.~Gayler.
 \newblock Vector Symbolic Architectures answer Jackendoff's challenges for cognitive architecture.
 \newblock In \emph{ICCS/ASCS International Conference on Cognitive Science}, pages 133--138, 2003.
 
+\bibitem{heddes2022torchhd}
+M.~Heddes, I.~Nunes, P.~Verg{\'e}s, D.~Kleyko, D.~Abraham, T.~Givargis, A.~Nicolau, and A.~Veidenbaum.
+\newblock Torchhd: An open source Python library to support research on hyperdimensional computing and vector symbolic architectures.
+\newblock \emph{Journal of Machine Learning Research}, 24(255):1--6, 2023.
+
+\bibitem{kleyko2022survey1}
+D.~Kleyko, D.~A_Rachkovskij, E.~Osipov, and A.~Rahimi.
+\newblock A survey on hyperdimensional computing aka vector symbolic architectures, part I: Models and data transformations.
+\newblock \emph{ACM Computing Surveys}, 55(6):1--40, 2022.
+
+\bibitem{kleyko2023survey2}
+D.~Kleyko, D.~A_Rachkovskij, E.~Osipov, and A.~Rahimi.
+\newblock A survey on hyperdimensional computing aka vector symbolic architectures, part II: Applications, cognitive models, and challenges.
+\newblock \emph{ACM Computing Surveys}, 55(9):1--52, 2023.
+
 \bibitem{gosset1900regular}
 T.~Gosset.
 \newblock On the regular and semi-regular figures in space of $n$ dimensions.
@@ -49,15 +64,5 @@ P.-P.~Dechant.
 M.~M.~Bronstein, J.~Bruna, Y.~LeCun, A.~Szlam, and P.~Vandergheynst.
 \newblock Geometric deep learning: going beyond Euclidean data.
 \newblock \emph{IEEE Signal Processing Magazine}, 34(4):18--42, 2017.
-
-\bibitem{omeganyn2026spiralcore}
-Omeganyn.
-\newblock \emph{SpiralCore Specification: Observer Notes \& System Analogies (The Cantor-Abraxas Architecture)}.
-\newblock Technical Report v13, SpiralCore Cognitive Architecture Research Group, 2026.
-
-\bibitem{uorfoundation2026}
-{UOR Foundation Research Collective}.
-\newblock \emph{Universal Object Representation: Sovereign Geometric Cognition Specification}.
-\newblock Technical Specification, GitHub, 2026.
 
 \end{thebibliography}
