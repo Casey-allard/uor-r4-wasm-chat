@@ -2227,7 +2227,7 @@
                             </button>
                             
                             <!-- IN-PROMPT MODEL SELECTOR -->
-                            <div class="input-model-selector-wrapper" id="inputModelSelectorWrapper">
+                            <div class="input-model-selector-wrapper" id="inputModelSelectorWrapper" style="position:relative; display:inline-flex;">
                                 <button type="button" class="input-model-pill-btn" onclick="toggleInputModelDropdown(event)" title="Select Neural Model">
                                     <span id="inputActiveModelIcon">💻</span>
                                     <span id="inputActiveModelName">Qwen 2.5 Coder</span>
@@ -2244,53 +2244,6 @@
                                             </div>
                                         </div>
                                         <span class="opt-check" id="check-qwen2.5-coder-0.5b">✓</span>
-                                    </div>
-                                    <div class="input-model-opt" id="opt-glm5.3-flash" onclick="selectModelFromInput('glm5.3-flash')">
-                                        <div class="opt-left">
-                                            <span class="opt-icon">📐</span>
-                                            <div class="opt-info">
-                                                <span class="opt-name">GLM-5.3</span>
-                                                <span class="opt-tier">0.5B Fast Logic (~280MB)</span>
-                                            </div>
-                                        </div>
-                                        <span class="opt-check" id="check-glm5.3-flash" style="display:none;">✓</span>
-                                    </div>
-                                    <div class="input-model-opt" id="opt-qwen2.5-0.5b" onclick="selectModelFromInput('qwen2.5-0.5b')">
-                                        <div class="opt-left">
-                                            <span class="opt-icon">💬</span>
-                                            <div class="opt-info">
-                                                <span class="opt-name">Qwen 2.5</span>
-                                                <span class="opt-tier">0.5B Instant (~280MB)</span>
-                                            </div>
-                                        </div>
-                                        <span class="opt-check" id="check-qwen2.5-0.5b" style="display:none;">✓</span>
-                                    </div>
-                                    <div style="padding:0.4rem 0.65rem; border-top:1px solid rgba(255,255,255,0.08); font-size:0.7rem; color:var(--accent-cyan); cursor:pointer; text-align:center; font-weight:600;" onclick="openModelManagerModal()">
-                                        ⚙️ Manage Caches & Models...
-                                    </div>
-                                </div>
-                                        </div>
-                                        <span class="opt-check" id="check-qwen2.5-coder-1.5b">✓</span>
-                                    </div>
-                                    <div class="input-model-opt" id="opt-deepseek-r1-1.5b" onclick="selectModelFromInput('deepseek-r1-1.5b')">
-                                        <div class="opt-left">
-                                            <span class="opt-icon">🧬</span>
-                                            <div class="opt-info">
-                                                <span class="opt-name">DeepSeek R1</span>
-                                                <span class="opt-tier">1.5B Reasoning CoT (~980MB)</span>
-                                            </div>
-                                        </div>
-                                        <span class="opt-check" id="check-deepseek-r1-1.5b" style="display:none;">✓</span>
-                                    </div>
-                                    <div class="input-model-opt" id="opt-llama3.2-1b" onclick="selectModelFromInput('llama3.2-1b')">
-                                        <div class="opt-left">
-                                            <span class="opt-icon">🦙</span>
-                                            <div class="opt-info">
-                                                <span class="opt-name">Llama 3.2 (1B)</span>
-                                                <span class="opt-tier">1B Meta SOTA (~750MB)</span>
-                                            </div>
-                                        </div>
-                                        <span class="opt-check" id="check-llama3.2-1b" style="display:none;">✓</span>
                                     </div>
                                     <div class="input-model-opt" id="opt-glm5.3-flash" onclick="selectModelFromInput('glm5.3-flash')">
                                         <div class="opt-left">
