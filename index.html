@@ -2565,7 +2565,11 @@
             if (!container) return;
             container.innerHTML = '';
 
-            workspaceFiles.forEach((item) => {
+            const list = window.workspaceFilesArray && window.workspaceFilesArray.length > 0 
+                ? window.workspaceFilesArray 
+                : (Array.isArray(window.workspaceFiles) ? window.workspaceFiles : []);
+
+            list.forEach((item) => {
                 const depth = item.path.split('/').length - 1;
                 const node = document.createElement('div');
                 node.className = 'tree-node';
@@ -2817,15 +2821,17 @@
         }
 
         async function loadRemoteGithubRepo(repo) {
-            if (!githubToken) return;
             window.activeRepo = repo;
             showToast(`Loading repository: ${repo.full_name}...`);
 
             try {
                 const defaultBranch = repo.default_branch || 'main';
-                const treeData = await callGithubApi(`/repos/${repo.owner.login}/${repo.name}/git/trees/${defaultBranch}?recursive=1`);
+                const ownerLogin = repo.owner ? (repo.owner.login || repo.owner) : repo.full_name.split('/')[0];
+                const repoName = repo.name || repo.full_name.split('/')[1];
+                
+                const treeData = await callGithubApi(`/repos/${ownerLogin}/${repoName}/git/trees/${defaultBranch}?recursive=1`);
 
-                window.workspaceFiles = (treeData.tree || []).map(item => ({
+                window.workspaceFilesArray = (treeData.tree || []).map(item => ({
                     name: item.path.split('/').pop(),
                     path: item.path,
                     sha: item.sha,
@@ -2833,14 +2839,19 @@
                     isRemote: true
                 }));
 
-                document.getElementById('activeWorkspaceName').innerText = repo.full_name;
-                document.getElementById('activeWorkspaceBadge').innerText = "GitHub Cloud";
-                document.getElementById('fileCountLabel').innerText = `${workspaceFiles.length} items`;
+                const nameEl = document.getElementById('activeWorkspaceName');
+                const badgeEl = document.getElementById('activeWorkspaceBadge');
+                const countEl = document.getElementById('fileCountLabel');
+
+                if (nameEl) nameEl.innerText = repo.full_name || `${ownerLogin}/${repoName}`;
+                if (badgeEl) badgeEl.innerText = "GitHub Cloud";
+                if (countEl) countEl.innerText = `${window.workspaceFilesArray.length} items`;
 
                 switchSidebarTab('files');
                 renderWorkspaceTree();
-                showToast(`Loaded ${workspaceFiles.length} files from ${repo.name}`);
+                showToast(`Loaded ${window.workspaceFilesArray.length} files from ${repoName}`);
             } catch(e) {
+                console.error("Failed to load repo tree:", e);
                 showToast(`Failed to load repo tree: ${e.message}`);
             }
         }
