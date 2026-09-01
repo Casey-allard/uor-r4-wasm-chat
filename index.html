@@ -1938,10 +1938,24 @@
             <div class="editor-view-layout">
                 <div class="editor-top-toolbar">
                     <div class="editor-tabs-scroll" id="editorTabsBar">
-                        <!-- Open File Tabs -->
+                        <div class="editor-tab active" onclick="switchEditorTab('index.html')">index.html</div>
+                        <div class="editor-tab" onclick="switchEditorTab('style.css')">style.css</div>
+                        <div class="editor-tab" onclick="switchEditorTab('app.js')">app.js</div>
+                        <div class="editor-tab" onclick="switchEditorTab('main.rs')">main.rs</div>
                     </div>
 
-                    <div class="editor-actions-right">
+                    <div class="quick-refactor-bar">
+                        <button class="quick-pill" onclick="triggerQuickAction('optimize')">⚡ Optimize</button>
+                        <button class="quick-pill" onclick="triggerQuickAction('test')">🧪 Add Tests</button>
+                        <button class="quick-pill" onclick="triggerQuickAction('explain')">🔍 Explain</button>
+                        <button class="quick-pill" onclick="triggerQuickAction('fix')">🐛 Fix</button>
+                    </div>
+
+                    <div class="editor-actions-right" style="margin-left:auto;">
+                        <button class="editor-btn" onclick="exportWorkspaceZip()">
+                            <span>📦</span>
+                            <span>Export ZIP</span>
+                        </button>
                         <button class="editor-btn" id="btnToggleDiffMode" onclick="toggleMonacoDiffView()">
                             <span>⚖️</span>
                             <span id="diffModeLabel">View Diff</span>
