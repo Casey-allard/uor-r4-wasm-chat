@@ -2139,6 +2139,13 @@
                     </div>
                 </div>
 
+                <div style="margin: 1rem 0; display:flex; gap:0.5rem; background:rgba(255,255,255,0.02); padding:0.75rem; border-radius:8px; border:1px solid rgba(255,255,255,0.08);">
+                    <input type="text" id="publicRepoInput" class="modal-input" placeholder="Explore any public repo (e.g. Casey-allard/uor-r4-wasm-chat, mrdoob/three.js)..." onkeydown="if(event.key==='Enter') loadPublicGithubRepo()" style="flex:1;" />
+                    <button class="editor-btn primary" onclick="loadPublicGithubRepo()">
+                        <span>📂</span> Load Repo
+                    </button>
+                </div>
+
                 <div class="sidebar-section-label">
                     <span>Your Repositories</span>
                     <span id="githubRepoCountBadge" style="font-family:var(--font-mono); color:var(--accent-cyan);">0 repos</span>
@@ -2595,6 +2602,27 @@
         }
 
         // --- PHASE 2: GITHUB CLOUD INTEGRATION (DIRECT ROBUST REST ENGINE) ---
+
+        window.loadPublicGithubRepo = async function() {
+            const input = document.getElementById('publicRepoInput');
+            const repoStr = input ? input.value.trim() : '';
+            if (!repoStr || !repoStr.includes('/')) {
+                showToast("Please enter a valid owner/repo format (e.g. Casey-allard/uor-r4-wasm-chat)");
+                return;
+            }
+            const parts = repoStr.split('/');
+            const owner = parts[0].trim();
+            const name = parts[1].trim();
+            showToast(`Loading public repo ${owner}/${name}...`);
+            try {
+                const repoData = await callGithubApi(`/repos/${owner}/${name}`, '');
+                await loadRemoteGithubRepo(repoData);
+                switchStudioView('editor');
+            } catch(e) {
+                showToast(`Failed to load repository: ${e.message}`);
+            }
+        };
+
         window.githubToken = localStorage.getItem('uor_github_pat') || '';
         window.githubUser = null;
 
