@@ -242,19 +242,29 @@ self.onmessage = async function(e) {
                     cleanMessages.unshift({ role: 'system', content: modelConfig.systemPrompt });
                 }
 
+                let hasStoppedEarly = false;
+                const maxTokens = Math.min(options.max_new_tokens || 1024, 2048);
+
                 const streamer = new TextStreamer(pipe.tokenizer, {
                     skip_prompt: true,
                     callback_function: (chunk) => {
-                        if (!isGenerating) return;
+                        if (!isGenerating || hasStoppedEarly) return;
                         const now = performance.now();
                         if (firstTokenTime === null) {
                             firstTokenTime = now;
                         }
                         lastTokenTime = now;
 
-                        if (chunk.includes('<|im_end|>') || chunk.includes('<|endoftext|>')) {
-                            chunk = chunk.replace(/<\|im_end\|>/g, '').replace(/<\|endoftext\|>/g, '');
+                        // Check for standard ChatML stop sequences or prompt boundary leaks
+                        if (chunk.includes('<|im_end|>') || chunk.includes('<|endoftext|>') || chunk.includes('<|im_start|>') || chunk.includes('\nUser:') || chunk.includes('\nHuman:')) {
+                            chunk = chunk.replace(/<\|im_end\|>/g, '')
+                                         .replace(/<\|endoftext\|>/g, '')
+                                         .replace(/<\|im_start\|>/g, '')
+                                         .replace(/\nUser:.*$/g, '')
+                                         .replace(/\nHuman:.*$/g, '');
+                            hasStoppedEarly = true;
                         }
+
                         fullText += chunk;
                         generatedTokenCount++;
 
@@ -267,18 +277,24 @@ self.onmessage = async function(e) {
                             chunk,
                             fullText,
                             tokenCount: generatedTokenCount,
-                            tps
+                            tps,
+                            hitLimit: (generatedTokenCount >= maxTokens)
                         });
+
+                        if (hasStoppedEarly) {
+                            isGenerating = false;
+                        }
                     }
                 });
 
                 const useSampling = options.temperature && options.temperature > 0.3;
                 
                 const out = await pipe(cleanMessages, {
-                    max_new_tokens: Math.min(options.max_new_tokens || 384, 512),
+                    max_new_tokens: maxTokens,
                     do_sample: useSampling,
                     temperature: useSampling ? options.temperature : undefined,
                     top_p: useSampling ? (options.top_p || 0.9) : undefined,
+                    repetition_penalty: 1.08,
                     streamer: streamer
                 });
 

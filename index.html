@@ -4715,7 +4715,7 @@
 
         function initModelWorker() {
             try {
-                modelWorker = new Worker(new URL('./assets/js/uor_model_worker.js?v=3.0.1', import.meta.url), { type: 'module' });
+                modelWorker = new Worker(new URL('./assets/js/uor_model_worker.js?v=3.0.2', import.meta.url), { type: 'module' });
 
                 modelWorker.onmessage = (e) => {
                     const { action, id, chunk, fullText, tokenCount, durationSec, tps, storage, error, stage, text, progress } = e.data;
