@@ -147,12 +147,11 @@ For simply-laced root systems, the trace form tensor satisfies $\bm{B} = \frac{|
 
 ## Acknowledgments
 
-The author expresses sincere gratitude to the open-source researchers, organizations, and teams whose foundational work and research insights supported this project:
-* **The Hologram Team**, for their foundational development and advancement of the original Universal Object Reference (UOR) framework.
-* **The UOR Foundation**, for research contributions, governance, and stewardship of the open UOR standard.
-* **Omeganyn**, for theoretical insights and directional research from SpiralCore and the Cantor-Abraxas architecture (including Statistical Geometric Information Theory, Information Hysteresis, and Fractal Block Structures).
-* **DARKUnicorn**, for supporting the Goldworm (`goldworm`) project and research in byte-level modular codebooks.
-* **N3MESIS**, for maintaining the Nemesis Theory repository on algebraic field structures and non-linear phase equilibria.
+The author expresses sincere gratitude to the open-source researchers, contributors, and colleagues whose foundational work, research insights, and collaborative efforts supported this project:
+* **The UOR Foundation**, and specifically framework contributors **Alex Flom**, **Ari Lerner**, **Maura Clark**, **Ilya Paveliev**, and **Kat Morgan**, for their foundational development, research contributions, and stewardship of the open Universal Object Reference (UOR) standard.
+* **Matthew Wood**, for theoretical insights and directional research from SpiralCore and the Cantor-Abraxas architecture (including Statistical Geometric Information Theory, Information Hysteresis, and Fractal Block Structures).
+* **The creator of the Goldworm (`goldworm`) project**, for research in byte-level modular codebooks.
+* **Mark Rand**, for maintaining the Nemesis Theory repository on algebraic field structures and non-linear phase equilibria.
 * **Wil Dahn**, for maintaining `w33` and advancing discrete topological symbolic computation.
 * **The HELM Geometric Attention Group**, for research in manifold routing and topological state spaces.
 

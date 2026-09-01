@@ -82,7 +82,7 @@ To address these challenges, we present \textbf{UOR-R4} (Universal Object Refere
 The core contributions of this work include:
 \begin{itemize}
     \item \textbf{Multiplication-Free Hyperdimensional State Algebra}: We specify a 512-dimensional bipolar Vector Symbolic Architecture (VSA) operating on signed integer arrays $\mathbb{Z}_{16}^{512}$, executing symbolic binding via bitwise sign-inversions ($B = R \odot F$) and superposition bundling via saturated addition ($S = \text{sign}(\sum v_k)$).
-    \item \textbf{CORDIC-Driven Hopf Routing Engine}: We construct a 15-iteration fixed-point Q16.16 CORDIC engine computing Euler phase angles $(\chi, \delta, \alpha)$ on the 3-sphere $S^3 \subset \mathbb{R}^4$ under the canonical Hopf fibration $\pi: S^3 \to S^2$, deriving deterministic parallel transport without hardware floating-point instructions.
+    \item \textbf{CORDIC-Driven Hopf Routing Engine}: We construct a 15-iteration fixed-point Q16.16 CORDIC engine computing Euler phase angles $(\chi, \delta, \ alpha)$ on the 3-sphere $S^3 \subset \mathbb{R}^4$ under the canonical Hopf fibration $\pi: S^3 \to S^2$, deriving deterministic parallel transport without hardware floating-point instructions.
     \item \textbf{Deterministic $E_8$ Gosset Lattice Quantization}: We formulate an exact, zero-collision $O(1)$ coordinate snapping algorithm that maps 8-dimensional continuous projections onto the 240 minimal root vectors of the even unimodular Gosset lattice $\Delta(E_8) \subset \mathbb{R}^8$, proving isotropic trace form invariance ($\bm{B}_{E_8} = 30 \cdot \bm{I}_8$ unit, $60 \cdot \bm{I}_8$ raw) across 57,600 reflection tests.
     \item \textbf{Cognitive State Trajectory Regulation}: We formulate formal bounds on state trajectory evolution, including the 51/49 Braidback Invariant (which guarantees that generative truth cannot be overwritten by heuristic error-correction) and the Fractal Block Structure (FBS) Atomic Floor Theorem ($L_0 = 83$).
     \item \textbf{Sovereign In-Browser Implementation and Empirical Validation}: We implement and benchmark the complete system inside commodity web browsers on Apple Silicon Metal WebGPU shaders and WASM SIMD, achieving $14\text{--}18+\,\text{tokens/sec}$ streaming throughput with sub-65ms token latency, zero external network telemetry, and strict single-pipeline memory disposal ($<400\,\text{MB}$ RAM).
@@ -438,13 +438,12 @@ In this paper, we introduced \textbf{UOR-R4}, an open-source, fully sovereign co
 
 \section*{Acknowledgments}
 
-The author expresses sincere gratitude to the open-source researchers, organizations, and teams whose foundational work and research insights supported this project:
+The author expresses sincere gratitude to the open-source researchers, contributors, and colleagues whose foundational work, research insights, and collaborative efforts supported this project:
 \begin{itemize}
-    \item \textbf{The Hologram Team}, for their foundational development and advancement of the original Universal Object Reference (UOR) framework.
-    \item \textbf{The UOR Foundation}, for research contributions, governance, and stewardship of the open UOR standard.
-    \item \textbf{Omeganyn}, for theoretical insights and directional research from SpiralCore and the Cantor-Abraxas architecture (including Statistical Geometric Information Theory, Information Hysteresis, and Fractal Block Structures).
-    \item \textbf{DARKUnicorn}, for supporting the Goldworm (\texttt{goldworm}) project and research in byte-level modular codebooks.
-    \item \textbf{N3MESIS}, for maintaining the Nemesis Theory repository on algebraic field structures and non-linear phase equilibria.
+    \item \textbf{The UOR Foundation}, and specifically framework contributors \textbf{Alex Flom}, \textbf{Ari Lerner}, \textbf{Maura Clark}, \textbf{Ilya Paveliev}, and \textbf{Kat Morgan}, for their foundational development, research contributions, and stewardship of the open Universal Object Reference (UOR) standard.
+    \item \textbf{Matthew Wood}, for theoretical insights and directional research from SpiralCore and the Cantor-Abraxas architecture (including Statistical Geometric Information Theory, Information Hysteresis, and Fractal Block Structures).
+    \item \textbf{The creator of the Goldworm (\texttt{goldworm}) project}, for research in byte-level modular codebooks.
+    \item \textbf{Mark Rand}, for maintaining the Nemesis Theory repository on algebraic field structures and non-linear phase equilibria.
     \item \textbf{Wil Dahn}, for maintaining \texttt{w33} and advancing discrete topological symbolic computation.
     \item \textbf{The HELM Geometric Attention Group}, for research in manifold routing and topological state spaces.
 \end{itemize}
