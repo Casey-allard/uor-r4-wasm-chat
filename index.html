@@ -1931,6 +1931,109 @@
             color: var(--text-muted);
         }
 
+
+        /* DETACHED MODEL COMPILER & SUBSTRATE MANAGER */
+        .detached-compile-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.25rem 0.65rem;
+            background: rgba(0, 243, 255, 0.08);
+            border: 1px solid rgba(0, 243, 255, 0.3);
+            border-radius: 9999px;
+            color: var(--accent-cyan);
+            font-size: 0.72rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            user-select: none;
+            animation: pulseGlow 2s infinite alternate;
+        }
+        @keyframes pulseGlow {
+            from { box-shadow: 0 0 5px rgba(0, 243, 255, 0.2); }
+            to { box-shadow: 0 0 14px rgba(0, 243, 255, 0.45); }
+        }
+        .detached-mini-progress {
+            width: 50px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        .detached-mini-progress-fill {
+            height: 100%;
+            background: var(--accent-cyan);
+            width: 0%;
+            transition: width 0.15s ease;
+        }
+        .model-cache-status-badge {
+            font-size: 0.62rem;
+            font-family: var(--font-mono);
+            padding: 0.15rem 0.4rem;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+        .model-cache-status-badge.cached {
+            background: rgba(0, 255, 136, 0.12);
+            color: var(--accent-green);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+        }
+        .model-cache-status-badge.uncached {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-muted);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .model-manager-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+        .model-manager-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.85rem 1rem;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+        .model-manager-card:hover {
+            border-color: rgba(0, 243, 255, 0.3);
+            background: rgba(255, 255, 255, 0.04);
+        }
+        .model-card-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .model-card-icon {
+            font-size: 1.5rem;
+        }
+        .model-card-details {
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+        }
+        .model-card-name {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .model-card-desc {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+        }
+        .model-card-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
     </style>
 </head>
 <body>
@@ -2146,6 +2249,9 @@
                                             </div>
                                         </div>
                                         <span class="opt-check" id="check-qwen2.5-0.5b" style="display:none;">✓</span>
+                                    </div>
+                                    <div style="padding:0.4rem 0.65rem; border-top:1px solid rgba(255,255,255,0.08); font-size:0.7rem; color:var(--accent-cyan); cursor:pointer; text-align:center; font-weight:600;" onclick="openModelManagerModal()">
+                                        ⚙️ Manage Caches & Models...
                                     </div>
                                 </div>
                             </div>
@@ -3954,12 +4060,159 @@
             if (menu) menu.classList.toggle('show');
         };
 
+
+        // ================= 🧠 SOVEREIGN SUBSTRATE MANAGER & DETACHED COMPILER =================
+        window.activeCompileModelId = null;
+        window.modelCacheStatus = {};
+
+        async function checkAllModelCaches() {
+            if (!('caches' in window)) return;
+            try {
+                const cache = await caches.open('transformers-cache');
+                const reqs = await cache.keys();
+                
+                for (const modelId in MODEL_CONFIGS) {
+                    const src = MODEL_CONFIGS[modelId].source;
+                    const isCached = reqs.some(r => r.url.includes(src) && (r.url.includes('.onnx') || r.url.includes('.onnx_data')));
+                    window.modelCacheStatus[modelId] = isCached;
+                    
+                    // Update dropdown check / badge
+                    const badge = document.getElementById(`cache-badge-${modelId}`);
+                    if (badge) {
+                        badge.className = `model-cache-status-badge ${isCached ? 'cached' : 'uncached'}`;
+                        badge.innerText = isCached ? '💾 Cached' : `📥 ~${MODEL_CONFIGS[modelId].size_mb}MB`;
+                    }
+                }
+            } catch(e) {}
+        }
+        window.checkAllModelCaches = checkAllModelCaches;
+
+        window.triggerBackgroundCompile = function(modelId) {
+            const meta = MODEL_CONFIGS[modelId];
+            if (!meta) return;
+
+            window.activeCompileModelId = modelId;
+            showToast(`🚀 Spawning detached compiler for: ${meta.fullName}`);
+
+            const pill = document.getElementById('detachedCompilePill');
+            const txt = document.getElementById('detachedCompileText');
+            const fill = document.getElementById('detachedMiniProgressFill');
+            if (pill && txt && fill) {
+                pill.style.display = 'inline-flex';
+                txt.innerText = `📥 ${meta.name} (1%)`;
+                fill.style.width = '1%';
+            }
+
+            if (modelWorker) {
+                modelWorker.postMessage({
+                    action: 'prewarm',
+                    id: `compile_${modelId}_${Date.now()}`,
+                    modelId: modelId
+                });
+            }
+        };
+
+        window.openModelManagerModal = async function() {
+            const modal = document.getElementById('modalModelManager');
+            if (modal) modal.style.display = 'flex';
+            await renderModelManagerUI();
+        };
+
+        window.closeModelManagerModal = function(e) {
+            if (e && e.target !== document.getElementById('modalModelManager') && e.target !== document.querySelector('#modalModelManager .modal-close-btn')) return;
+            const modal = document.getElementById('modalModelManager');
+            if (modal) modal.style.display = 'none';
+        };
+
+        async function renderModelManagerUI() {
+            await checkAllModelCaches();
+            const grid = document.getElementById('modelManagerGrid');
+            if (!grid) return;
+
+            grid.innerHTML = Object.keys(MODEL_CONFIGS).map(mId => {
+                const m = MODEL_CONFIGS[mId];
+                const isCached = window.modelCacheStatus[mId] || false;
+                const isCompiling = (window.activeCompileModelId === mId);
+                const isActive = (window.activeModelId === mId);
+
+                return `
+                    <div class="model-manager-card">
+                        <div class="model-card-info">
+                            <span class="model-card-icon">${m.icon}</span>
+                            <div class="model-card-details">
+                                <div class="model-card-name">
+                                    ${escapeHtml(m.name)}
+                                    <span class="model-cache-status-badge ${isCached ? 'cached' : 'uncached'}">
+                                        ${isCached ? '💾 Cached & Ready' : `📥 ~${m.size_mb} MB`}
+                                    </span>
+                                    ${isActive ? '<span style="color:var(--accent-cyan); font-size:0.65rem; font-weight:700;">[ACTIVE]</span>' : ''}
+                                </div>
+                                <div class="model-card-desc">${escapeHtml(m.desc)}</div>
+                            </div>
+                        </div>
+                        <div class="model-card-actions">
+                            ${isCompiling ? `
+                                <span style="font-size:0.72rem; color:var(--accent-cyan); font-family:var(--font-mono);">⚡ Compiling...</span>
+                            ` : isCached ? `
+                                <button class="modal-btn secondary" style="padding:0.3rem 0.6rem; font-size:0.72rem;" onclick="selectModelFromInput('${mId}'); closeModelManagerModal();">
+                                    ${isActive ? 'Active Substrate' : '⚡ Switch To'}
+                                </button>
+                                <button class="modal-btn secondary" style="padding:0.3rem 0.6rem; font-size:0.72rem; color:var(--accent-magenta);" onclick="purgeSingleModelCache('${mId}')" title="Delete model cache">
+                                    🗑️
+                                </button>
+                            ` : `
+                                <button class="modal-btn primary" style="padding:0.3rem 0.75rem; font-size:0.72rem;" onclick="triggerBackgroundCompile('${mId}'); renderModelManagerUI();">
+                                    📥 Download & Precompile
+                                </button>
+                            `}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // Update storage
+            if (navigator.storage && navigator.storage.estimate) {
+                const est = await navigator.storage.estimate();
+                const lbl = document.getElementById('modalTotalStorageLabel');
+                if (lbl) lbl.innerText = `Total Sovereign Cache: ${((est.usage || 0) / (1024 * 1024)).toFixed(1)} MB / ${((est.quota || 0) / (1024 * 1024)).toFixed(1)} MB`;
+            }
+        }
+        window.renderModelManagerUI = renderModelManagerUI;
+
+        window.purgeSingleModelCache = async function(modelId) {
+            const meta = MODEL_CONFIGS[modelId];
+            if (!meta || !('caches' in window)) return;
+            try {
+                const cache = await caches.open('transformers-cache');
+                const reqs = await cache.keys();
+                let count = 0;
+                for (const r of reqs) {
+                    if (r.url.includes(meta.source)) {
+                        await cache.delete(r);
+                        count++;
+                    }
+                }
+                showToast(`🗑️ Purged ${count} cached files for ${meta.name}`);
+                await renderModelManagerUI();
+                await checkAllModelCaches();
+            } catch(e) {
+                showToast(`❌ Purge error: ${e.message}`);
+            }
+        };
+
+        // Wire detached compiler progress in onmessage handler
+
         window.selectModelFromInput = function(modelId) {
             const meta = MODEL_CONFIGS[modelId];
             if (!meta) return;
 
             window.activeModelId = modelId;
             localStorage.setItem('uor_active_model', activeModelId);
+
+            // If model is not yet in cache, spawn detached compiler
+            if (window.modelCacheStatus && window.modelCacheStatus[modelId] === false) {
+                triggerBackgroundCompile(modelId);
+            }
 
             const nameEl = document.getElementById('inputActiveModelName');
             const iconEl = document.getElementById('inputActiveModelIcon');
@@ -4452,6 +4705,22 @@
                 modelWorker.onmessage = (e) => {
                     const { action, id, chunk, fullText, tokenCount, durationSec, tps, storage, error, stage, text, progress } = e.data;
 
+                    if (action === 'prewarm_complete') {
+                        const cMeta = MODEL_CONFIGS[modelId];
+                        showToast(`✅ ${cMeta ? cMeta.fullName : modelId} compiled and ready in cache!`);
+                        window.activeCompileModelId = null;
+                        const pill = document.getElementById('detachedCompilePill');
+                        if (pill) pill.style.display = 'none';
+                        checkAllModelCaches();
+                    }
+
+                    if (action === 'prewarm_error') {
+                        showToast(`❌ Precompile failed: ${error}`);
+                        window.activeCompileModelId = null;
+                        const pill = document.getElementById('detachedCompilePill');
+                        if (pill) pill.style.display = 'none';
+                    }
+
                     if (action === 'storage_status_result') {
                         const lbl = document.getElementById('browserCacheUsageLabel');
                         if (lbl && storage) lbl.innerText = `Storage: ${storage.usageMB} MB`;
@@ -4484,6 +4753,32 @@
                                 progressFill.style.width = `${progress}%`;
                             } else if (progress >= 100) {
                                 progressFill.style.width = '100%';
+                            }
+                        }
+
+                        // Update Detached Compiler Pill
+                        if (window.activeCompileModelId) {
+                            const pill = document.getElementById('detachedCompilePill');
+                            const txt = document.getElementById('detachedCompileText');
+                            const miniFill = document.getElementById('detachedMiniProgressFill');
+                            const cMeta = MODEL_CONFIGS[window.activeCompileModelId];
+                            if (pill && txt && miniFill && cMeta) {
+                                pill.style.display = 'inline-flex';
+                                if (stage === 'compiling') {
+                                    txt.innerText = `⚡ ${cMeta.name} (99%)`;
+                                    miniFill.style.width = '99%';
+                                } else if (stage === 'ready') {
+                                    txt.innerText = `✅ ${cMeta.name} Ready`;
+                                    miniFill.style.width = '100%';
+                                    setTimeout(() => {
+                                        pill.style.display = 'none';
+                                        window.activeCompileModelId = null;
+                                        checkAllModelCaches();
+                                    }, 4000);
+                                } else {
+                                    txt.innerText = `📥 ${cMeta.name} (${progress || 0}%)`;
+                                    miniFill.style.width = `${progress || 0}%`;
+                                }
                             }
                         }
                     }
