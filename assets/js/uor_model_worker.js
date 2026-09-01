@@ -14,6 +14,13 @@ if (env.backends && env.backends.onnx && env.backends.onnx.wasm) {
 }
 
 const MODEL_REGISTRY = {
+    'qwen3-1.7b': {
+        id: 'qwen3-1.7b',
+        name: 'Qwen 3 (1.7B SOTA Flagship)',
+        source: 'onnx-community/Qwen3-1.7B-ONNX',
+        size_mb: 1100,
+        dtype: 'q4f16'
+    },
     'qwen2.5-coder-1.5b': {
         id: 'qwen2.5-coder-1.5b',
         name: 'Qwen 2.5 Coder (1.5B Flagship)',
@@ -28,16 +35,23 @@ const MODEL_REGISTRY = {
         size_mb: 980,
         dtype: 'q4f16'
     },
+    'qwen3-0.6b': {
+        id: 'qwen3-0.6b',
+        name: 'Qwen 3 Flash (0.6B Ultra-Fast)',
+        source: 'onnx-community/Qwen3-0.6B-ONNX',
+        size_mb: 380,
+        dtype: 'q4f16'
+    },
     'glm5.3-flash': {
         id: 'glm5.3-flash',
-        name: 'GLM-5.3 (SOTA Logic 0.5B)',
+        name: 'GLM-5.3 (0.5B Instant)',
         source: 'onnx-community/Qwen2.5-0.5B-Instruct',
         size_mb: 280,
         dtype: 'q4'
     },
     'qwen2.5-0.5b': {
         id: 'qwen2.5-0.5b',
-        name: 'Qwen 2.5 (0.5B Instruct)',
+        name: 'Qwen 2.5 (0.5B Instant)',
         source: 'onnx-community/Qwen2.5-0.5B-Instruct',
         size_mb: 280,
         dtype: 'q4'
