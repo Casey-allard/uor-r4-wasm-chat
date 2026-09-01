@@ -2560,6 +2560,47 @@
             renderWorkspaceTree();
         }
 
+        async function openWorkspaceFileInEditor(fileItem) {
+            try {
+                let text = '';
+                if (fileItem.handle) {
+                    const file = await fileItem.handle.getFile();
+                    text = await file.text();
+                } else if (fileItem.isRemote && window.activeRepo) {
+                    showToast(`Fetching ${fileItem.name} from GitHub...`);
+                    const ownerLogin = window.activeRepo.owner ? (window.activeRepo.owner.login || window.activeRepo.owner) : window.activeRepo.full_name.split('/')[0];
+                    const repoName = window.activeRepo.name || window.activeRepo.full_name.split('/')[1];
+                    const data = await callGithubApi(`/repos/${ownerLogin}/${repoName}/contents/${fileItem.path}?ref=${window.activeGitBranch || 'main'}`);
+                    
+                    if (data.content) {
+                        const binaryStr = atob(data.content.replace(/\s/g, ''));
+                        const bytes = Uint8Array.from(binaryStr, c => c.charCodeAt(0));
+                        text = new TextDecoder('utf-8').decode(bytes);
+                    } else {
+                        text = '// Empty file or binary data\n';
+                    }
+                    
+                    window.remoteOriginalFiles[fileItem.name] = text;
+                }
+                
+                const ext = fileItem.name.split('.').pop() || 'txt';
+                window.workspaceFiles[fileItem.name] = { 
+                    content: text, 
+                    lang: getLangForExt(fileItem.name), 
+                    remotePath: fileItem.path, 
+                    sha: fileItem.sha 
+                };
+                
+                switchEditorTab(fileItem.name);
+                switchStudioView('editor');
+                showToast(`📂 Opened ${fileItem.name}`);
+            } catch(e) {
+                console.error("Failed to open file:", e);
+                showToast(`Could not open file: ${e.message}`);
+            }
+        }
+        window.openWorkspaceFileInEditor = openWorkspaceFileInEditor;
+
         function renderWorkspaceTree() {
             const container = document.getElementById('fileTreeContainer');
             if (!container) return;
@@ -3352,40 +3393,6 @@
             }
         };
         // --- PHASE 4: DEEP GITHUB WORKTREE & COMMIT/PUSH CONTROLLERS ---
-        window.openWorkspaceFileInEditor = async function(fileItem) {
-            try {
-                let text = '';
-                if (fileItem.handle) {
-                    const file = await fileItem.handle.getFile();
-                    text = await file.text();
-                } else if (fileItem.isRemote && activeRepo) {
-                    showToast(`Fetching ${fileItem.name} from GitHub...`);
-                    const data = await callGithubApi(`/repos/${activeRepo.owner.login}/${activeRepo.name}/contents/${fileItem.path}?ref=${activeGitBranch}`);
-                    
-                    if (data.content) {
-                        const binaryStr = atob(data.content.replace(/\s/g, ''));
-                        const bytes = Uint8Array.from(binaryStr, c => c.charCodeAt(0));
-                        text = new TextDecoder('utf-8').decode(bytes);
-                    } else {
-                        text = '// Empty file or binary data\n';
-                    }
-                    
-                    // Store original for Git diffing
-                    remoteOriginalFiles[fileItem.name] = text;
-                }
-                
-                const ext = fileItem.name.split('.').pop() || 'txt';
-                workspaceFiles[fileItem.name] = { content: text, lang: getLangForExt(fileItem.name), remotePath: fileItem.path, sha: fileItem.sha };
-                
-                switchEditorTab(fileItem.name);
-                switchStudioView('editor');
-                showToast(`📂 Opened ${fileItem.name}`);
-            } catch(e) {
-                console.error("Failed to open file:", e);
-                showToast(`Could not open file: ${e.message}`);
-            }
-        }
-
         window.tagFileToContext = async function(event, path) {
             event.stopPropagation();
             const item = workspaceFilesArray.find(f => f.path === path);
