@@ -3040,6 +3040,22 @@
 
                 window.monacoEditorInstance = monacoEditorInstance;
                 window.monacoDiffInstance = monacoDiffInstance;
+
+                monacoEditorInstance.onDidChangeModelContent(() => {
+                    if (window.currentWorkspaceFile && window.workspaceFiles[window.currentWorkspaceFile]) {
+                        const val = monacoEditorInstance.getValue();
+                        window.workspaceFiles[window.currentWorkspaceFile].content = val;
+                        
+                        if (window.remoteOriginalFiles[window.currentWorkspaceFile] !== undefined) {
+                            if (window.remoteOriginalFiles[window.currentWorkspaceFile] !== val) {
+                                window.modifiedWorktreeFiles.add(window.currentWorkspaceFile);
+                            } else {
+                                window.modifiedWorktreeFiles.delete(window.currentWorkspaceFile);
+                            }
+                            updateGitWorktreeStatusUI();
+                        }
+                    }
+                });
             });
         }
 
@@ -3120,10 +3136,15 @@
                 if (diffEl) diffEl.style.display = 'block';
                 if (label) label.innerText = "Close Diff";
 
-                const currentTab = openEditorTabs.find(t => t.name === activeEditorTab);
-                if (currentTab && monacoDiffInstance) {
-                    const originalModel = monaco.editor.createModel(currentTab.originalContent || currentTab.content, currentTab.language);
-                    const modifiedModel = monaco.editor.createModel(monacoEditorInstance ? monacoEditorInstance.getValue() : currentTab.content, currentTab.language);
+                const origText = window.remoteOriginalFiles[window.currentWorkspaceFile] !== undefined
+                    ? window.remoteOriginalFiles[window.currentWorkspaceFile]
+                    : (window.workspaceFiles[window.currentWorkspaceFile]?.content || '');
+                const modText = monacoEditorInstance ? monacoEditorInstance.getValue() : (window.workspaceFiles[window.currentWorkspaceFile]?.content || '');
+                const lang = window.workspaceFiles[window.currentWorkspaceFile]?.lang || getLangForExt(window.currentWorkspaceFile);
+
+                if (monacoDiffInstance && typeof monaco !== 'undefined') {
+                    const originalModel = monaco.editor.createModel(origText, lang);
+                    const modifiedModel = monaco.editor.createModel(modText, lang);
                     monacoDiffInstance.setModel({ original: originalModel, modified: modifiedModel });
                 }
             } else {
