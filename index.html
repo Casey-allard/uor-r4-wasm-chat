@@ -2593,6 +2593,47 @@
         }
         window.callGithubApi = callGithubApi;
 
+        window.switchEditorTab = function(fileName) {
+            if (!window.workspaceFiles[fileName]) {
+                window.workspaceFiles[fileName] = { content: '// New File\n', lang: getLangForExt(fileName) };
+            }
+            
+            // Save previous active tab content from Monaco if valid
+            if (window.monacoEditorInstance && window.currentWorkspaceFile && window.workspaceFiles[window.currentWorkspaceFile]) {
+                window.workspaceFiles[window.currentWorkspaceFile].content = window.monacoEditorInstance.getValue();
+            }
+            
+            window.currentWorkspaceFile = fileName;
+            const fileObj = window.workspaceFiles[fileName];
+            const lang = fileObj.lang || getLangForExt(fileName);
+            
+            if (window.monacoEditorInstance && typeof monaco !== 'undefined') {
+                let model = window.monacoEditorInstance.getModel();
+                if (model) {
+                    monaco.editor.setModelLanguage(model, lang);
+                    model.setValue(fileObj.content || '');
+                } else {
+                    const newModel = monaco.editor.createModel(fileObj.content || '', lang);
+                    window.monacoEditorInstance.setModel(newModel);
+                }
+            }
+            
+            renderEditorTabsBar();
+        };
+
+        function renderEditorTabsBar() {
+            const bar = document.getElementById('editorTabsBar');
+            if (!bar) return;
+            
+            const fileKeys = Object.keys(window.workspaceFiles);
+            bar.innerHTML = fileKeys.map(name => `
+                <div class="editor-tab ${name === window.currentWorkspaceFile ? 'active' : ''}" onclick="switchEditorTab('${name}')">
+                    <span>${getFileIcon(name)}</span> <span>${escapeHtml(name)}</span>
+                </div>
+            `).join('');
+        }
+        window.renderEditorTabsBar = renderEditorTabsBar;
+
         async function openWorkspaceFileInEditor(fileItem) {
             try {
                 let text = '';
