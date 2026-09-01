@@ -3620,14 +3620,21 @@
                 content: 'You are an intelligent, high-speed sovereign AI assistant and software engineer. Answer user requests directly, clearly, and thoughtfully from the very beginning. When asked for code, write self-contained, standalone single-file code with inline styles and scripts inside clean markdown code blocks (```html or ```javascript). Format math using KaTeX ($...$ and $$...$$).'
             };
 
-            // Keep recent history focused (last 3 messages) so model attention remains sharp
+            // Keep recent history laser-focused (last 3 messages) and truncate heavy code blocks to prevent CPU prefill lag
             const recentHistory = curConv.messages.slice(-3);
             const historyPayload = recentHistory
                 .filter(m => m.content && m.content.trim())
-                .map(m => ({
-                    role: (m.role === 'ai' || m.role === 'assistant') ? 'assistant' : 'user',
-                    content: m.content.trim().slice(0, 2000)
-                }));
+                .map(m => {
+                    const role = (m.role === 'ai' || m.role === 'assistant') ? 'assistant' : 'user';
+                    let text = m.content.trim();
+                    if (role === 'assistant' && text.length > 300) {
+                        // Collapse large code blocks in historical context to prevent CPU KV-cache saturation
+                        text = text.replace(/```[\s\S]*?```/g, '[Generated code component]').slice(0, 300);
+                    } else if (role === 'user' && text.length > 500) {
+                        text = text.slice(0, 500);
+                    }
+                    return { role, content: text };
+                });
 
             const messagesPayload = [systemMsg, ...historyPayload];
             activeGenerationId = 'gen_' + Date.now();
