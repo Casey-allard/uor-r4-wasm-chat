@@ -3411,7 +3411,20 @@
             if (scrollArea) scrollArea.scrollTop = scrollArea.scrollHeight;
         }
 
-        // --- COMPREHENSIVE CODE-SAFE MARKDOWN & KATEX LATEX POST-PROCESSING ---
+        // --- ROCK-SOLID LATEX & MARKDOWN RENDERING PIPELINE ---
+        function sanitizeLatexMath(latex) {
+            return latex
+                .replace(/\\label\s*\{[^}]*\}/gi, '')
+                .replace(/\\label[a-zA-Z0-9_:]+/gi, '')
+                .replace(/\\require\s*\{[^}]*\}/gi, '')
+                .replace(/\\text\s*([a-zA-Z0-9]+)/g, '\\text{$1}')
+                .replace(/\\\s+&/g, '\\\\ &')
+                .replace(/\\mathcal\s*\{([a-zA-Z0-9]+)\}\s*\{([a-zA-Z0-9]+)\}/g, '\\mathcal{$1}_{$2}')
+                .replace(/\\mathbb\s*\{([a-zA-Z0-9]+)\}\s*\{([a-zA-Z0-9]+)\}/g, '\\mathbb{$1}_{$2}')
+                .replace(/\$+/g, '')
+                .trim();
+        }
+
         function renderRichMarkdown(targetEl, text) {
             if (!targetEl) return;
             let cleanText = (text || '')
@@ -3419,45 +3432,82 @@
                 .replace(/<\|endoftext\|>/g, '')
                 .replace(/<\|im_start\|>/g, '');
 
+            // 1. Shield Fenced and Inline Code Blocks
             const codeBlocks = [];
-            cleanText = cleanText.replace(/(```[\s\S]*?```|`[^`\n]+`)/g, (match) => {
+            cleanText = cleanText.replace(/(```[a-zA-Z0-9_-]*[\r\n]+[\s\S]*?```|`[^`\n]+`)/g, (match) => {
                 codeBlocks.push(match);
-                return `___CODE_BLOCK_${codeBlocks.length - 1}___`;
+                return `___SHIELDED_CODE_${codeBlocks.length - 1}___`;
             });
 
+            // 2. Normalize and Shield Block Math ($$...$$, \begin{aligned}...\end{aligned}, \[...\])
+            const mathBlocks = [];
             cleanText = cleanText.replace(/\\\[([\s\S]*?)\\\]/g, '\n\n$$$$$1$$$$\n\n');
-            cleanText = cleanText.replace(/\\\(([\s\S]*?)\\\)/g, '$$$1$$');
-            cleanText = cleanText.replace(/\\begin\{equation\*?\}([\s\S]*?)\\end\{equation\*?\}/g, '\n\n$$$$$1$$$$\n\n');
-            cleanText = cleanText.replace(/\\begin\{align\*?\}([\s\S]*?)\\end\{align\*?\}/g, '\n\n$$\\begin{aligned}$1\\end{aligned}$$\n\n');
-
-            cleanText = cleanText.replace(/___CODE_BLOCK_(\d+)___/g, (match, idx) => {
-                return codeBlocks[parseInt(idx, 10)] || match;
+            cleanText = cleanText.replace(/\\begin\{(aligned|align\*?|equation\*?|gather\*?|matrix|pmatrix|bmatrix)\}([\s\S]*?)\\end\{\1\}/g, '\n\n$$$$ \\begin{$1}$2\\end{$1} $$$$\n\n');
+            
+            cleanText = cleanText.replace(/\$\$([\s\S]*?)\$\$/g, (match, mathContent) => {
+                mathBlocks.push({ content: sanitizeLatexMath(mathContent), isBlock: true });
+                return `___SHIELDED_MATH_BLOCK_${mathBlocks.length - 1}___`;
             });
 
+            // 3. Shield Inline Math ($...$, \(...\))
+            cleanText = cleanText.replace(/\\\(([\s\S]*?)\\\)/g, '$$$1$$');
+            cleanText = cleanText.replace(/\$([^$\n\r]+)\$/g, (match, mathContent) => {
+                mathBlocks.push({ content: sanitizeLatexMath(mathContent), isBlock: false });
+                return `___SHIELDED_MATH_INLINE_${mathBlocks.length - 1}___`;
+            });
+
+            // 4. Parse non-math Markdown via Marked
+            let parsedHtml = cleanText;
             if (typeof marked !== 'undefined') {
                 try {
-                    targetEl.innerHTML = marked.parse(cleanText);
+                    parsedHtml = marked.parse(cleanText);
                 } catch(e) {
-                    targetEl.innerText = cleanText;
+                    parsedHtml = cleanText;
                 }
-            } else {
-                targetEl.innerText = cleanText;
             }
 
-            if (typeof renderMathInElement !== 'undefined') {
-                try {
-                    renderMathInElement(targetEl, {
-                        delimiters: [
-                            {left: '$$', right: '$$', display: true},
-                            {left: '$', right: '$', display: false},
-                            {left: '\\[', right: '\\]', display: true},
-                            {left: '\\(', right: '\\)', display: false}
-                        ],
-                        ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code"],
-                        throwOnError: false
-                    });
-                } catch(e) {}
-            }
+            // 5. Restore Math using direct KaTeX rendering (immune to markdown italics/underscore bugs)
+            parsedHtml = parsedHtml.replace(/___SHIELDED_MATH_BLOCK_(\d+)___/g, (match, idx) => {
+                const item = mathBlocks[parseInt(idx, 10)];
+                if (!item) return match;
+                if (typeof katex !== 'undefined') {
+                    try {
+                        return `<div class="katex-display-wrapper">${katex.renderToString(item.content, { displayMode: true, throwOnError: false })}</div>`;
+                    } catch(err) {
+                        return `<div class="katex-display-wrapper">$$ ${item.content} $$</div>`;
+                    }
+                }
+                return `$$ ${item.content} $$`;
+            });
+
+            parsedHtml = parsedHtml.replace(/___SHIELDED_MATH_INLINE_(\d+)___/g, (match, idx) => {
+                const item = mathBlocks[parseInt(idx, 10)];
+                if (!item) return match;
+                if (typeof katex !== 'undefined') {
+                    try {
+                        return `<span class="katex-inline-wrapper">${katex.renderToString(item.content, { displayMode: false, throwOnError: false })}</span>`;
+                    } catch(err) {
+                        return `$${item.content}$`;
+                    }
+                }
+                return `$${item.content}$`;
+            });
+
+            // 6. Restore Code Blocks
+            parsedHtml = parsedHtml.replace(/___SHIELDED_CODE_(\d+)___/g, (match, idx) => {
+                const codeRaw = codeBlocks[parseInt(idx, 10)];
+                if (!codeRaw) return match;
+                if (typeof marked !== 'undefined') {
+                    try {
+                        return marked.parse(codeRaw);
+                    } catch(e) {
+                        return codeRaw;
+                    }
+                }
+                return codeRaw;
+            });
+
+            targetEl.innerHTML = parsedHtml;
         }
 
         // --- FAST NON-BLOCKING WEB WORKER INFERENCE & STORAGE MANAGER ---
@@ -3532,7 +3582,7 @@
                     }
 
                     if (action === 'generate_complete' && id === activeGenerationId) {
-                        finalizeChatGeneration(id, fullText, tps);
+                        finalizeChatGeneration(id, fullText, tps, tokenCount);
                     }
 
                     if (action === 'generate_error' && id === activeGenerationId) {
@@ -3693,7 +3743,7 @@
                     payload: {
                         messages: messagesPayload,
                         options: {
-                            max_new_tokens: 1024,
+                            max_new_tokens: 2500,
                             temperature: 0.6,
                             top_p: 0.92,
                             repetition_penalty: 1.1
@@ -3703,7 +3753,7 @@
             }
         };
 
-        function finalizeChatGeneration(genId, fullResponse, avgTps) {
+        function finalizeChatGeneration(genId, fullResponse, avgTps, tokenCount) {
             let aiRow = document.getElementById(`msg_row_${genId}`);
             if (!aiRow) {
                 aiRow = document.querySelector('.message-row.ai:last-child');
@@ -3721,7 +3771,16 @@
                     textDiv.classList.remove('typing-cursor');
                     renderRichMarkdown(textDiv, fullResponse);
                 }
-                if (toolbar) toolbar.style.display = 'flex';
+                if (toolbar) {
+                    toolbar.style.display = 'flex';
+                    const modelSpan = toolbar.querySelector('span:last-child');
+                    if (modelSpan) {
+                        const mName = MODEL_CONFIGS[activeModelId] ? MODEL_CONFIGS[activeModelId].name : 'GLM-5.3';
+                        const countStr = tokenCount ? ` • ${tokenCount} tokens` : '';
+                        const tpsStr = avgTps ? ` • ${avgTps} tok/s` : '';
+                        modelSpan.innerText = `${mName}${countStr}${tpsStr}`;
+                    }
+                }
             }
             scrollDown();
 

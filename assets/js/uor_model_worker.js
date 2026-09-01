@@ -177,7 +177,7 @@ self.onmessage = async function(e) {
                 });
 
                 const out = await pipe(cleanMessages, {
-                    max_new_tokens: options.max_new_tokens || 1024,
+                    max_new_tokens: options.max_new_tokens || 2500,
                     temperature: options.temperature || 0.6,
                     top_p: options.top_p || 0.92,
                     repetition_penalty: options.repetition_penalty || 1.1,
