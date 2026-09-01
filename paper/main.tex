@@ -38,11 +38,7 @@
 
 \title{\textbf{Deterministic Geometric Attention and Discrete Lattice State Quantization for Sovereign In-Browser Neural Architectures}}
 
-\author{
-    \textbf{L. Charles Allard IV} \\
-    Universal Object Representation Project \\
-    \texttt{charles.allard@uor-foundation.org}
-}
+\author{\textbf{L. Charles Allard IV}}
 
 \date{September 2026}
 
@@ -51,7 +47,7 @@
 \maketitle
 
 \begin{abstract}
-Standard autoregressive language models parameterize token generation through learned, unconstrained self-attention over continuous Euclidean embeddings. While empirically effective for large-scale pretraining, continuous latent representations present substantial operational challenges in resource-constrained, privacy-critical, and air-gapped environments: they lack deterministic topological bounds, risk semantic drift under long-horizon recursion, and demand high-precision floating-point matrix operations that necessitate centralized cloud infrastructure. In this paper, we introduce \textbf{UOR-R4}, a sovereign, client-side neural architecture and runtime designed to execute entirely inside modern web browsers with zero external network telemetry. 
+Standard autoregressive language models parameterize token generation through learned, unconstrained self-attention over continuous Euclidean embeddings. While empirically effective for large-scale pretraining, continuous latent representations present substantial operational challenges in resource-constrained, privacy-critical, and air-gapped environments: they lack deterministic topological bounds, risk semantic drift under long-horizon recursion, and demand high-precision floating-point matrix operations that necessitate centralized cloud infrastructure. In this paper, we introduce \textbf{UOR-R4}, a sovereign, client-side neural architecture and runtime based on the Universal Object Reference (UOR) standard, designed to execute entirely inside modern web browsers with zero external network telemetry. 
 
 UOR-R4 establishes a dual-tier computational framework that couples quantized neural weight substrates with a deterministic, multiplication-free geometric state machine compiled to WebAssembly (WASM). The state machine is governed by three rigorous algebraic layers: (1) a 512-dimensional Vector Symbolic Architecture (VSA) operating on bipolar integer arrays via bitwise sign-inversions ($B = R \odot F$) and saturated bundling; (2) a 64-bit fixed-point CORDIC engine executing parallel transport and Euler phase rotations on the unit 3-sphere $S^3$ via the canonical Hopf fibration $\pi: S^3 \to S^2$; and (3) an exact $O(1)$ topological quantization algorithm mapping continuous projections onto the 240 minimal root vectors of the 8-dimensional Gosset lattice $\Delta(E_8) \subset \mathbb{R}^8$. We further formalize discrete state trajectory regulation through the 51/49 Braidback Invariant (preventing retroactive truth erasure) and the Fractal Block Structure Atomic Floor Theorem ($L_0 = 83$). Benchmarked on commodity hardware using WebGPU compute shaders and WASM SIMD, UOR-R4 achieves generation throughputs of $14\text{--}18+\,\text{tokens/second}$ with sub-65ms token latency while maintaining a strict single-pipeline memory footprint below $400\,\text{MB}$ RAM, demonstrating that rigorous geometric constraints and hardware-accelerated sovereign edge inference can be unified effectively.
 \end{abstract}
@@ -79,7 +75,7 @@ Despite their empirical success, unconstrained continuous embeddings exhibit fun
     \item \textbf{Centralization and Privacy Compromises}: The compute intensity of standard models has centralized inference into proprietary, cloud-hosted API clusters. This client-server paradigm compromises data sovereignty, requiring users to transmit sensitive source code and private queries across external networks.
 \end{enumerate}
 
-To address these challenges, we present \textbf{UOR-R4} (Universal Object Representation, Release 4), an open-source, air-gapped cognitive architecture and runtime operating entirely within client-side browser runtimes. Rather than relying on purely continuous latent representations, UOR-R4 introduces a hybrid architecture where quantized transformer weights provide raw neural synthesis, while a deterministic, multiplication-free geometric state machine compiled to WebAssembly (WASM) enforces topological stability, symbolic binding, and lattice-quantized state permanence.
+To address these challenges, we present \textbf{UOR-R4} (Universal Object Reference, Release 4), an open-source, air-gapped cognitive architecture and runtime operating entirely within client-side browser runtimes. Rather than relying on purely continuous latent representations, UOR-R4 introduces a hybrid architecture where quantized transformer weights provide raw neural synthesis, while a deterministic, multiplication-free geometric state machine compiled to WebAssembly (WASM) enforces topological stability, symbolic binding, and lattice-quantized state permanence.
 
 \subsection{Key Technical Contributions}
 
@@ -245,25 +241,54 @@ comprising two disjoint geometric subsets:
 
 \begin{figure}[ht]
 \centering
-\begin{tikzpicture}[scale=0.95]
-    \draw[thick, fill=blue!5, rounded corners] (-6,-2.5) rectangle (6,2.5);
-    \node at (0, 2.1) {\textbf{\large UOR-R4 Geometric Substrate Pipeline}};
-    
-    \node[draw, fill=cyan!20, rounded corners, align=center] (vsa) at (-4, 0.5) {\textbf{512D VSA State} \\ $\bm{v} \in \{-1, +1\}^{512}$};
-    \node[draw, fill=orange!20, rounded corners, align=center] (hadamard) at (-1.5, 0.5) {\textbf{Walsh-Hadamard} \\ $\mathbb{R}^{512} \to \mathbb{R}^8$};
-    \node[draw, fill=green!20, rounded corners, align=center] (cordic) at (1.5, 0.5) {\textbf{CORDIC Hopf Map} \\ $S^3 \to S^2 \times S^1$};
-    \node[draw, fill=purple!20, rounded corners, align=center] (e8) at (4.2, 0.5) {\textbf{$E_8$ Root Snap} \\ $\bm{w} \in \Delta(E_8)$ (240)};
-    
-    \draw[->, thick] (vsa) -- (hadamard);
-    \draw[->, thick] (hadamard) -- (cordic);
-    \draw[->, thick] (cordic) -- (e8);
-    
-    \node[draw, fill=yellow!20, rounded corners, align=center] (temp) at (0, -1.4) {\textbf{Dynamic Temperature \& Logit Manifold Modulation} \\ $T_{\text{geom}} = T_0 \cdot \big(1 + \gamma \sin\chi\big)$};
-    
-    \draw[->, thick, dashed] (e8) |- (temp);
-    \draw[->, thick, dashed] (temp) -| (vsa);
+\begin{tikzpicture}[scale=1.0, every node/.style={transform shape}]
+
+    % Outer frame
+    \draw[thick, fill=blue!3, rounded corners=10pt, draw=black!25] (-7.0, -3.2) rectangle (7.0, 2.2);
+    \node[font=\bfseries\normalsize, text=black!90] at (0, 1.7) {UOR-R4 Sovereign Geometric Substrate Pipeline};
+
+    % 4-Stage Main Pipeline
+    \node[draw=black!70, fill=cyan!15, rounded corners=6pt, align=center, text width=2.7cm, inner sep=6pt] (vsa) at (-5.1, 0.2) {
+        \textbf{\small 512D VSA State} \\
+        \footnotesize $\bm{v} \in \{-1, +1\}^{512}$
+    };
+
+    \node[draw=black!70, fill=orange!18, rounded corners=6pt, align=center, text width=2.7cm, inner sep=6pt] (had) at (-1.7, 0.2) {
+        \textbf{\small Walsh-Hadamard} \\
+        \footnotesize $\mathbb{R}^{512} \longrightarrow \mathbb{R}^8$
+    };
+
+    \node[draw=black!70, fill=teal!18, rounded corners=6pt, align=center, text width=2.7cm, inner sep=6pt] (hopf) at (1.7, 0.2) {
+        \textbf{\small CORDIC Hopf Map} \\
+        \footnotesize $S^3 \longrightarrow S^2 \times S^1$
+    };
+
+    \node[draw=black!70, fill=purple!18, rounded corners=6pt, align=center, text width=2.7cm, inner sep=6pt] (e8) at (5.1, 0.2) {
+        \textbf{\small $E_8$ Root Snapping} \\
+        \footnotesize $\bm{w}^* \in \Delta(E_8)$ ($240$)
+    };
+
+    % Forward Flow Arrows
+    \draw[->, very thick, black!75] (vsa) -- (had);
+    \draw[->, very thick, black!75] (had) -- (hopf);
+    \draw[->, very thick, black!75] (hopf) -- (e8);
+
+    % Lower Regulation & Manifold Modulation Panel
+    \node[draw=black!70, fill=yellow!25, rounded corners=6pt, align=center, text width=12.2cm, inner sep=8pt] (mod) at (0, -1.9) {
+        \textbf{\small State Trajectory Regulation \& Manifold Feedback Engine} \\
+        \vspace{0.2em}
+        \footnotesize
+        51/49 Braidback Boundary ($W_{\text{braid}} \le 0.49$) \quad$\bm{\cdot}$\quad
+        CVC Spectral Ratio ($C_{\text{corr}} \ge 0.66$) \quad$\bm{\cdot}$\quad
+        $L_0 = 83$ Atomic Floor
+    };
+
+    % Feedback Loop Arrows
+    \draw[->, thick, dashed, black!65, rounded corners=8pt] (e8.south) |- (mod.east);
+    \draw[->, thick, dashed, black!65, rounded corners=8pt] (mod.west) -| (vsa.south);
+
 \end{tikzpicture}
-\caption{Schematic of the UOR-R4 deterministic geometric attention pipeline linking 512D VSA representations with CORDIC Hopf phase tracking and 8D $E_8$ root lattice topological quantization.}
+\caption{Architectural dataflow of the UOR-R4 deterministic geometric state machine. High-dimensional 512D bipolar VSA states are projected onto an 8D Lie algebraic subspace, routed via 15-iteration CORDIC Hopf fibrations ($S^3 \to S^2$), quantized onto the 240 minimal roots of the Gosset $E_8$ lattice, and stabilized via closed-loop trajectory invariants.}
 \label{fig:pipeline}
 \end{figure}
 
@@ -413,9 +438,10 @@ In this paper, we introduced \textbf{UOR-R4}, an open-source, fully sovereign co
 
 \section*{Acknowledgments}
 
-The author expresses sincere gratitude to the open-source researchers and teams whose foundational work and research insights supported this project:
+The author expresses sincere gratitude to the open-source researchers, organizations, and teams whose foundational work and research insights supported this project:
 \begin{itemize}
-    \item \textbf{The Hologram Team}, for their foundational development and advancement of the Universal Object Representation (UOR) framework.
+    \item \textbf{The Hologram Team}, for their foundational development and advancement of the original Universal Object Reference (UOR) framework.
+    \item \textbf{The UOR Foundation}, for research contributions, governance, and stewardship of the open UOR standard.
     \item \textbf{Omeganyn}, for theoretical insights and directional research from SpiralCore and the Cantor-Abraxas architecture (including Statistical Geometric Information Theory, Information Hysteresis, and Fractal Block Structures).
     \item \textbf{DARKUnicorn}, for supporting the Goldworm (\texttt{goldworm}) project and research in byte-level modular codebooks.
     \item \textbf{N3MESIS}, for maintaining the Nemesis Theory repository on algebraic field structures and non-linear phase equilibria.

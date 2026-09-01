@@ -1,8 +1,6 @@
 # Deterministic Geometric Attention and Discrete Lattice State Quantization for Sovereign In-Browser Neural Architectures
 
 **Author**: L. Charles Allard IV  
-*Universal Object Representation Project*  
-`charles.allard@uor-foundation.org`  
 **Date**: September 2026  
 **Primary Subject**: `arXiv:cs.LG` (Machine Learning)  
 **Cross-Lists**: `math.DG` (Differential Geometry), `cs.SE` (Software Engineering), `cs.AI` (Artificial Intelligence)
@@ -11,7 +9,7 @@
 
 ## Abstract
 
-Standard autoregressive language models parameterize token generation through learned, unconstrained self-attention over continuous Euclidean embeddings. While empirically effective for large-scale pretraining, continuous latent representations present substantial operational challenges in resource-constrained, privacy-critical, and air-gapped environments: they lack deterministic topological bounds, risk semantic drift under long-horizon recursion, and demand high-precision floating-point matrix operations that necessitate centralized cloud infrastructure. In this paper, we introduce **UOR-R4**, a sovereign, client-side neural architecture and runtime designed to execute entirely inside modern web browsers with zero external network telemetry.
+Standard autoregressive language models parameterize token generation through learned, unconstrained self-attention over continuous Euclidean embeddings. While empirically effective for large-scale pretraining, continuous latent representations present substantial operational challenges in resource-constrained, privacy-critical, and air-gapped environments: they lack deterministic topological bounds, risk semantic drift under long-horizon recursion, and demand high-precision floating-point matrix operations that necessitate centralized cloud infrastructure. In this paper, we introduce **UOR-R4**, a sovereign, client-side neural architecture and runtime based on the Universal Object Reference (UOR) standard, designed to execute entirely inside modern web browsers with zero external network telemetry.
 
 UOR-R4 establishes a dual-tier computational framework that couples quantized neural weight substrates with a deterministic, multiplication-free geometric state machine compiled to WebAssembly (WASM). The state machine is governed by three rigorous algebraic layers:
 1. A **512-dimensional Vector Symbolic Architecture (VSA)** operating on bipolar integer arrays via bitwise sign-inversions ($B = R \odot F$) and saturated bundling;
@@ -32,7 +30,7 @@ Despite their empirical success, unconstrained continuous embeddings exhibit fun
 2. **Computational Multiplicative Overhead**: Continuous softmax evaluation over large vocabulary dictionaries ($\sim 1.5 \times 10^5$ tokens) requires continuous floating-point significand multiplications at every step.
 3. **Centralization and Privacy Compromises**: Standard cloud-hosted API clusters compromise data sovereignty by requiring transmission of private codebases and queries over external networks.
 
-UOR-R4 replaces unconstrained continuous latents with a hybrid architecture where quantized transformer weights provide raw neural token synthesis in WebGPU compute shaders, while a deterministic, multiplication-free geometric state machine in Rust WebAssembly enforces topological stability, symbolic binding, and lattice-quantized state permanence.
+UOR-R4 (Universal Object Reference, Release 4) replaces unconstrained continuous latents with a hybrid architecture where quantized transformer weights provide raw neural token synthesis in WebGPU compute shaders, while a deterministic, multiplication-free geometric state machine in Rust WebAssembly enforces topological stability, symbolic binding, and lattice-quantized state permanence.
 
 ---
 
@@ -149,8 +147,9 @@ For simply-laced root systems, the trace form tensor satisfies $\bm{B} = \frac{|
 
 ## Acknowledgments
 
-The author expresses sincere gratitude to the open-source researchers and teams whose foundational work and research insights supported this project:
-* **The Hologram Team**, for their foundational development and advancement of the Universal Object Representation (UOR) framework.
+The author expresses sincere gratitude to the open-source researchers, organizations, and teams whose foundational work and research insights supported this project:
+* **The Hologram Team**, for their foundational development and advancement of the original Universal Object Reference (UOR) framework.
+* **The UOR Foundation**, for research contributions, governance, and stewardship of the open UOR standard.
 * **Omeganyn**, for theoretical insights and directional research from SpiralCore and the Cantor-Abraxas architecture (including Statistical Geometric Information Theory, Information Hysteresis, and Fractal Block Structures).
 * **DARKUnicorn**, for supporting the Goldworm (`goldworm`) project and research in byte-level modular codebooks.
 * **N3MESIS**, for maintaining the Nemesis Theory repository on algebraic field structures and non-linear phase equilibria.

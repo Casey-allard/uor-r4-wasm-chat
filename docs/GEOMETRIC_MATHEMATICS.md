@@ -65,7 +65,7 @@ This guarantees deterministic, zero-collision topological quantization of high-d
 
 This implementation was designed, engineered, and assembled by **Casey Allard** as an open-source, sovereign in-browser cognitive computing runtime. The architecture incorporates foundational insights, mathematical research, and engineering techniques contributed across several open projects:
 
-1. **The Hologram Team**: For their foundational development and significant advancement of the Universal Object Representation (UOR) framework.
+1. **The Hologram Team**: For their foundational development and significant advancement of the Universal Object Reference (UOR) framework.
 2. **Omeganyn**: Creator of **SpiralCore** and the **Cantor-Abraxas Architecture**, Statistical Geometric Information Theory (SGIT), Information Hysteresis ($\Phi$), Semantic Holonomy ($\Delta\Phi$), and the Fractal Block Structure (FBS with Collatz 4-2-1 Gearbox & $L_0=83$ atomic floor).
 3. **DARKUnicorn**: For supporting the Goldworm (`goldworm`) project, contributing byte-level modular codebooks ($	ext{mod } 256$) and streaming token compression.
 4. **N3MESIS**: Maintainer of the Nemesis Theory repository, providing algebraic field structures, discrete $E_8$ Gosset root lattice dynamics, and non-linear phase equilibria.
