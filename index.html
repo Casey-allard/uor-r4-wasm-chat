@@ -4126,7 +4126,7 @@
                 const tpsEl = document.getElementById('eegTpsMeter');
                 if (tpsEl) tpsEl.innerText = `${avgTps || '9.5'} tok/s (avg)`;
 
-                const curConv = conversations.find(c => c.id === currentConversationId);
+                const curConv = conversations.find(c => c.id === currentConvId);
                 if (curConv) {
                     curConv.messages.push({
                         id: genId,
