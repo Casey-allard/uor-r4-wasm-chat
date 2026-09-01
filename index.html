@@ -3019,9 +3019,20 @@
         // --- AUTOMATED LIVE PREVIEW SANDBOX ENGINE ---
 
         // --- PHASE 3: ROBUST MULTI-FILE LIVE PREVIEW SANDBOX & BUNDLER ---
+
+        // --- UNIFIED WORKSPACE FILES & GLOBAL BUFFERS ---
+        window.workspaceFiles = {
+            'index.html': { content: '<!DOCTYPE html>\n<html>\n<head>\n  <title>App</title>\n  <link rel="stylesheet" href="style.css">\n</head>\n<body>\n  <div id="root">\n    <h1>Hello Sovereign AI</h1>\n  </div>\n  <script src="app.js"><\/script>\n</body>\n</html>', lang: 'html' },
+            'style.css': { content: 'body { margin: 0; background: #0b0f19; color: #00e5ff; font-family: sans-serif; display: grid; place-items: center; height: 100vh; }', lang: 'css' },
+            'app.js': { content: 'console.log("⚡ Sovereign Studio JS Kernel Loaded.");', lang: 'javascript' },
+            'main.rs': { content: '// UOR-R4 High-Performance Rust Substrate\nfn main() {\n    println!("⚡ Native Rust Hardware Execution Active!");\n}', lang: 'rust' }
+        };
+        window.workspaceFilesArray = [];
+        window.currentWorkspaceFile = 'index.html';
         window.remoteOriginalFiles = {};
         window.modifiedWorktreeFiles = new Set();
         window.activeGitBranch = 'main';
+
 
         window.refreshLivePreview = function(overrideCode = null, overrideLang = null) {
             const iframe = document.getElementById('sandboxIframe');
