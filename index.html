@@ -2859,8 +2859,8 @@
 
             require(['vs/editor/editor.main'], function() {
                 monacoEditorInstance = monaco.editor.create(document.getElementById('monacoEditorRoot'), {
-                    value: '// Sovereign AI Studio - Monaco Editor\n// Open a local file or generate code to begin.\n',
-                    language: 'javascript',
+                    value: window.workspaceFiles['index.html'] ? window.workspaceFiles['index.html'].content : '',
+                    language: 'html',
                     theme: 'vs-dark',
                     automaticLayout: true,
                     fontSize: 11.5,
@@ -3022,7 +3022,77 @@
 
         // --- UNIFIED WORKSPACE FILES & GLOBAL BUFFERS ---
         var workspaceFiles = {
-            'index.html': { content: '<!DOCTYPE html>\n<html>\n<head>\n  <title>App</title>\n  <link rel="stylesheet" href="style.css">\n</head>\n<body>\n  <div id="root">\n    <h1>Hello Sovereign AI</h1>\n  </div>\n  <script src="app.js"><\/script>\n</body>\n</html>', lang: 'html' },
+            'index.html': { content: `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Sovereign AI Interactive Sandbox</title>
+    <style>
+        body { margin: 0; background: radial-gradient(circle at center, #0e1e38 0%, #050811 100%); overflow: hidden; display: flex; align-items: center; justify-content: center; height: 100vh; font-family: -apple-system, monospace; color: #00e5ff; }
+        #hud { position: absolute; top: 20px; left: 20px; background: rgba(0,0,0,0.65); padding: 14px 20px; border-radius: 10px; border: 1px solid rgba(0,229,255,0.3); backdrop-filter: blur(12px); pointer-events: none; }
+        h1 { margin: 0 0 6px 0; font-size: 15px; color: #00e5ff; letter-spacing: 0.5px; }
+        p { margin: 0; font-size: 11.5px; color: #94a3b8; line-height: 1.4; }
+        canvas { width: 100vw; height: 100vh; display: block; }
+    </style>
+</head>
+<body>
+    <div id="hud">
+        <h1>⚡ Sovereign Quantum Neural Lattice</h1>
+        <p>Interactive 60FPS WebGL/Canvas Live Sandbox Active</p>
+    </div>
+    <canvas id="c"></canvas>
+    <script>
+        const c = document.getElementById('c');
+        const ctx = c.getContext('2d');
+        c.width = window.innerWidth;
+        c.height = window.innerHeight;
+        window.addEventListener('resize', () => { c.width = window.innerWidth; c.height = window.innerHeight; });
+        let t = 0;
+        const particles = [];
+        for(let i=0; i<70; i++) {
+            particles.push({
+                x: Math.random() * c.width,
+                y: Math.random() * c.height,
+                vx: (Math.random() - 0.5) * 1.5,
+                vy: (Math.random() - 0.5) * 1.5,
+                r: Math.random() * 2.5 + 1.5,
+                color: 'hsl(' + (Math.random() * 50 + 175) + ', 100%, 65%)'
+            });
+        }
+        function draw() {
+            ctx.fillStyle = 'rgba(5, 8, 17, 0.25)';
+            ctx.fillRect(0, 0, c.width, c.height);
+            for(let i=0; i<particles.length; i++) {
+                const p = particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                if(p.x < 0 || p.x > c.width) p.vx *= -1;
+                if(p.y < 0 || p.y > c.height) p.vy *= -1;
+                ctx.fillStyle = p.color;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+                ctx.fill();
+                for(let j=i+1; j<particles.length; j++) {
+                    const p2 = particles[j];
+                    const dx = p.x - p2.x;
+                    const dy = p.y - p2.y;
+                    const dist = Math.sqrt(dx*dx + dy*dy);
+                    if(dist < 110) {
+                        ctx.strokeStyle = 'rgba(0, 229, 255, ' + (1 - dist/110) * 0.7 + ')';
+                        ctx.lineWidth = 0.7;
+                        ctx.beginPath();
+                        ctx.moveTo(p.x, p.y);
+                        ctx.lineTo(p2.x, p2.y);
+                        ctx.stroke();
+                    }
+                }
+            }
+            requestAnimationFrame(draw);
+        }
+        draw();
+    <\/script>
+</body>
+</html>`, lang: 'html' },
             'style.css': { content: 'body { margin: 0; background: #0b0f19; color: #00e5ff; font-family: sans-serif; display: grid; place-items: center; height: 100vh; }', lang: 'css' },
             'app.js': { content: 'console.log("⚡ Sovereign Studio JS Kernel Loaded.");', lang: 'javascript' },
             'main.rs': { content: '// UOR-R4 High-Performance Rust Substrate\nfn main() {\n    println!("⚡ Native Rust Hardware Execution Active!");\n}', lang: 'rust' }
