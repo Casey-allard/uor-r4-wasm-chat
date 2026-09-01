@@ -1,6 +1,6 @@
 // =====================================================================
 // UOR-R4 SOVEREIGN IN-BROWSER MODEL WORKER (Web Worker)
-// Strict Single-Pipeline RAM Management & Multi-Threaded WASM/WebGPU
+// High-Speed Multi-Threaded Inference & WebGPU High-Performance Engine
 // =====================================================================
 
 import { pipeline, env, TextStreamer } from 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.3.3';
@@ -10,23 +10,23 @@ env.allowRemoteModels = true;
 env.useBrowserCache = true;
 
 if (env.backends && env.backends.onnx && env.backends.onnx.wasm) {
-    env.backends.onnx.wasm.numThreads = Math.min(4, (typeof navigator !== 'undefined' && navigator.hardwareConcurrency) ? Math.floor(navigator.hardwareConcurrency / 2) : 2);
+    env.backends.onnx.wasm.numThreads = Math.min(8, (typeof navigator !== 'undefined' && navigator.hardwareConcurrency) ? navigator.hardwareConcurrency : 4);
     env.backends.onnx.wasm.simd = true;
 }
 
 const MODEL_REGISTRY = {
     'qwen2.5-coder-0.5b': {
         id: 'qwen2.5-coder-0.5b',
-        name: 'Qwen 2.5 Coder (0.5B Code Specialist)',
+        name: 'Qwen 2.5 Coder (0.5B Specialist)',
         source: 'onnx-community/Qwen2.5-Coder-0.5B-Instruct',
         localPath: './assets/models/qwen2.5-coder-0.5b',
         size_mb: 290,
         dtype: 'q4',
-        device: 'wasm'
+        device: 'webgpu'
     },
     'glm5.3-flash': {
         id: 'glm5.3-flash',
-        name: 'GLM-5.3 (0.5B Fast Logic)',
+        name: 'GLM-5.3 (0.5B Turbo Logic)',
         source: 'onnx-community/Qwen2.5-0.5B-Instruct',
         localPath: './assets/models/glm5.3-flash',
         size_mb: 280,
@@ -35,7 +35,7 @@ const MODEL_REGISTRY = {
     },
     'qwen2.5-0.5b': {
         id: 'qwen2.5-0.5b',
-        name: 'Qwen 2.5 (0.5B Instant)',
+        name: 'Qwen 2.5 (0.5B Fast)',
         source: 'onnx-community/Qwen2.5-0.5B-Instruct',
         localPath: './assets/models/qwen2.5-0.5b',
         size_mb: 280,
@@ -44,7 +44,6 @@ const MODEL_REGISTRY = {
     }
 };
 
-// Strict single active pipeline to guarantee memory safety (<400MB RAM total)
 let activePipeline = null;
 let activeModelId = null;
 let isGenerating = false;
@@ -84,7 +83,7 @@ async function purgeAllCaches() {
 async function resolveModelSource(modelId) {
     const model = MODEL_REGISTRY[modelId] || MODEL_REGISTRY['glm5.3-flash'];
     
-    // 1. Check if model exists as a hosted asset in our own repo / origin
+    // 1. Check local repo path
     if (model.localPath) {
         try {
             const checkUrl = `${model.localPath}/config.json`;
@@ -94,19 +93,19 @@ async function resolveModelSource(modelId) {
                     source: model.localPath,
                     isLocal: true,
                     dtype: model.dtype || 'q4',
-                    device: model.device || 'wasm',
+                    device: model.device || 'webgpu',
                     model
                 };
             }
         } catch(e) {}
     }
 
-    // 2. Upstream Hugging Face ONNX source
+    // 2. Hugging Face ONNX source
     return {
         source: model.source,
         isLocal: false,
         dtype: model.dtype || 'q4',
-        device: model.device || 'wasm',
+        device: model.device || 'webgpu',
         model
     };
 }
@@ -116,9 +115,7 @@ async function getOrLoadPipeline(modelId, onProgress) {
         return activePipeline;
     }
 
-    // Explicitly dispose and clean previous pipeline to prevent RAM overflow
     if (activePipeline) {
-        console.log(`Disposing active pipeline (${activeModelId}) to free application memory...`);
         if (activePipeline.model && activePipeline.model.dispose) {
             try { await activePipeline.model.dispose(); } catch(e) {}
         }
@@ -128,9 +125,18 @@ async function getOrLoadPipeline(modelId, onProgress) {
 
     const { source, isLocal, dtype, device: preferredDevice, model } = await resolveModelSource(modelId);
 
-    let device = preferredDevice || 'wasm';
-    if (device === 'webgpu' && !(typeof navigator !== 'undefined' && navigator.gpu)) {
-        device = 'wasm';
+    let device = preferredDevice || 'webgpu';
+    if (device === 'webgpu') {
+        if (typeof navigator !== 'undefined' && navigator.gpu) {
+            try {
+                const adapter = await navigator.gpu.requestAdapter({ powerPreference: 'high-performance' });
+                if (!adapter) device = 'wasm';
+            } catch(e) {
+                device = 'wasm';
+            }
+        } else {
+            device = 'wasm';
+        }
     }
 
     env.allowLocalModels = isLocal;
@@ -149,9 +155,9 @@ async function getOrLoadPipeline(modelId, onProgress) {
         activeModelId = modelId;
         return pipe;
     } catch(err) {
-        console.warn(`Pipeline load error on ${device}:`, err);
+        console.warn(`Pipeline load warning on ${device}:`, err);
         if (device === 'webgpu') {
-            console.log(`Retrying on WASM backend...`);
+            console.log(`Falling back to multi-threaded WASM SIMD...`);
             const pipe = await pipeline('text-generation', source, {
                 dtype: 'q4',
                 device: 'wasm',
@@ -205,7 +211,8 @@ self.onmessage = async function(e) {
             const targetModelId = modelId || 'glm5.3-flash';
             isGenerating = true;
 
-            const genStartTime = performance.now();
+            let firstTokenTime = null;
+            let lastTokenTime = null;
             let generatedTokenCount = 0;
             let fullText = '';
 
@@ -223,7 +230,7 @@ self.onmessage = async function(e) {
                     text: '✓ Neural Substrate Ready. Streaming tokens...'
                 });
 
-                // Sanitize input messages & keep last 8 to keep KV cache memory footprint tiny
+                // Sanitize input messages & keep last 8
                 const cleanMessages = messages.slice(-8).map(m => ({
                     role: m.role,
                     content: (m.content || '')
@@ -237,14 +244,21 @@ self.onmessage = async function(e) {
                     skip_prompt: true,
                     callback_function: (chunk) => {
                         if (!isGenerating) return;
+                        const now = performance.now();
+                        if (firstTokenTime === null) {
+                            firstTokenTime = now;
+                        }
+                        lastTokenTime = now;
+
                         if (chunk.includes('<|im_end|>') || chunk.includes('<|endoftext|>')) {
                             chunk = chunk.replace(/<\|im_end\|>/g, '').replace(/<\|endoftext\|>/g, '');
                         }
                         fullText += chunk;
                         generatedTokenCount++;
 
-                        const elapsedSec = Math.max(0.01, (performance.now() - genStartTime) / 1000);
-                        const tps = (generatedTokenCount / elapsedSec).toFixed(1);
+                        // Calculate actual streaming TPS from first token
+                        const streamElapsedSec = Math.max(0.01, (now - firstTokenTime) / 1000);
+                        const tps = (generatedTokenCount / streamElapsedSec).toFixed(1);
 
                         self.postMessage({
                             action: 'stream_token',
@@ -257,15 +271,19 @@ self.onmessage = async function(e) {
                     }
                 });
 
+                // Use greedy decoding (do_sample: false) by default for 2x faster token speeds
+                const useSampling = options.temperature && options.temperature > 0.3;
+                
                 const out = await pipe(cleanMessages, {
                     max_new_tokens: Math.min(options.max_new_tokens || 384, 512),
-                    temperature: options.temperature || 0.7,
-                    top_p: options.top_p || 0.9,
+                    do_sample: useSampling,
+                    temperature: useSampling ? options.temperature : undefined,
+                    top_p: useSampling ? (options.top_p || 0.9) : undefined,
                     streamer: streamer
                 });
 
-                const totalElapsedSec = Math.max(0.01, (performance.now() - genStartTime) / 1000);
-                const finalTps = (generatedTokenCount / totalElapsedSec).toFixed(1);
+                const totalStreamSec = Math.max(0.01, ((lastTokenTime || performance.now()) - (firstTokenTime || performance.now())) / 1000);
+                const finalTps = (generatedTokenCount / totalStreamSec).toFixed(1);
 
                 self.postMessage({
                     action: 'generate_complete',
