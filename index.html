@@ -4519,19 +4519,11 @@
             if (!prompt) return '';
             let q = prompt.trim();
             
-            // Strip common conversational prefixes and filler phrases
-            const patterns = [
-                /^(please\s+)?(can\s+you\s+)?(could\s+you\s+)?(look\s+up|search\s+for|find(\s+out)?|tell\s+me\s+about|what\s+is|who\s+is|where\s+is|give\s+me|show\s+me|get\s+me)\s+(the\s+)?(wikipedia\s+article\s+(on|for|about)\s+|wikipedia\s+page\s+(on|for|about)\s+|wikipedia\s+(on|for|about)\s+|article\s+(on|for|about)\s+|info\s+(on|for|about)\s+|information\s+(on|for|about)\s+)?/i,
-                /^(search\s+the\s+web\s+for|search\s+web\s+for|websearch|google|browse)\s+/i,
-                /\s+on\s+wikipedia$/i,
-                /\s+wikipedia\s+article$/i,
-                /\s+wikipedia\s+page$/i,
-                /\s+wikipedia$/i
-            ];
-            
-            for (const pat of patterns) {
-                q = q.replace(pat, '');
-            }
+            // Strip conversational preambles
+            q = q.replace(/^(please\s+)?(can\s+you\s+|could\s+you\s+|would\s+you\s+)?(please\s+)?/i, '');
+            q = q.replace(/^(search\s+(wikipedia|the\s+web|web|google|online)?\s+(for|about)?|look\s+up(\s+on\s+wikipedia)?|find(\s+out)?|tell\s+me\s+about|what\s+is|who\s+is|where\s+is|give\s+me|show\s+me|get\s+me)\s+/i, '');
+            q = q.replace(/^(the\s+)?(wikipedia\s+article\s+(on|for|about)?|wikipedia\s+page\s+(on|for|about)?|wikipedia\s+(on|for|about)?|article\s+(on|for|about)?|info\s+(on|for|about)?|information\s+(on|for|about)?)\s+/i, '');
+            q = q.replace(/\s+(on\s+wikipedia|in\s+wikipedia|wikipedia\s+article|wikipedia\s+page|wikipedia)$/i, '');
             
             q = q.replace(/^[\"'`]+|[\"'`?.!]+$/g, '').trim();
             return q || prompt.trim();
