@@ -3748,7 +3748,7 @@
             const codeBlocks = [];
             cleanText = cleanText.replace(/(```[a-zA-Z0-9_-]*[\r\n]+[\s\S]*?```|`[^`\n]+`)/g, (match) => {
                 codeBlocks.push(match);
-                return `___SHIELDED_CODE_${codeBlocks.length - 1}___`;
+                return `ZZZSHIELDEDCODE${codeBlocks.length - 1}ZZZ`;
             });
 
             // 2. Normalize naked bracket math and display LaTeX
@@ -3759,14 +3759,14 @@
             
             cleanText = cleanText.replace(/\$\$([\s\S]*?)\$\$/g, (match, mathContent) => {
                 mathBlocks.push({ content: sanitizeLatexMath(mathContent), isBlock: true });
-                return `___SHIELDED_MATH_BLOCK_${mathBlocks.length - 1}___`;
+                return `ZZZSHIELDEDMATHBLOCK${mathBlocks.length - 1}ZZZ`;
             });
 
             // 3. Shield Inline Math ($...$, \(...\))
             cleanText = cleanText.replace(/\\\(([\s\S]*?)\\\)/g, '$$$1$$');
             cleanText = cleanText.replace(/\$([^$\n\r]+)\$/g, (match, mathContent) => {
                 mathBlocks.push({ content: sanitizeLatexMath(mathContent), isBlock: false });
-                return `___SHIELDED_MATH_INLINE_${mathBlocks.length - 1}___`;
+                return `ZZZSHIELDEDMATHINLINE${mathBlocks.length - 1}ZZZ`;
             });
 
             // 4. Parse non-math Markdown via Marked
@@ -3780,7 +3780,7 @@
             }
 
             // 5. Restore Math using direct KaTeX rendering (immune to markdown italics/underscore bugs)
-            parsedHtml = parsedHtml.replace(/___SHIELDED_MATH_BLOCK_(\d+)___/g, (match, idx) => {
+            parsedHtml = parsedHtml.replace(/ZZZSHIELDEDMATHBLOCK(\d+)ZZZ/g, (match, idx) => {
                 const item = mathBlocks[parseInt(idx, 10)];
                 if (!item) return match;
                 if (typeof katex !== 'undefined') {
@@ -3793,7 +3793,7 @@
                 return `$$ ${item.content} $$`;
             });
 
-            parsedHtml = parsedHtml.replace(/___SHIELDED_MATH_INLINE_(\d+)___/g, (match, idx) => {
+            parsedHtml = parsedHtml.replace(/ZZZSHIELDEDMATHINLINE(\d+)ZZZ/g, (match, idx) => {
                 const item = mathBlocks[parseInt(idx, 10)];
                 if (!item) return match;
                 if (typeof katex !== 'undefined') {
@@ -3807,7 +3807,7 @@
             });
 
             // 6. Restore Code Blocks
-            parsedHtml = parsedHtml.replace(/___SHIELDED_CODE_(\d+)___/g, (match, idx) => {
+            parsedHtml = parsedHtml.replace(/ZZZSHIELDEDCODE(\d+)ZZZ/g, (match, idx) => {
                 const codeRaw = codeBlocks[parseInt(idx, 10)];
                 if (!codeRaw) return match;
                 if (typeof marked !== 'undefined') {
