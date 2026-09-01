@@ -2560,6 +2560,39 @@
             renderWorkspaceTree();
         }
 
+        // Universal GitHub API Helper (Direct Native Fetch with CORS headers)
+        async function callGithubApi(endpoint, token = window.githubToken, options = {}) {
+            const url = endpoint.startsWith('http') ? endpoint : `https://api.github.com${endpoint.startsWith('/') ? '' : '/'}${endpoint}`;
+            const headers = {
+                'Accept': 'application/vnd.github+json',
+                'X-GitHub-Api-Version': '2022-11-28',
+                ...(options.headers || {})
+            };
+
+            const authToken = token || window.githubToken;
+            if (authToken) {
+                headers['Authorization'] = `Bearer ${authToken}`;
+            }
+
+            const response = await fetch(url, {
+                ...options,
+                headers
+            });
+
+            if (!response.ok) {
+                let errDetail = response.statusText;
+                try {
+                    const errJson = await response.json();
+                    if (errJson && errJson.message) errDetail = errJson.message;
+                } catch(e) {}
+                throw new Error(`GitHub API HTTP ${response.status}: ${errDetail}`);
+            }
+
+            if (response.status === 204) return null;
+            return await response.json();
+        }
+        window.callGithubApi = callGithubApi;
+
         async function openWorkspaceFileInEditor(fileItem) {
             try {
                 let text = '';
@@ -2701,31 +2734,7 @@
             }
         };
 
-        // Universal GitHub API Helper (Direct Native Fetch with CORS headers)
-        async function callGithubApi(endpoint, token = window.githubToken, options = {}) {
-            const url = endpoint.startsWith('http') ? endpoint : `https://api.github.com${endpoint.startsWith('/') ? '' : '/'}${endpoint}`;
-            const headers = {
-                'Accept': 'application/vnd.github+json',
-                'X-GitHub-Api-Version': '2022-11-28',
-                ...(options.headers || {})
-            };
-            if (token) {
-                headers['Authorization'] = `Bearer ${token}`;
-            }
 
-            const res = await fetch(url, {
-                ...options,
-                headers: headers
-            });
-
-            if (!res.ok) {
-                const errData = await res.json().catch(() => ({}));
-                const errMsg = errData.message || `GitHub API error (${res.status} ${res.statusText})`;
-                throw new Error(errMsg);
-            }
-
-            return await res.json();
-        }
 
         window.authenticateGithubToken = async function() {
             const input = document.getElementById('githubPatInput');
