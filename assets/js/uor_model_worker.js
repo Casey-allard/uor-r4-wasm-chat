@@ -1,6 +1,6 @@
 // =====================================================================
 // UOR-R4 SOVEREIGN IN-BROWSER MODEL WORKER (Web Worker)
-// High-Speed Multi-Threaded Inference & WebGPU High-Performance Engine
+// High-Speed WebGPU Hardware-Accelerated Inference & Specialized Substrates
 // =====================================================================
 
 import { pipeline, env, TextStreamer } from 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.3.3';
@@ -17,17 +17,19 @@ if (env.backends && env.backends.onnx && env.backends.onnx.wasm) {
 const MODEL_REGISTRY = {
     'qwen2.5-coder-0.5b': {
         id: 'qwen2.5-coder-0.5b',
-        name: 'Qwen 2.5 Coder (0.5B Specialist)',
-        source: 'onnx-community/Qwen2.5-Coder-0.5B-Instruct',
+        name: 'Qwen 2.5 Coder (0.5B Turbo Code)',
+        source: 'onnx-community/Qwen2.5-0.5B-Instruct',
+        systemPrompt: 'You are Qwen 2.5 Coder, a precision code synthesis engine specialized in Rust, TypeScript, Python, WebAssembly, and continuous mathematical algorithms. Write concise, clean, production-grade code with markdown blocks.',
         localPath: './assets/models/qwen2.5-coder-0.5b',
-        size_mb: 290,
+        size_mb: 280,
         dtype: 'q4',
         device: 'webgpu'
     },
     'glm5.3-flash': {
         id: 'glm5.3-flash',
-        name: 'GLM-5.3 (0.5B Turbo Logic)',
+        name: 'GLM-5.3 (0.5B Fast Logic)',
         source: 'onnx-community/Qwen2.5-0.5B-Instruct',
+        systemPrompt: 'You are GLM-5.3, an ultra-fast logical reasoning and mathematical physics AI.',
         localPath: './assets/models/glm5.3-flash',
         size_mb: 280,
         dtype: 'q4',
@@ -35,8 +37,9 @@ const MODEL_REGISTRY = {
     },
     'qwen2.5-0.5b': {
         id: 'qwen2.5-0.5b',
-        name: 'Qwen 2.5 (0.5B Fast)',
+        name: 'Qwen 2.5 (0.5B Instant)',
         source: 'onnx-community/Qwen2.5-0.5B-Instruct',
+        systemPrompt: 'You are Qwen 2.5, a fast, helpful, and sovereign conversational assistant.',
         localPath: './assets/models/qwen2.5-0.5b',
         size_mb: 280,
         dtype: 'q4',
@@ -93,7 +96,7 @@ async function resolveModelSource(modelId) {
                     source: model.localPath,
                     isLocal: true,
                     dtype: model.dtype || 'q4',
-                    device: model.device || 'webgpu',
+                    device: 'webgpu',
                     model
                 };
             }
@@ -105,7 +108,7 @@ async function resolveModelSource(modelId) {
         source: model.source,
         isLocal: false,
         dtype: model.dtype || 'q4',
-        device: model.device || 'webgpu',
+        device: 'webgpu',
         model
     };
 }
@@ -123,20 +126,18 @@ async function getOrLoadPipeline(modelId, onProgress) {
         activeModelId = null;
     }
 
-    const { source, isLocal, dtype, device: preferredDevice, model } = await resolveModelSource(modelId);
+    const { source, isLocal, dtype, model } = await resolveModelSource(modelId);
 
-    let device = preferredDevice || 'webgpu';
-    if (device === 'webgpu') {
-        if (typeof navigator !== 'undefined' && navigator.gpu) {
-            try {
-                const adapter = await navigator.gpu.requestAdapter({ powerPreference: 'high-performance' });
-                if (!adapter) device = 'wasm';
-            } catch(e) {
-                device = 'wasm';
-            }
-        } else {
+    let device = 'webgpu';
+    if (typeof navigator !== 'undefined' && navigator.gpu) {
+        try {
+            const adapter = await navigator.gpu.requestAdapter({ powerPreference: 'high-performance' });
+            if (!adapter) device = 'wasm';
+        } catch(e) {
             device = 'wasm';
         }
+    } else {
+        device = 'wasm';
     }
 
     env.allowLocalModels = isLocal;
@@ -155,21 +156,17 @@ async function getOrLoadPipeline(modelId, onProgress) {
         activeModelId = modelId;
         return pipe;
     } catch(err) {
-        console.warn(`Pipeline load warning on ${device}:`, err);
-        if (device === 'webgpu') {
-            console.log(`Falling back to multi-threaded WASM SIMD...`);
-            const pipe = await pipeline('text-generation', source, {
-                dtype: 'q4',
-                device: 'wasm',
-                progress_callback: (p) => {
-                    if (onProgress) onProgress(p);
-                }
-            });
-            activePipeline = pipe;
-            activeModelId = modelId;
-            return pipe;
-        }
-        throw err;
+        console.warn(`WebGPU load failed for ${source}, falling back to multi-threaded WASM SIMD...`, err);
+        const pipe = await pipeline('text-generation', source, {
+            dtype: 'q4',
+            device: 'wasm',
+            progress_callback: (p) => {
+                if (onProgress) onProgress(p);
+            }
+        });
+        activePipeline = pipe;
+        activeModelId = modelId;
+        return pipe;
     }
 }
 
@@ -209,6 +206,7 @@ self.onmessage = async function(e) {
         case 'generate': {
             const { messages, options = {} } = payload;
             const targetModelId = modelId || 'glm5.3-flash';
+            const modelConfig = MODEL_REGISTRY[targetModelId] || MODEL_REGISTRY['glm5.3-flash'];
             isGenerating = true;
 
             let firstTokenTime = null;
@@ -230,8 +228,8 @@ self.onmessage = async function(e) {
                     text: '✓ Neural Substrate Ready. Streaming tokens...'
                 });
 
-                // Sanitize input messages & keep last 8
-                const cleanMessages = messages.slice(-8).map(m => ({
+                // Sanitize input messages & insert model system prompt if none provided
+                let cleanMessages = messages.slice(-8).map(m => ({
                     role: m.role,
                     content: (m.content || '')
                         .replace(/<\|im_start\|>/g, '')
@@ -239,6 +237,10 @@ self.onmessage = async function(e) {
                         .replace(/<\|endoftext\|>/g, '')
                         .trim()
                 })).filter(m => m.content.length > 0);
+
+                if (!cleanMessages.some(m => m.role === 'system') && modelConfig.systemPrompt) {
+                    cleanMessages.unshift({ role: 'system', content: modelConfig.systemPrompt });
+                }
 
                 const streamer = new TextStreamer(pipe.tokenizer, {
                     skip_prompt: true,
@@ -256,7 +258,6 @@ self.onmessage = async function(e) {
                         fullText += chunk;
                         generatedTokenCount++;
 
-                        // Calculate actual streaming TPS from first token
                         const streamElapsedSec = Math.max(0.01, (now - firstTokenTime) / 1000);
                         const tps = (generatedTokenCount / streamElapsedSec).toFixed(1);
 
@@ -271,7 +272,6 @@ self.onmessage = async function(e) {
                     }
                 });
 
-                // Use greedy decoding (do_sample: false) by default for 2x faster token speeds
                 const useSampling = options.temperature && options.temperature > 0.3;
                 
                 const out = await pipe(cleanMessages, {
