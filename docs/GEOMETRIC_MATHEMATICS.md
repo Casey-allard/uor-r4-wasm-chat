@@ -62,15 +62,16 @@ This guarantees deterministic, zero-collision topological quantization of high-d
 ## 4. Foundational Contributors & Mathematical References
 
 1. **[UOR Foundation](https://github.com/uor-foundation)**: Architectural standard for Universal Object Representation, 512D Vector Symbolic hyperdimensional memory, and sovereign geometric AI.
-2. **HELM Geometric Attention Group**: High-dimensional geometric attention mechanisms, non-Euclidean manifold routing, and topological transformer state spaces.
-3. **The Authors of Goldworm (`goldworm`)**: Byte-level modular codebooks ($\text{mod } 256$), streaming token compression, and SIMD parsing.
-4. **`w33`**: Discrete topology and high-performance symbolic computation research.
-5. **Nemesis Theory Mathematics**: Algebraic field structures, discrete $E_8$ Gosset root lattice dynamics, and non-linear phase equilibria.
-6. **Hologram**: Holographic memory projection and real-time neural manifold visualization.
-7. **Kanerva, P.** (2009). *Hyperdimensional Computing: An Introduction to Computing in Distributed Representation with High-Dimensional Random Vectors*. Cognitive Computation, 1(2), 139–159.
-8. **Plate, T. A.** (2003). *Holographic Reduced Representations: Distributed Representations for Cognitive Structures*. CSLI Publications.
-9. **Gayler, R. W.** (2003). *Vector Symbolic Architectures answer Jackendoff's challenges for cognitive architecture*. ICCS/ASCS International Conference on Cognitive Science.
-10. **Gosset, T.** (1900). *On the regular and semi-regular figures in space of n dimensions*. Messenger of Mathematics, 29, 43–48.
-11. **Conway, J. H., & Sloane, N. J. A.** (1988). *Sphere Packings, Lattices and Groups*. Springer-Verlag.
-12. **Volder, J. E.** (1959). *The CORDIC Trigonometric Computing Technique*. IRE Transactions on Electronic Computers, EC-8(3), 330–334.
-13. **Hopf, H.** (1931). *Über die Abbildungen der dreidimensionalen Sphäre auf die Kugelfläche*. Mathematische Annalen, 104(1), 637–665.
+2. **Omeganyn ([@Omeganyn](https://github.com/Omeganyn))**: Creator and Lead Architect of **SpiralCore** and the **Cantor-Abraxas Architecture**, Statistical Geometric Information Theory (SGIT), Information Hysteresis ($\Phi$), Semantic Holonomy ($\Delta\Phi$), the Fractal Block Structure (FBS with Collatz 4-2-1 Gearbox & $L_0=83$ atomic floor), and the RTSOM (Revised Thermodynamic Star Ocean Model / Dark Brane Gravity) cognitive framework.
+3. **HELM Geometric Attention Group**: High-dimensional geometric attention mechanisms, non-Euclidean manifold routing, and topological transformer state spaces.
+4. **The Authors of Goldworm (`goldworm`)**: Byte-level modular codebooks ($\text{mod } 256$), streaming token compression, and SIMD parsing.
+5. **`w33`**: Discrete topology and high-performance symbolic computation research.
+6. **Nemesis Theory Mathematics**: Algebraic field structures, discrete $E_8$ Gosset root lattice dynamics, and non-linear phase equilibria.
+7. **Hologram**: Holographic memory projection and real-time neural manifold visualization.
+8. **Kanerva, P.** (2009). *Hyperdimensional Computing: An Introduction to Computing in Distributed Representation with High-Dimensional Random Vectors*. Cognitive Computation, 1(2), 139–159.
+9. **Plate, T. A.** (2003). *Holographic Reduced Representations: Distributed Representations for Cognitive Structures*. CSLI Publications.
+10. **Gayler, R. W.** (2003). *Vector Symbolic Architectures answer Jackendoff's challenges for cognitive architecture*. ICCS/ASCS International Conference on Cognitive Science.
+11. **Gosset, T.** (1900). *On the regular and semi-regular figures in space of n dimensions*. Messenger of Mathematics, 29, 43–48.
+12. **Conway, J. H., & Sloane, N. J. A.** (1988). *Sphere Packings, Lattices and Groups*. Springer-Verlag.
+13. **Volder, J. E.** (1959). *The CORDIC Trigonometric Computing Technique*. IRE Transactions on Electronic Computers, EC-8(3), 330–334.
+14. **Hopf, H.** (1931). *Über die Abbildungen der dreidimensionalen Sphäre auf die Kugelfläche*. Mathematische Annalen, 104(1), 637–665.

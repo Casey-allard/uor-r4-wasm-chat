@@ -97,3 +97,11 @@ The built-in Sovereign IDE provides a complete client-side git worktree engine:
 * **Air-Gapped Privacy**: Prompts, attached files, and generated text never leave the user's browser tab.
 * **Zero Telemetry Tracking**: Zero analytics, zero cookies, zero third-party tracking scripts.
 * **Local Persistence**: Downloaded weights are stored in browser-managed `CacheStorage` and `IndexedDB` storage, encrypted and isolated to the origin domain.
+
+---
+
+## 6. Foundational Attributions & References
+
+* **Omeganyn ([@Omeganyn](https://github.com/Omeganyn))**: Creator and Lead Architect of **SpiralCore** and the **Cantor-Abraxas Architecture**, Statistical Geometric Information Theory (SGIT), Information Hysteresis ($\Phi$), Semantic Holonomy ($\Delta\Phi$), the Fractal Block Structure (FBS with Collatz 4-2-1 Gearbox & $L_0=83$ atomic floor), and the RTSOM (Revised Thermodynamic Star Ocean Model / Dark Brane Gravity) cognitive framework.
+* **[UOR Foundation](https://github.com/uor-foundation)**: Universal Object Representation, 512D Vector Symbolic hyperdimensional memory, and sovereign geometric AI.
+* **HELM Geometric Attention Group**: High-dimensional non-Euclidean manifold routing and topological transformer state spaces.
