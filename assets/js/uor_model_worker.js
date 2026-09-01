@@ -1,11 +1,11 @@
 // =====================================================================
 // UOR-R4 SOVEREIGN IN-BROWSER MODEL WORKER (Web Worker)
-// High-Speed Multi-Threaded Inference & Clean Context Dispatcher
+// High-Speed Multi-Threaded Inference, Repo-Hosted Crates & Auto-Fallback
 // =====================================================================
 
 import { pipeline, env, TextStreamer } from 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.3.3';
 
-env.allowLocalModels = false;
+env.allowLocalModels = true;
 env.allowRemoteModels = true;
 env.useBrowserCache = true;
 if (env.backends && env.backends.onnx && env.backends.onnx.wasm) {
@@ -18,27 +18,31 @@ const MODEL_REGISTRY = {
         id: 'qwen2.5-coder-1.5b',
         name: 'Qwen 2.5 Coder (1.5B Flagship)',
         source: 'onnx-community/Qwen2.5-Coder-1.5B-Instruct',
+        localPath: './assets/models/qwen2.5-coder-1.5b',
         size_mb: 980,
-        dtype: 'q4f16'
+        dtype: 'q4'
     },
     'deepseek-r1-1.5b': {
         id: 'deepseek-r1-1.5b',
         name: 'DeepSeek R1 (1.5B Reasoning)',
         source: 'onnx-community/DeepSeek-R1-Distill-Qwen-1.5B-ONNX',
+        localPath: './assets/models/deepseek-r1-1.5b',
         size_mb: 980,
-        dtype: 'q4f16'
+        dtype: 'q4'
     },
     'llama3.2-1b': {
         id: 'llama3.2-1b',
         name: 'Llama 3.2 (1B Instruct)',
         source: 'onnx-community/Llama-3.2-1B-Instruct-ONNX',
+        localPath: './assets/models/llama3.2-1b',
         size_mb: 750,
-        dtype: 'q4f16'
+        dtype: 'q4'
     },
     'glm5.3-flash': {
         id: 'glm5.3-flash',
         name: 'GLM-5.3 (0.5B Instant)',
         source: 'onnx-community/Qwen2.5-0.5B-Instruct',
+        localPath: './assets/models/glm5.3-flash',
         size_mb: 280,
         dtype: 'q4'
     },
@@ -46,6 +50,7 @@ const MODEL_REGISTRY = {
         id: 'qwen2.5-0.5b',
         name: 'Qwen 2.5 (0.5B Instant)',
         source: 'onnx-community/Qwen2.5-0.5B-Instruct',
+        localPath: './assets/models/qwen2.5-0.5b',
         size_mb: 280,
         dtype: 'q4'
     }
@@ -82,10 +87,38 @@ async function purgeAllCaches() {
     }
 }
 
+async function resolveModelSource(modelId) {
+    const model = MODEL_REGISTRY[modelId] || MODEL_REGISTRY['glm5.3-flash'];
+    
+    // 1. Check if model exists as a hosted asset in our own repo / origin
+    if (model.localPath) {
+        try {
+            const checkUrl = `${model.localPath}/config.json`;
+            const checkRes = await fetch(checkUrl, { method: 'HEAD' });
+            if (checkRes.ok) {
+                return {
+                    source: model.localPath,
+                    isLocal: true,
+                    dtype: model.dtype || 'q4',
+                    model
+                };
+            }
+        } catch(e) {}
+    }
+
+    // 2. Upstream Hugging Face ONNX source
+    return {
+        source: model.source,
+        isLocal: false,
+        dtype: model.dtype || 'q4',
+        model
+    };
+}
+
 async function getOrLoadPipeline(modelId, onProgress) {
     if (loadedPipelines[modelId]) return loadedPipelines[modelId];
 
-    const model = MODEL_REGISTRY[modelId] || MODEL_REGISTRY['glm5.3-flash'];
+    const { source, isLocal, dtype, model } = await resolveModelSource(modelId);
 
     let device = 'wasm';
     if (typeof navigator !== 'undefined' && navigator.gpu) {
@@ -95,16 +128,34 @@ async function getOrLoadPipeline(modelId, onProgress) {
         } catch(e) {}
     }
 
-    const pipe = await pipeline('text-generation', model.source, {
-        dtype: model.dtype || 'q4',
-        device: device,
-        progress_callback: (p) => {
-            if (onProgress) onProgress(p);
-        }
-    });
+    try {
+        const pipe = await pipeline('text-generation', source, {
+            dtype: dtype,
+            device: device,
+            progress_callback: (p) => {
+                if (onProgress) onProgress(p);
+            }
+        });
 
-    loadedPipelines[modelId] = pipe;
-    return pipe;
+        loadedPipelines[modelId] = pipe;
+        return pipe;
+    } catch(err) {
+        console.warn(`Pipeline load warning for ${source} (${dtype}):`, err);
+        // Fallback to standard wasm or q4 if webgpu/float16 had browser compatibility quirks
+        if (device === 'webgpu') {
+            console.log(`Retrying ${source} on WASM device fallback...`);
+            const pipe = await pipeline('text-generation', source, {
+                dtype: 'q4',
+                device: 'wasm',
+                progress_callback: (p) => {
+                    if (onProgress) onProgress(p);
+                }
+            });
+            loadedPipelines[modelId] = pipe;
+            return pipe;
+        }
+        throw err;
+    }
 }
 
 self.onmessage = async function(e) {
@@ -163,7 +214,7 @@ self.onmessage = async function(e) {
                     text: '✓ Neural Substrate Ready. Streaming tokens...'
                 });
 
-                // Sanitize input messages to ensure no special tokens break ChatML
+                // Sanitize input messages
                 const cleanMessages = messages.map(m => ({
                     role: m.role,
                     content: (m.content || '')
@@ -198,38 +249,24 @@ self.onmessage = async function(e) {
                 });
 
                 const out = await pipe(cleanMessages, {
-                    max_new_tokens: options.max_new_tokens || 2500,
-                    temperature: options.temperature || 0.6,
-                    top_p: options.top_p || 0.92,
-                    repetition_penalty: options.repetition_penalty || 1.1,
-                    do_sample: true,
+                    max_new_tokens: options.max_new_tokens || 512,
+                    temperature: options.temperature || 0.7,
+                    top_p: options.top_p || 0.9,
                     streamer: streamer
                 });
 
-                if (!fullText && out && out[0]) {
-                    if (typeof out[0].generated_text === 'string') {
-                        fullText = out[0].generated_text;
-                    } else if (Array.isArray(out[0].generated_text)) {
-                        const last = out[0].generated_text[out[0].generated_text.length - 1];
-                        fullText = last.content || '';
-                    }
-                }
-
-                fullText = fullText.replace(/<\|im_end\|>/g, '').replace(/<\|endoftext\|>/g, '').trim();
-                const totalDurationSec = Math.max(0.1, (performance.now() - genStartTime) / 1000);
-                const finalAvgTps = (generatedTokenCount / totalDurationSec).toFixed(1);
+                const totalElapsedSec = Math.max(0.01, (performance.now() - genStartTime) / 1000);
+                const finalTps = (generatedTokenCount / totalElapsedSec).toFixed(1);
 
                 self.postMessage({
                     action: 'generate_complete',
                     id,
                     fullText,
                     tokenCount: generatedTokenCount,
-                    durationSec: totalDurationSec.toFixed(2),
-                    tps: finalAvgTps
+                    tps: finalTps
                 });
-
-            } catch (err) {
-                console.error('Worker generation error:', err);
+            } catch(err) {
+                console.error("Worker generate error:", err);
                 self.postMessage({
                     action: 'generate_error',
                     id,
@@ -263,7 +300,7 @@ function handleProgressCallback(p, id, targetModelId) {
             modelId: targetModelId,
             stage: 'downloading',
             progress: 1,
-            text: `📥 Connecting to Hugging Face for ${p.file || 'model components'}...`,
+            text: `📥 Connecting for ${p.file || 'model components'}...`,
             file: p.file
         });
         return;
@@ -302,7 +339,7 @@ function handleProgressCallback(p, id, targetModelId) {
             modelId: targetModelId,
             stage: 'compiling',
             progress: 99,
-            text: `⚡ Compiling ONNX execution graph & WebGPU shaders (99%)...`,
+            text: `⚡ Compiling ONNX execution graph & shaders (99%)...`,
             file: p.file
         });
     } else if (p.status === 'ready') {
