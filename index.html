@@ -2508,6 +2508,26 @@
     </div>
 
         <!-- CREATE PULL REQUEST MODAL -->
+    <!-- ================= 8. NEURAL SUBSTRATE MANAGER MODAL ================= -->
+    <div class="modal-overlay" id="modalModelManager" onclick="if(event.target===this) closeModelManagerModal()">
+        <div class="modal-box" style="max-width: 680px;" onclick="event.stopPropagation()">
+            <div class="modal-title" style="display:flex; justify-content:space-between; align-items:center;">
+                <span>🧠 Sovereign Neural Substrates & Caches</span>
+                <button class="tool-icon-btn" onclick="closeModelManagerModal()" style="font-size:1rem; border:none; background:transparent;">×</button>
+            </div>
+            <div style="font-size:0.75rem; color:var(--text-muted); line-height:1.4; margin-bottom:0.75rem;">
+                All neural models run 100% in-browser on WebGPU. Downloaded weights are stored in sovereign local storage (CacheStorage) for instant offline inference.
+            </div>
+            <div class="model-manager-grid" id="modelManagerGrid" style="max-height:360px; overflow-y:auto;">
+                <!-- Populated dynamically -->
+            </div>
+            <div class="modal-actions" style="margin-top:1rem; justify-content:space-between; align-items:center; display:flex;">
+                <span id="modalTotalStorageLabel" style="font-size:0.72rem; color:var(--text-muted); font-family:var(--font-mono);">Storage: Calculating...</span>
+                <button class="modal-btn secondary" onclick="closeModelManagerModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
     <div class="modal-overlay" id="createPrModal">
         <div class="modal-box">
             <div class="modal-title">
@@ -4114,14 +4134,13 @@
 
         window.openModelManagerModal = async function() {
             const modal = document.getElementById('modalModelManager');
-            if (modal) modal.style.display = 'flex';
+            if (modal) modal.classList.add('show');
             await renderModelManagerUI();
         };
 
         window.closeModelManagerModal = function(e) {
-            if (e && e.target !== document.getElementById('modalModelManager') && e.target !== document.querySelector('#modalModelManager .modal-close-btn')) return;
             const modal = document.getElementById('modalModelManager');
-            if (modal) modal.style.display = 'none';
+            if (modal) modal.classList.remove('show');
         };
 
         async function renderModelManagerUI() {
