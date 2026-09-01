@@ -2593,6 +2593,26 @@
         }
         window.callGithubApi = callGithubApi;
 
+        function getLangForExt(filename) {
+            if (!filename) return 'plaintext';
+            const ext = filename.split('.').pop().toLowerCase();
+            const map = {
+                'html': 'html', 'htm': 'html',
+                'css': 'css', 'scss': 'scss', 'less': 'less',
+                'js': 'javascript', 'jsx': 'javascript', 'mjs': 'javascript',
+                'ts': 'typescript', 'tsx': 'typescript',
+                'rs': 'rust',
+                'toml': 'toml', 'yaml': 'yaml', 'yml': 'yaml',
+                'json': 'json',
+                'md': 'markdown', 'markdown': 'markdown',
+                'py': 'python',
+                'c': 'c', 'cpp': 'cpp', 'h': 'cpp',
+                'sh': 'shell', 'bash': 'shell', 'zsh': 'shell'
+            };
+            return map[ext] || 'plaintext';
+        }
+        window.getLangForExt = getLangForExt;
+
         window.switchEditorTab = function(fileName) {
             if (!window.workspaceFiles[fileName]) {
                 window.workspaceFiles[fileName] = { content: '// New File\n', lang: getLangForExt(fileName) };
