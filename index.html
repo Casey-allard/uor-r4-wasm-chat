@@ -3046,16 +3046,16 @@
             if (!iframe) return;
 
             // Sync current Monaco value into workspace buffer
-            if (monacoEditorInstance && window.currentWorkspaceFile && workspaceFiles[currentWorkspaceFile]) {
+            if (monacoEditorInstance && window.currentWorkspaceFile && window.workspaceFiles[window.currentWorkspaceFile]) {
                 const currentVal = monacoEditorInstance.getValue();
-                workspaceFiles[currentWorkspaceFile].content = currentVal;
+                window.workspaceFiles[window.currentWorkspaceFile].content = currentVal;
                 
                 // Track modified state against remote original
-                if (remoteOriginalFiles[currentWorkspaceFile] !== undefined) {
-                    if (remoteOriginalFiles[currentWorkspaceFile] !== currentVal) {
-                        modifiedWorktreeFiles.add(currentWorkspaceFile);
+                if (window.remoteOriginalFiles[window.currentWorkspaceFile] !== undefined) {
+                    if (window.remoteOriginalFiles[window.currentWorkspaceFile] !== currentVal) {
+                        window.modifiedWorktreeFiles.add(window.currentWorkspaceFile);
                     } else {
-                        modifiedWorktreeFiles.delete(currentWorkspaceFile);
+                        window.modifiedWorktreeFiles.delete(window.currentWorkspaceFile);
                     }
                     updateGitWorktreeStatusUI();
                 }
@@ -3191,7 +3191,7 @@
 
         window.portActiveCodeToPreview = function() {
             const currentCode = monacoEditorInstance ? monacoEditorInstance.getValue() : '';
-            const currentLang = workspaceFiles[currentWorkspaceFile]?.lang || 'html';
+            const currentLang = window.workspaceFiles[window.currentWorkspaceFile]?.lang || 'html';
             refreshLivePreview(currentCode, currentLang);
             switchStudioView('preview');
             showToast("🚀 Loaded current editor buffer into Live Preview!");
@@ -3335,7 +3335,7 @@
             
             const listEl = document.getElementById('commitModifiedFilesList');
             if (modifiedWorktreeFiles.size === 0) {
-                listEl.innerHTML = `<div>${currentWorkspaceFile} (Active buffer)</div>`;
+                listEl.innerHTML = `<div>${window.currentWorkspaceFile} (Active buffer)</div>`;
             } else {
                 listEl.innerHTML = Array.from(modifiedWorktreeFiles).map(f => `<div>🟡 ${f}</div>`).join('');
             }
@@ -3350,7 +3350,7 @@
         window.executeGitCommitPush = async function() {
             if (!githubToken || !activeRepo) return;
             const msgInput = document.getElementById('gitCommitMessageInput');
-            const commitMsg = (msgInput ? msgInput.value.trim() : '') || `Update ${currentWorkspaceFile} via Sovereign AI Studio`;
+            const commitMsg = (msgInput ? msgInput.value.trim() : '') || `Update ${window.currentWorkspaceFile} via Sovereign AI Studio`;
             const btn = document.getElementById('btnExecuteCommit');
             
             if (btn) { btn.disabled = true; btn.innerText = "Pushing..."; }
@@ -3359,7 +3359,7 @@
                 showToast("🚀 Pushing commit to GitHub...");
                 
                 // Commit each modified file to the active branch
-                const filesToCommit = modifiedWorktreeFiles.size > 0 ? Array.from(modifiedWorktreeFiles) : [currentWorkspaceFile];
+                const filesToCommit = modifiedWorktreeFiles.size > 0 ? Array.from(modifiedWorktreeFiles) : [window.currentWorkspaceFile];
                 
                 for (const fileName of filesToCommit) {
                     const fileObj = workspaceFiles[fileName];
