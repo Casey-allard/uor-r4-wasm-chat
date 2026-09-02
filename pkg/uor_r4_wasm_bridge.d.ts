@@ -68,6 +68,12 @@ export function wasm_bundle_project(html_content: string, css_content: string, j
 
 export function wasm_calculate_code_stats(code: string): string;
 
+export function wasm_canonical_uor_address(data: string): string;
+
+export function wasm_deterministic_math(expr: string): string;
+
+export function wasm_myers_diff(original: string, modified: string): string;
+
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
 
 export interface InitOutput {
@@ -94,6 +100,9 @@ export interface InitOutput {
     readonly interactivechatsession_score_candidates_json: (a: number, b: number, c: number) => [number, number];
     readonly wasm_bundle_project: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number];
     readonly wasm_calculate_code_stats: (a: number, b: number) => [number, number];
+    readonly wasm_canonical_uor_address: (a: number, b: number) => [number, number];
+    readonly wasm_deterministic_math: (a: number, b: number) => [number, number];
+    readonly wasm_myers_diff: (a: number, b: number, c: number, d: number) => [number, number];
     readonly __wbindgen_externrefs: WebAssembly.Table;
     readonly __wbindgen_malloc: (a: number, b: number) => number;
     readonly __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;

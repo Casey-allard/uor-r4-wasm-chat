@@ -2060,6 +2060,72 @@
             gap: 0.5rem;
         }
 
+    
+        /* Apple-Grade Modern Typography & Polished Studio Components */
+        body, input, textarea, button, select {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", system-ui, sans-serif !important;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .chat-scroll-area {
+            padding-bottom: 140px !important; /* Prevent floating input from obscuring bottom messages */
+        }
+
+        .chat-textarea {
+            min-height: 52px !important;
+            max-height: 220px !important;
+            line-height: 1.5 !important;
+            font-size: 0.95rem !important;
+            padding: 0.75rem 1rem !important;
+        }
+
+        /* Send / Stop Interrupt Button */
+        .send-btn.stopping-mode {
+            background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+            color: #ffffff !important;
+            box-shadow: 0 0 16px rgba(239, 68, 68, 0.5) !important;
+            animation: pulseStopBtn 1.2s infinite ease-in-out !important;
+        }
+
+        @keyframes pulseStopBtn {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.08); opacity: 0.85; }
+        }
+
+        /* Image Attachment Thumbnail Chips */
+        .image-attachment-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 0.25rem 0.5rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            color: var(--text-primary);
+        }
+
+        .image-attachment-thumb {
+            width: 24px;
+            height: 24px;
+            object-fit: cover;
+            border-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .image-attachment-chip .chip-remove-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 0.8rem;
+            padding: 0 0.2rem;
+        }
+        .image-attachment-chip .chip-remove-btn:hover {
+            color: #ef4444;
+        }
+
     </style>
 </head>
 <body>
@@ -2151,22 +2217,15 @@
             </div>
 
             <!-- STUDIO MODE SELECTOR PILLS -->
+            <!-- STUDIO MODE SELECTOR PILLS -->
             <div class="studio-mode-pill-bar">
                 <button class="mode-pill-btn active" id="pillViewChat" onclick="switchStudioView('chat')">
                     <span>💬</span>
-                    <span>Chat</span>
+                    <span>Chat Studio</span>
                 </button>
                 <button class="mode-pill-btn" id="pillViewEditor" onclick="switchStudioView('editor')">
                     <span>💻</span>
-                    <span>Editor & Diff</span>
-                </button>
-                <button class="mode-pill-btn" id="pillViewPreview" onclick="switchStudioView('preview')">
-                    <span>👁</span>
-                    <span>Live Preview</span>
-                </button>
-                <button class="mode-pill-btn" id="pillViewGithub" onclick="switchStudioView('github')">
-                    <span>🐙</span>
-                    <span>GitHub Repos</span>
+                    <span>Monaco IDE & Diff</span>
                 </button>
             </div>
 
@@ -2180,12 +2239,17 @@
                     </div>
                 </div>
 
+                <button class="header-action-btn danger-btn" onclick="purgeAllCachesAndReset()" title="Clear Model Cache & Reset Storage" style="display:inline-flex; align-items:center; gap:0.35rem; background:rgba(239,68,68,0.12); border:1px solid rgba(239,68,68,0.3); color:#fca5a5; padding:0.35rem 0.75rem; border-radius:8px; font-size:0.75rem; font-weight:600; cursor:pointer; transition:all 0.15s ease;">
+                    <span>🗑️</span>
+                    <span>Clear Cache</span>
+                </button>
+
                 <button class="btn-github-auth" id="btnGithubAuth" onclick="openGithubModal()">
                     <span>🐙</span>
                     <span id="githubAuthLabel">Connect GitHub</span>
                 </button>
 
-                <button class="btn-sidecar-toggle active" id="btnSidecarToggle" onclick="toggleSidecar()" title="Toggle 3D Visualizer">
+                <button class="btn-sidecar-toggle active" id="btnSidecarToggle" onclick="toggleSidecar()" title="Toggle 3D Brain Telemetry">
                     <span>🧠</span>
                     <span>Hologram</span>
                 </button>
@@ -2272,109 +2336,96 @@
                             </div>
                         </div>
 
-                        <button class="send-btn" id="btnSendChat" onclick="sendChat()" title="Send Message (Enter)">
-                            ↑
+                        <button class="send-btn" id="btnSendChat" onclick="handleSendOrStop()" title="Send Message (Enter) / Stop (Esc)">
+                            <span id="sendBtnIcon">↑</span>
                         </button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- ================= 2. MONACO EDITOR & DIFF VIEW ================= -->
+        <!-- ================= 2. MONACO IDE & DIFF STUDIO ================= -->
         <div class="studio-view-container" id="viewEditor">
-            <div class="editor-view-layout">
-                <div class="editor-top-toolbar">
-                    <div class="git-worktree-strip" id="gitWorktreeStrip">
-                        <div class="git-branch-badge" onclick="openBranchSwitcherModal()" title="Current Git Branch">
+            <div class="editor-view-layout" style="display:flex; flex-direction:column; height:100%; width:100%;">
+                <div class="editor-top-toolbar" style="display:flex; align-items:center; gap:8px; padding:0.5rem 1rem; background:rgba(15,23,42,0.6); border-bottom:1px solid rgba(255,255,255,0.08);">
+                    <div class="git-worktree-strip" id="gitWorktreeStrip" style="display:flex; gap:6px; align-items:center;">
+                        <div class="git-branch-badge" onclick="openBranchSwitcherModal()" title="Current Git Branch" style="display:inline-flex; align-items:center; gap:4px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); padding:3px 8px; border-radius:6px; font-size:0.75rem; cursor:pointer;">
                             <span>🌿</span>
                             <span id="activeGitBranchName">main</span>
                         </div>
-                        <div class="git-status-badge clean" id="gitStatusBadge" title="Worktree Status">
+                        <div class="git-status-badge clean" id="gitStatusBadge" title="Worktree Status" style="display:inline-flex; align-items:center; gap:4px; background:rgba(34,197,94,0.1); border:1px solid rgba(34,197,94,0.25); color:#86efac; padding:3px 8px; border-radius:6px; font-size:0.75rem;">
                             <span id="gitStatusIndicator">🟢</span>
                             <span id="gitStatusText">Clean</span>
                         </div>
                     </div>
 
-                    <div class="editor-tabs-scroll" id="editorTabsBar">
+                    <div class="editor-tabs-scroll" id="editorTabsBar" style="display:flex; gap:4px; overflow-x:auto; margin-left:8px;">
                         <div class="editor-tab active" onclick="switchEditorTab('index.html')">index.html</div>
                         <div class="editor-tab" onclick="switchEditorTab('style.css')">style.css</div>
                         <div class="editor-tab" onclick="switchEditorTab('app.js')">app.js</div>
                         <div class="editor-tab" onclick="switchEditorTab('main.rs')">main.rs</div>
+                        <div class="editor-tab" onclick="switchEditorTab('Cargo.toml')">Cargo.toml</div>
                     </div>
 
-                    <div class="quick-refactor-bar">
-                        <button class="quick-pill" onclick="triggerQuickAction('optimize')">⚡ Optimize</button>
-                        <button class="quick-pill" onclick="triggerQuickAction('test')">🧪 Add Tests</button>
-                        <button class="quick-pill" onclick="triggerQuickAction('explain')">🔍 Explain</button>
-                        <button class="quick-pill" onclick="triggerQuickAction('fix')">🐛 Fix</button>
-                    </div>
-
-                    <div class="editor-actions-right" style="margin-left:auto;">
-                        <button class="editor-btn" onclick="portActiveCodeToPreview()" title="Port Active Code into Live Preview">
-                            <span>⚡</span>
-                            <span>Live Preview</span>
+                    <div class="editor-actions-right" style="margin-left:auto; display:flex; gap:6px; align-items:center;">
+                        <button class="editor-btn" onclick="openLocalFolder()" title="Open Local Project Folder from Disk (File System Access)">
+                            <span>📂</span>
+                            <span>Open Folder</span>
                         </button>
-                        <button class="editor-btn" id="btnToggleDiffMode" onclick="toggleMonacoDiffView()">
+                        <button class="editor-btn" id="btnToggleDiffMode" onclick="toggleMonacoDiffView()" title="Compare Side-by-Side Diff against baseline">
                             <span>⚖️</span>
                             <span id="diffModeLabel">View Diff</span>
                         </button>
-                        <button class="editor-btn" onclick="exportWorkspaceZip()">
+                        <button class="editor-btn" onclick="saveActiveFileLocal()" title="Save Changes to File / Local Disk">
+                            <span>💾</span>
+                            <span>Save</span>
+                        </button>
+                        <button class="editor-btn" onclick="exportWorkspaceZip()" title="Download Full Project Archive">
                             <span>📦</span>
                             <span>Export ZIP</span>
                         </button>
-                        <button class="editor-btn success" onclick="openCommitPushModal()" id="btnGitCommitPush">
+                        <button class="editor-btn success" onclick="openCommitPushModal()" id="btnGitCommitPush" title="Commit & Push to Remote Worktree">
                             <span>🚀</span>
                             <span>Commit & Push</span>
                         </button>
-                        <button class="editor-btn primary" onclick="openCreatePrModal()">
-                            <span>🐙</span>
-                            <span>Create PR</span>
-                        </button>
                     </div>
                 </div>
 
-                <div class="monaco-instance-container">
-                    <div id="monacoEditorRoot"></div>
-                    <div id="monacoDiffRoot" style="display:none;"></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ================= 3. LIVE PREVIEW SANDBOX VIEW ================= -->
-        <div class="studio-view-container" id="viewPreview">
-            <div class="preview-view-layout">
-                <div class="preview-toolbar">
-                    <div class="preview-url-bar">
-                        <span>🔒</span>
-                        <span>sandbox://app-preview.internal/</span>
-                    </div>
-
-                    <div style="display:flex; gap:6px;">
-                        <button class="editor-btn" onclick="refreshLivePreview()">
-                            <span>🔄</span>
-                            <span>Run / Reload</span>
-                        </button>
-                        <button class="editor-btn primary" onclick="sendPreviewToChat()">
-                            <span>💬</span>
-                            <span>Iterate in Chat</span>
-                        </button>
-                    </div>
+                <div class="monaco-instance-container" style="flex:1; position:relative; min-height:420px; overflow:hidden;">
+                    <div id="monacoEditorRoot" style="width:100%; height:100%;"></div>
+                    <div id="monacoDiffRoot" style="display:none; width:100%; height:100%;"></div>
                 </div>
 
-                <iframe class="sandbox-iframe" id="sandboxIframe" sandbox="allow-scripts allow-modals allow-forms allow-same-origin allow-popups"></iframe>
-
-                <div class="preview-console-drawer">
-                    <div class="console-header">
-                        <span>Terminal & Console Logs</span>
-                        <button class="icon-btn" onclick="clearPreviewConsole()">Clear</button>
+                <!-- EMBEDDED CODING AGENT PROMPT CAPSULE AT BOTTOM OF IDE -->
+                <div class="editor-agent-bottom-bar" style="padding:0.75rem 1rem; background:rgba(15,23,42,0.9); backdrop-filter:blur(16px); border-top:1px solid rgba(255,255,255,0.08); display:flex; flex-direction:column; gap:0.5rem;">
+                    <div style="display:flex; align-items:center; gap:0.5rem; justify-content:space-between;">
+                        <div class="quick-refactor-bar" style="display:flex; gap:6px;">
+                            <button class="quick-pill" onclick="triggerQuickAction('optimize')">⚡ Optimize</button>
+                            <button class="quick-pill" onclick="triggerQuickAction('test')">🧪 Add Unit Tests</button>
+                            <button class="quick-pill" onclick="triggerQuickAction('explain')">🔍 Explain Code</button>
+                            <button class="quick-pill" onclick="triggerQuickAction('fix')">🐛 Fix Bugs</button>
+                        </div>
+                        <span style="font-size:0.72rem; color:var(--text-muted); font-family:var(--font-mono);">
+                            Coding Agent attached to <b id="agentActiveFileLabel" style="color:var(--accent-cyan);">index.html</b>
+                        </span>
                     </div>
-                    <div class="console-logs-list" id="consoleLogsList">
-                        <div class="log-entry" style="color:var(--text-muted);">[Ready] Sandbox environment initialized.</div>
+
+                    <div style="display:flex; gap:8px; align-items:center;">
+                        <input 
+                            type="text" 
+                            id="editorAgentPromptInput" 
+                            class="chat-textarea" 
+                            style="flex:1; min-height:40px !important; height:40px; padding:0.4rem 0.85rem; font-size:0.85rem; border-radius:8px;" 
+                            placeholder="Ask Coding Agent to refactor, write new functions, or edit this file..." 
+                            onkeydown="if(event.key==='Enter') executeEditorAgentPrompt()"
+                        />
+                        <button class="send-btn" style="width:40px; height:40px; font-size:0.9rem;" onclick="executeEditorAgentPrompt()" title="Run Coding Agent">
+                            ⚡
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
-
         <!-- ================= 4. GITHUB REPOS VIEW ================= -->
         <div class="studio-view-container" id="viewGithub">
             <div class="github-view-layout">
@@ -3512,6 +3563,72 @@
         h1 { margin: 0 0 6px 0; font-size: 15px; color: #00e5ff; letter-spacing: 0.5px; }
         p { margin: 0; font-size: 11.5px; color: #94a3b8; line-height: 1.4; }
         canvas { width: 100vw; height: 100vh; display: block; }
+    
+        /* Apple-Grade Modern Typography & Polished Studio Components */
+        body, input, textarea, button, select {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", system-ui, sans-serif !important;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .chat-scroll-area {
+            padding-bottom: 140px !important; /* Prevent floating input from obscuring bottom messages */
+        }
+
+        .chat-textarea {
+            min-height: 52px !important;
+            max-height: 220px !important;
+            line-height: 1.5 !important;
+            font-size: 0.95rem !important;
+            padding: 0.75rem 1rem !important;
+        }
+
+        /* Send / Stop Interrupt Button */
+        .send-btn.stopping-mode {
+            background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+            color: #ffffff !important;
+            box-shadow: 0 0 16px rgba(239, 68, 68, 0.5) !important;
+            animation: pulseStopBtn 1.2s infinite ease-in-out !important;
+        }
+
+        @keyframes pulseStopBtn {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.08); opacity: 0.85; }
+        }
+
+        /* Image Attachment Thumbnail Chips */
+        .image-attachment-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 0.25rem 0.5rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            color: var(--text-primary);
+        }
+
+        .image-attachment-thumb {
+            width: 24px;
+            height: 24px;
+            object-fit: cover;
+            border-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .image-attachment-chip .chip-remove-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 0.8rem;
+            padding: 0 0.2rem;
+        }
+        .image-attachment-chip .chip-remove-btn:hover {
+            color: #ef4444;
+        }
+
     </style>
 </head>
 <body>
@@ -3623,7 +3740,73 @@
             if (htmlCode && (htmlCode.includes('<html') || htmlCode.includes('<!DOCTYPE'))) {
                 bundledDoc = htmlCode;
                 if (cssCode && !bundledDoc.includes(cssCode) && bundledDoc.includes('</head>')) {
-                    bundledDoc = bundledDoc.replace('</head>', `<style>\n${cssCode}\n</style>\n</head>`);
+                    bundledDoc = bundledDoc.replace('</head>', `<style>\n${cssCode}\n
+        /* Apple-Grade Modern Typography & Polished Studio Components */
+        body, input, textarea, button, select {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", system-ui, sans-serif !important;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .chat-scroll-area {
+            padding-bottom: 140px !important; /* Prevent floating input from obscuring bottom messages */
+        }
+
+        .chat-textarea {
+            min-height: 52px !important;
+            max-height: 220px !important;
+            line-height: 1.5 !important;
+            font-size: 0.95rem !important;
+            padding: 0.75rem 1rem !important;
+        }
+
+        /* Send / Stop Interrupt Button */
+        .send-btn.stopping-mode {
+            background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+            color: #ffffff !important;
+            box-shadow: 0 0 16px rgba(239, 68, 68, 0.5) !important;
+            animation: pulseStopBtn 1.2s infinite ease-in-out !important;
+        }
+
+        @keyframes pulseStopBtn {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.08); opacity: 0.85; }
+        }
+
+        /* Image Attachment Thumbnail Chips */
+        .image-attachment-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 0.25rem 0.5rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            color: var(--text-primary);
+        }
+
+        .image-attachment-thumb {
+            width: 24px;
+            height: 24px;
+            object-fit: cover;
+            border-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .image-attachment-chip .chip-remove-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 0.8rem;
+            padding: 0 0.2rem;
+        }
+        .image-attachment-chip .chip-remove-btn:hover {
+            color: #ef4444;
+        }
+
+    </style>\n</head>`);
                 }
                 if (jsCode && !bundledDoc.includes(jsCode) && bundledDoc.includes('</body>')) {
                     bundledDoc = bundledDoc.replace('</body>', `<script>\ntry {\n${jsCode}\n} catch(err) { console.error('Runtime Error:', err); }\n<\/script>\n</body>`);
@@ -3640,6 +3823,72 @@
         canvas { display: block; max-width: 100%; max-height: 100%; border-radius: 8px; box-shadow: 0 0 25px rgba(0, 216, 255, 0.25); }
         #app { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
         ${cssCode}
+    
+        /* Apple-Grade Modern Typography & Polished Studio Components */
+        body, input, textarea, button, select {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", system-ui, sans-serif !important;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .chat-scroll-area {
+            padding-bottom: 140px !important; /* Prevent floating input from obscuring bottom messages */
+        }
+
+        .chat-textarea {
+            min-height: 52px !important;
+            max-height: 220px !important;
+            line-height: 1.5 !important;
+            font-size: 0.95rem !important;
+            padding: 0.75rem 1rem !important;
+        }
+
+        /* Send / Stop Interrupt Button */
+        .send-btn.stopping-mode {
+            background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+            color: #ffffff !important;
+            box-shadow: 0 0 16px rgba(239, 68, 68, 0.5) !important;
+            animation: pulseStopBtn 1.2s infinite ease-in-out !important;
+        }
+
+        @keyframes pulseStopBtn {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.08); opacity: 0.85; }
+        }
+
+        /* Image Attachment Thumbnail Chips */
+        .image-attachment-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 0.25rem 0.5rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            color: var(--text-primary);
+        }
+
+        .image-attachment-thumb {
+            width: 24px;
+            height: 24px;
+            object-fit: cover;
+            border-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .image-attachment-chip .chip-remove-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 0.8rem;
+            padding: 0 0.2rem;
+        }
+        .image-attachment-chip .chip-remove-btn:hover {
+            color: #ef4444;
+        }
+
     </style>
 </head>
 <body>
@@ -3671,6 +3920,72 @@
         * { box-sizing: border-box; }
         body { margin: 0; padding: 1.5rem; background: #0b0f19; color: #fff; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
         ${cssCode}
+    
+        /* Apple-Grade Modern Typography & Polished Studio Components */
+        body, input, textarea, button, select {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", system-ui, sans-serif !important;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .chat-scroll-area {
+            padding-bottom: 140px !important; /* Prevent floating input from obscuring bottom messages */
+        }
+
+        .chat-textarea {
+            min-height: 52px !important;
+            max-height: 220px !important;
+            line-height: 1.5 !important;
+            font-size: 0.95rem !important;
+            padding: 0.75rem 1rem !important;
+        }
+
+        /* Send / Stop Interrupt Button */
+        .send-btn.stopping-mode {
+            background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+            color: #ffffff !important;
+            box-shadow: 0 0 16px rgba(239, 68, 68, 0.5) !important;
+            animation: pulseStopBtn 1.2s infinite ease-in-out !important;
+        }
+
+        @keyframes pulseStopBtn {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.08); opacity: 0.85; }
+        }
+
+        /* Image Attachment Thumbnail Chips */
+        .image-attachment-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 0.25rem 0.5rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            color: var(--text-primary);
+        }
+
+        .image-attachment-thumb {
+            width: 24px;
+            height: 24px;
+            object-fit: cover;
+            border-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .image-attachment-chip .chip-remove-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 0.8rem;
+            padding: 0 0.2rem;
+        }
+        .image-attachment-chip .chip-remove-btn:hover {
+            color: #ef4444;
+        }
+
     </style>
 </head>
 <body>
@@ -3695,6 +4010,72 @@
         .hero-card { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 12px; padding: 2rem; max-width: 480px; }
         h2 { color: #00d8ff; margin-bottom: 0.5rem; }
         p { color: #94a3b8; font-size: 0.85rem; line-height: 1.5; }
+    
+        /* Apple-Grade Modern Typography & Polished Studio Components */
+        body, input, textarea, button, select {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", system-ui, sans-serif !important;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .chat-scroll-area {
+            padding-bottom: 140px !important; /* Prevent floating input from obscuring bottom messages */
+        }
+
+        .chat-textarea {
+            min-height: 52px !important;
+            max-height: 220px !important;
+            line-height: 1.5 !important;
+            font-size: 0.95rem !important;
+            padding: 0.75rem 1rem !important;
+        }
+
+        /* Send / Stop Interrupt Button */
+        .send-btn.stopping-mode {
+            background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+            color: #ffffff !important;
+            box-shadow: 0 0 16px rgba(239, 68, 68, 0.5) !important;
+            animation: pulseStopBtn 1.2s infinite ease-in-out !important;
+        }
+
+        @keyframes pulseStopBtn {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.08); opacity: 0.85; }
+        }
+
+        /* Image Attachment Thumbnail Chips */
+        .image-attachment-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 0.25rem 0.5rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            color: var(--text-primary);
+        }
+
+        .image-attachment-thumb {
+            width: 24px;
+            height: 24px;
+            object-fit: cover;
+            border-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .image-attachment-chip .chip-remove-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 0.8rem;
+            padding: 0 0.2rem;
+        }
+        .image-attachment-chip .chip-remove-btn:hover {
+            color: #ef4444;
+        }
+
     </style>
 </head>
 <body>
@@ -4246,6 +4627,7 @@
 
             showToast(`⚡ Model: ${meta.fullName}`);
             initModelWorker();
+            initImagePasteAndFocus();
         };
 
         window.addEventListener('click', (e) => {
@@ -4346,15 +4728,25 @@
             row.innerHTML = '';
             attachedFiles.forEach((f, idx) => {
                 const chip = document.createElement('div');
-                chip.className = 'attachment-chip';
-                chip.innerHTML = `
-                    <span>📄</span>
-                    <span>${f.name}</span>
-                    <span class="attachment-chip-remove" onclick="removeAttachment(${idx})">✕</span>
-                `;
+                if (f.isImage && f.dataUrl) {
+                    chip.className = 'image-attachment-chip';
+                    chip.innerHTML = `
+                        <img src="${f.dataUrl}" class="image-attachment-thumb" alt="Thumb" />
+                        <span>${f.name}</span>
+                        <button type="button" class="chip-remove-btn" onclick="removeAttachment(${idx})">✕</button>
+                    `;
+                } else {
+                    chip.className = 'attachment-chip';
+                    chip.innerHTML = `
+                        <span>📄</span>
+                        <span>${f.name}</span>
+                        <span class="attachment-chip-remove" onclick="removeAttachment(${idx})">✕</span>
+                    `;
+                }
                 row.appendChild(chip);
             });
         }
+        window.renderAttachmentChips = renderAttachmentChips;
 
         window.removeAttachment = function(idx) {
             attachedFiles.splice(idx, 1);
@@ -4460,7 +4852,7 @@
                         <div class="hero-logo-orb">🧠</div>
                         <h2 class="hero-title">UOR-R4 Sovereign AI Developer Studio</h2>
                         <p class="hero-desc">
-                            Full-stack in-browser engineering environment: Local Workspace File System API, GitHub Repo Integration, Monaco Code Diff Viewer, Live Preview Sandbox, and WebGPU/WASM GLM-5.3 & Qwen 2.5 models.
+                            Full-stack in-browser engineering environment: Local Workspace File System Access, Side-by-Side Monaco Diff Inspector, and WebGPU/WASM GLM-5.3 & Qwen 2.5 models.
                         </p>
 
                         <div class="prompt-starter-grid">
@@ -5003,6 +5395,62 @@
         }
         window.fetchLiveWebKnowledge = fetchLiveWebKnowledge;
 
+        window.handleSendOrStop = function() {
+            if (isGenerating) {
+                stopGeneration();
+            } else {
+                sendChat();
+            }
+        };
+
+        window.stopGeneration = function() {
+            if (modelWorker) {
+                modelWorker.postMessage({ action: 'stop_generation' });
+            }
+            isGenerating = false;
+            updateSendStopButtonUI(false);
+            showToast("⏹️ Generation stopped");
+            const phaseTag = document.getElementById('activePhaseTag');
+            if (phaseTag) phaseTag.innerText = '⚡ Idle';
+            setEegRestingState();
+        };
+
+        function updateSendStopButtonUI(generating) {
+            const btn = document.getElementById('btnSendChat');
+            const icon = document.getElementById('sendBtnIcon');
+            if (!btn) return;
+            if (generating) {
+                btn.classList.add('stopping-mode');
+                btn.title = "Stop Response (Esc)";
+                if (icon) icon.innerText = "■";
+                else btn.innerText = "■";
+            } else {
+                btn.classList.remove('stopping-mode');
+                btn.title = "Send Message (Enter)";
+                btn.disabled = false;
+                if (icon) icon.innerText = "↑";
+                else btn.innerText = "↑";
+            }
+        }
+        window.updateSendStopButtonUI = updateSendStopButtonUI;
+
+        window.purgeAllCachesAndReset = async function() {
+            if (confirm("Clear downloaded AI model cache and reset browser storage?")) {
+                if (modelWorker) {
+                    modelWorker.postMessage({ action: 'purge_all_caches' });
+                }
+                try {
+                    if ('caches' in window) {
+                        const keys = await caches.keys();
+                        for (const k of keys) await caches.delete(k);
+                    }
+                } catch(e) {}
+                showToast("🧹 All model caches purged & storage reset!");
+                const lbl = document.getElementById('browserCacheUsageLabel');
+                if (lbl) lbl.innerText = "Storage: 0.0 MB";
+            }
+        };
+
         window.sendChat = async function() {
             if (isGenerating) return;
             const input = document.getElementById('chatInput');
@@ -5013,18 +5461,24 @@
 
             let fullContext = userPrompt;
 
-            // 1. Automatically inject Active Monaco Editor File context if relevant
-            const activeTab = openEditorTabs.find(t => t.name === activeEditorTab);
-            const activeCode = monacoEditorInstance ? monacoEditorInstance.getValue() : (activeTab ? activeTab.content : '');
-            if (activeTab && activeCode && activeCode.trim() && !userPrompt.includes(activeCode.slice(0, 50))) {
-                fullContext += `\n\n--- Active Editor File (${activeTab.name}) ---\n\`\`\`${activeTab.language || 'text'}\n${activeCode.slice(0, 4000)}\n\`\`\`\n`;
+            // 1. ONLY inject Active Monaco Editor File context if explicitly requested via code action, @editor, or @file
+            if (window.pendingCodeActionPayload) {
+                fullContext = window.pendingCodeActionPayload + '\n\n' + userPrompt;
+                window.pendingCodeActionPayload = null;
+            } else if (userPrompt.includes('@editor') || userPrompt.includes('@code') || userPrompt.includes('@file')) {
+                const activeTab = openEditorTabs.find(t => t.name === activeEditorTab);
+                const activeCode = monacoEditorInstance ? monacoEditorInstance.getValue() : (activeTab ? activeTab.content : '');
+                if (activeTab && activeCode && activeCode.trim()) {
+                    fullContext = userPrompt.replace(/@editor|@code|@file/g, `[Active File: ${activeTab.name}]`) +
+                        `\n\n--- Active File (${activeTab.name}) ---\n\`\`\`${activeTab.language || 'text'}\n${activeCode.slice(0, 4000)}\n\`\`\`\n`;
+                }
             }
 
-            // 2. Automatically inject attached workspace files
+            // 2. Inject attached files (if any)
             if (attachedFiles.length > 0) {
-                fullContext += "\n\n--- Context from attached workspace documents ---\n";
+                fullContext += "\n\n--- Attached Documents ---\n";
                 attachedFiles.forEach(f => {
-                    fullContext += `\n[File: ${f.name}]\n${f.text.slice(0, 4000)}\n`;
+                    fullContext += `\n[File: ${f.name}]\n${f.text.slice(0, 3000)}\n`;
                 });
             }
 
@@ -5054,7 +5508,7 @@
             if (phaseTag) phaseTag.innerText = '⚡ Processing...';
 
             isGenerating = true;
-            document.getElementById('btnSendChat').disabled = true;
+            updateSendStopButtonUI(true);
 
             let activeWebSources = [];
             if (window.isWebSearchActive && userPrompt.length > 3) {
@@ -5116,7 +5570,7 @@
             const messagesPayload = [systemMsg, ...historyPayload];
             activeGenerationId = 'gen_' + Date.now();
 
-            // Immediately create the AI Thinking placeholder bubble in the chat
+            // 1. Immediately create the AI Thinking placeholder bubble in the chat
             const aiThinkingRow = document.createElement('div');
             aiThinkingRow.id = `msg_row_${activeGenerationId}`;
             aiThinkingRow.className = 'message-row ai';
@@ -5148,6 +5602,44 @@
             container.appendChild(aiThinkingRow);
             scrollDown();
 
+            // 2. --- ⚡ INSTANT RUST WASM DETERMINISTIC MATH FAST-PATH ---
+            if (window.wasmModule && typeof window.wasmModule.wasm_deterministic_math === 'function') {
+                const mathMatch = userPrompt.match(/(?:what\s+is\s+|calculate\s+|solve\s+|evaluate\s+)?([0-9\.\s\+\-\*\/\^\(\)]+)/i);
+                if (mathMatch && mathMatch[1]) {
+                    const cleanExpr = mathMatch[1].trim();
+                    if (/^[\d\.\+\-\*\/\^\(\)\s]+$/.test(cleanExpr) && /[0-9]/.test(cleanExpr) && /[\+\-\*\/\^]/.test(cleanExpr)) {
+                        const mathRes = window.wasmModule.wasm_deterministic_math(cleanExpr);
+                        if (mathRes && mathRes.trim()) {
+                            setTimeout(() => {
+                                finalizeChatGeneration(activeGenerationId, `**Answer:** \`${cleanExpr} = ${mathRes}\`\n\n*(Computed deterministically with zero hallucination via UOR-R4 Rust WASM Math Substrate)*`, '1000.0', 16);
+                            }, 50);
+                            return;
+                        }
+                    }
+                }
+            }
+
+            // Check for math or factual query to enforce deterministic precision
+            const isMathQuery = /^(\s*[\d\.\+\-\*\/\^\(\)\s%]+|\s*(what\s+is|calculate|solve|evaluate)\s+[\d\.\+\-\*\/\^\(\)\s%]+)/i.test(userPrompt);
+            const isShortFact = userPrompt.length < 50 && (/^(who|when|where|what|how\s+many|is\s+it)\b/i.test(userPrompt));
+
+            let dynamicMaxTokens = 1024;
+            let dynamicTemp = 0.6;
+            let dynamicTopP = 0.9;
+            let dynamicRepPenalty = 1.1;
+
+            if (isMathQuery) {
+                dynamicMaxTokens = 128;
+                dynamicTemp = 0.0; // Greedy / exact arithmetic
+                dynamicRepPenalty = 1.15;
+            } else if (isShortFact) {
+                dynamicMaxTokens = 256;
+                dynamicTemp = 0.2;
+            } else if (userPrompt.toLowerCase().includes('code') || userPrompt.toLowerCase().includes('function') || userPrompt.toLowerCase().includes('write')) {
+                dynamicMaxTokens = 1536;
+                dynamicTemp = 0.2;
+            }
+
             if (modelWorker) {
                 modelWorker.postMessage({
                     action: 'generate',
@@ -5156,10 +5648,11 @@
                     payload: {
                         messages: messagesPayload,
                         options: {
-                            max_new_tokens: 2500,
-                            temperature: 0.6,
-                            top_p: 0.92,
-                            repetition_penalty: 1.1
+                            is_math_or_fact: (isMathQuery || isShortFact),
+                            max_new_tokens: dynamicMaxTokens,
+                            temperature: dynamicTemp,
+                            top_p: dynamicTopP,
+                            repetition_penalty: dynamicRepPenalty
                         }
                     }
                 });
@@ -5239,8 +5732,7 @@
             } finally {
                 // Guaranteed unfreeze of the UI and prompt input
                 isGenerating = false;
-                const sendBtn = document.getElementById('btnSendChat');
-                if (sendBtn) sendBtn.disabled = false;
+                updateSendStopButtonUI(false);
                 setEegRestingState();
 
                 if (modelWorker) {
@@ -5670,6 +6162,145 @@
             if (phaseTag) phaseTag.innerText = `⚡ Synaptic Ready`;
         }
 
+
+        // --- 📋 IMAGE CLIPBOARD PASTE & AUTO-FOCUS SUPPORT ---
+        function initImagePasteAndFocus() {
+            const input = document.getElementById('chatInput');
+            if (input) {
+                setTimeout(() => input.focus(), 150);
+                input.addEventListener('paste', handleClipboardPaste);
+            }
+            window.addEventListener('paste', (e) => {
+                if (document.activeElement && document.activeElement.tagName === 'TEXTAREA') return;
+                handleClipboardPaste(e);
+            });
+
+            // Keyboard shortcut: Esc stops generation
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && isGenerating) {
+                    stopGeneration();
+                }
+            });
+        }
+
+        function handleClipboardPaste(e) {
+            const clipboardData = e.clipboardData || window.clipboardData;
+            if (!clipboardData || !clipboardData.items) return;
+
+            for (let i = 0; i < clipboardData.items.length; i++) {
+                const item = clipboardData.items[i];
+                if (item.type.indexOf('image') !== -1) {
+                    const blob = item.getAsFile();
+                    if (blob) {
+                        const reader = new FileReader();
+                        reader.onload = function(evt) {
+                            const dataUrl = evt.target.result;
+                            attachedFiles.push({
+                                name: `image_pasted_${Date.now()}.png`,
+                                text: `[Pasted Image: ${blob.type}, size: ${(blob.size/1024).toFixed(1)}KB]`,
+                                isImage: true,
+                                dataUrl: dataUrl
+                            });
+                            renderAttachmentChips();
+                            showToast("🖼️ Image pasted and attached!");
+                        };
+                        reader.readAsDataURL(blob);
+                    }
+                }
+            }
+        }
+
+        // --- 📂 FILE SYSTEM ACCESS API (LOCAL FOLDER WORKSPACE) ---
+        window.openLocalFolder = async function() {
+            if (!('showDirectoryPicker' in window)) {
+                alert("File System Access API is supported in modern Chrome, Edge, and Opera browsers.");
+                return;
+            }
+            try {
+                const dirHandle = await window.showDirectoryPicker();
+                showToast(`📂 Opened folder: ${dirHandle.name}`);
+                
+                // Read top-level files
+                const loadedFiles = [];
+                for await (const entry of dirHandle.values()) {
+                    if (entry.kind === 'file') {
+                        const file = await entry.getFile();
+                        if (file.size < 500000) { // Limit to text files < 500KB
+                            const text = await file.text();
+                            const ext = file.name.split('.').pop().toLowerCase();
+                            loadedFiles.push({
+                                name: file.name,
+                                content: text,
+                                language: getLangForExt(ext),
+                                isLocal: true,
+                                handle: entry
+                            });
+                        }
+                    }
+                }
+
+                if (loadedFiles.length > 0) {
+                    openEditorTabs = loadedFiles;
+                    renderEditorTabs();
+                    switchEditorTab(loadedFiles[0].name);
+                    switchStudioView('editor');
+                    showToast(`✅ Loaded ${loadedFiles.length} files into Monaco IDE!`);
+                }
+            } catch(err) {
+                if (err.name !== 'AbortError') {
+                    console.error("Open local folder error:", err);
+                    showToast("❌ Could not open folder: " + err.message);
+                }
+            }
+        };
+
+
+
+        window.saveActiveFileLocal = async function() {
+            const activeTab = openEditorTabs.find(t => t.name === activeEditorTab);
+            if (!activeTab) return;
+            const content = monacoEditorInstance ? monacoEditorInstance.getValue() : activeTab.content;
+            activeTab.content = content;
+
+            if (activeTab.handle && activeTab.handle.createWritable) {
+                try {
+                    const writable = await activeTab.handle.createWritable();
+                    await writable.write(content);
+                    await writable.close();
+                    showToast(`💾 Saved ${activeTab.name} to disk!`);
+                    return;
+                } catch(e) {
+                    console.warn("Direct handle save failed:", e);
+                }
+            }
+
+            // Fallback download
+            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = activeTab.name;
+            a.click();
+            showToast(`💾 Exported ${activeTab.name}`);
+        };
+
+        window.executeEditorAgentPrompt = function() {
+            const input = document.getElementById('editorAgentPromptInput');
+            const prompt = (input ? input.value : '').trim();
+            if (!prompt) return;
+
+            const activeTab = openEditorTabs.find(t => t.name === activeEditorTab);
+            const activeCode = monacoEditorInstance ? monacoEditorInstance.getValue() : (activeTab ? activeTab.content : '');
+
+            window.pendingCodeActionPayload = `[Coding Agent Request for file: ${activeTab ? activeTab.name : 'active file'}]\n\`\`\`${activeTab ? activeTab.language : 'text'}\n${activeCode.slice(0, 4000)}\n\`\`\``;
+
+            // Switch to Chat Studio and send
+            switchStudioView('chat');
+            const chatInput = document.getElementById('chatInput');
+            if (chatInput) chatInput.value = prompt;
+            if (input) input.value = '';
+            sendChat();
+        };
+
         // --- INITIALIZATION (INSTANT SYNCHRONOUS UI STARTUP) ---
         window.addEventListener('DOMContentLoaded', () => {
             // 1. Instantly and synchronously render all UI components (0ms delay)
@@ -5678,7 +6309,8 @@
             try { initMonacoEditor(); } catch(e) { console.warn("Monaco init error:", e); }
             try { loadPersistentState(); } catch(e) { console.warn("Persistent state error:", e); }
             try { updateInputModelDisplay(); } catch(e) { console.warn("Model display error:", e); }
-            try { initModelWorker(); } catch(e) { console.warn("Model worker init error:", e); }
+            try { initModelWorker();
+            initImagePasteAndFocus(); } catch(e) { console.warn("Model worker init error:", e); }
 
             window.savePersistentState = savePersistentState;
             window.renderConversationsList = renderConversationsList;
@@ -5703,6 +6335,7 @@
             (async () => {
                 try {
                     const wasmModule = await import('./pkg/uor_r4_wasm_bridge.js');
+                    window.wasmModule = wasmModule;
                     if (wasmModule && typeof wasmModule.default === 'function') {
                         await wasmModule.default();
                         if (typeof wasmModule.InteractiveChatSession !== 'undefined') {

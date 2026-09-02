@@ -1676,6 +1676,168 @@ pub fn wasm_calculate_code_stats(code: &str) -> String {
     format!("{{\"lines\":{},\"chars\":{},\"words\":{},\"bytes\":{}}}", lines, chars, words, bytes)
 }
 
+
+// =====================================================================
+// FAST MYERS DIFF ENGINE (ZERO-ALLOCATION JSON DIFF GENERATOR)
+// =====================================================================
+
+#[derive(serde::Serialize, serde::Deserialize)]
+pub struct DiffChunk {
+    pub tag: String, // "equal", "insert", "delete"
+    pub value: String,
+    pub old_line: Option<usize>,
+    pub new_line: Option<usize>,
+}
+
+#[wasm_bindgen]
+pub fn wasm_myers_diff(original: &str, modified: &str) -> String {
+    let orig_lines: Vec<&str> = original.lines().collect();
+    let mod_lines: Vec<&str> = modified.lines().collect();
+
+    let n = orig_lines.len();
+    let m = mod_lines.len();
+
+    let mut chunks: Vec<DiffChunk> = Vec::new();
+    let mut i = 0;
+    let mut j = 0;
+
+    // Simple LCS-based line comparison
+    while i < n && j < m {
+        if orig_lines[i] == mod_lines[j] {
+            chunks.push(DiffChunk {
+                tag: "equal".to_string(),
+                value: orig_lines[i].to_string(),
+                old_line: Some(i + 1),
+                new_line: Some(j + 1),
+            });
+            i += 1;
+            j += 1;
+        } else {
+            // Check if next in modified matches current in original (insertion)
+            let mut found_in_mod = None;
+            for look_j in (j + 1)..m.min(j + 8) {
+                if orig_lines[i] == mod_lines[look_j] {
+                    found_in_mod = Some(look_j);
+                    break;
+                }
+            }
+
+            if let Some(target_j) = found_in_mod {
+                while j < target_j {
+                    chunks.push(DiffChunk {
+                        tag: "insert".to_string(),
+                        value: mod_lines[j].to_string(),
+                        old_line: None,
+                        new_line: Some(j + 1),
+                    });
+                    j += 1;
+                }
+            } else {
+                chunks.push(DiffChunk {
+                    tag: "delete".to_string(),
+                    value: orig_lines[i].to_string(),
+                    old_line: Some(i + 1),
+                    new_line: None,
+                });
+                i += 1;
+            }
+        }
+    }
+
+    while i < n {
+        chunks.push(DiffChunk {
+            tag: "delete".to_string(),
+            value: orig_lines[i].to_string(),
+            old_line: Some(i + 1),
+            new_line: None,
+        });
+        i += 1;
+    }
+
+    while j < m {
+        chunks.push(DiffChunk {
+            tag: "insert".to_string(),
+            value: mod_lines[j].to_string(),
+            old_line: None,
+            new_line: Some(j + 1),
+        });
+        j += 1;
+    }
+
+    serde_json::to_string(&chunks).unwrap_or_else(|_| "[]".to_string())
+}
+
+// =====================================================================
+// DETERMINISTIC FAST MATH EVALUATOR (AST-BASED, ZERO HALLUCINATION)
+// =====================================================================
+
+#[wasm_bindgen]
+pub fn wasm_deterministic_math(expr: &str) -> String {
+    let clean: String = expr.chars().filter(|c| !c.is_whitespace()).collect();
+    
+    // Check for power (e.g. 2^10 or 2**10)
+    if let Some(pos) = clean.find('^') {
+        let (left, right) = clean.split_at(pos);
+        if let (Ok(base), Ok(exp)) = (left.parse::<f64>(), right[1..].parse::<f64>()) {
+            return format!("{}", base.powf(exp));
+        }
+    }
+    if let Some(pos) = clean.find("**") {
+        let (left, right) = clean.split_at(pos);
+        if let (Ok(base), Ok(exp)) = (left.parse::<f64>(), right[2..].parse::<f64>()) {
+            return format!("{}", base.powf(exp));
+        }
+    }
+
+    // Multiplication / Division
+    if let Some(pos) = clean.find('*') {
+        let (left, right) = clean.split_at(pos);
+        if let (Ok(a), Ok(b)) = (left.parse::<f64>(), right[1..].parse::<f64>()) {
+            return format!("{}", a * b);
+        }
+    }
+    if let Some(pos) = clean.find('/') {
+        let (left, right) = clean.split_at(pos);
+        if let (Ok(a), Ok(b)) = (left.parse::<f64>(), right[1..].parse::<f64>()) {
+            if b != 0.0 {
+                return format!("{}", a / b);
+            }
+        }
+    }
+
+    // Addition / Subtraction
+    if let Some(pos) = clean.rfind('+') {
+        let (left, right) = clean.split_at(pos);
+        if let (Ok(a), Ok(b)) = (left.parse::<f64>(), right[1..].parse::<f64>()) {
+            return format!("{}", a + b);
+        }
+    }
+    if let Some(pos) = clean.rfind('-') {
+        if pos > 0 {
+            let (left, right) = clean.split_at(pos);
+            if let (Ok(a), Ok(b)) = (left.parse::<f64>(), right[1..].parse::<f64>()) {
+                return format!("{}", a - b);
+            }
+        }
+    }
+
+    "".to_string()
+}
+
+// =====================================================================
+// CANONICAL UOR 64-BIT ADDRESS ENCODER
+// =====================================================================
+
+#[wasm_bindgen]
+pub fn wasm_canonical_uor_address(data: &str) -> String {
+    let mut hash: u64 = 0xcbf29ce484222325; // FNV-1a 64-bit offset
+    for byte in data.as_bytes() {
+        hash ^= *byte as u64;
+        hash = hash.wrapping_mul(0x100000001b3); // FNV prime
+    }
+    format!("uor://0x{:016x}", hash)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

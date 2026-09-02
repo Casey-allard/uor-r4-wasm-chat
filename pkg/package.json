@@ -2,7 +2,7 @@
   "name": "uor_r4_wasm_bridge",
   "type": "module",
   "description": "UOR-R4 Geometric Cognitive AI: In-Browser WebGPU Neural Substrate with 8D Gosset E8 Lattice & Hopf Phase Telemetry",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "license": "MIT",
   "repository": {
     "type": "git",
