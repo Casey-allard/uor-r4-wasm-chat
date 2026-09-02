@@ -3119,6 +3119,8 @@
             }
             
             window.currentWorkspaceFile = fileName;
+            const agentTarget = document.getElementById('agentActiveFileLabel');
+            if (agentTarget) agentTarget.innerText = fileName;
             const fileObj = window.workspaceFiles[fileName];
             const lang = fileObj.lang || getLangForExt(fileName);
             
@@ -3880,6 +3882,8 @@
 
             activeEditorTab = name;
             renderEditorTabs();
+            const agentTarget = document.getElementById('agentActiveFileLabel');
+            if (agentTarget) agentTarget.innerText = name;
 
             try {
                 if (window.monacoEditorInstance && typeof monaco !== 'undefined') {
