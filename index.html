@@ -5783,7 +5783,7 @@
         function initModelWorker() {
             if (modelWorker) return; // Keep existing active worker and compiled shaders warm!
             try {
-                modelWorker = new Worker(new URL('./assets/js/uor_model_worker.js?v=3.3.7', import.meta.url), { type: 'module' });
+                modelWorker = new Worker(new URL('./assets/js/uor_model_worker.js?v=3.3.8', import.meta.url), { type: 'module' });
                 window.modelWorker = modelWorker;
 
                 modelWorker.onmessage = (e) => {
@@ -6324,28 +6324,7 @@
                 dynamicTemp = 0.2;
             }
 
-            // ⚡ NATIVE TAURI DESKTOP EXECUTION (Apple Silicon Metal Core)
-            if (window.__TAURI__ && window.__TAURI__.core) {
-                try {
-                    const thinkingLabel = document.getElementById(`thinkingLabel_${activeGenerationId}`);
-                    if (thinkingLabel) thinkingLabel.innerText = "⚡ Native Apple Silicon Metal Core computing...";
-                    
-                    const nativeRes = await window.__TAURI__.core.invoke('run_native_inference', {
-                        modelId: activeModelId,
-                        prompt: fullContext,
-                        maxTokens: dynamicMaxTokens
-                    });
 
-                    const tpsEl = document.getElementById('eegTpsMeter');
-                    if (tpsEl) tpsEl.innerText = `${nativeRes.tps.toFixed(1)} tok/s (Native Metal)`;
-                    triggerEegTokenWave(nativeRes.tps);
-
-                    finalizeChatGeneration(activeGenerationId, nativeRes.full_text, nativeRes.tps.toFixed(1), nativeRes.tokens_generated);
-                    return;
-                } catch(tauriErr) {
-                    console.warn("Native inference error, falling back to worker:", tauriErr);
-                }
-            }
 
             if (modelWorker) {
                 modelWorker.postMessage({
@@ -7072,34 +7051,7 @@
                 }
             };
 
-            // ⚡ NATIVE TAURI DESKTOP EXECUTION IN MONACO IDE
-            if (window.__TAURI__ && window.__TAURI__.core) {
-                try {
-                    const statusText = document.getElementById('ideAgentStatusText');
-                    if (statusText) statusText.innerText = "⚡ Native Metal Substrate synthesizing refactor...";
 
-                    const nativeRes = await window.__TAURI__.core.invoke('run_native_inference', {
-                        modelId: selectedModelId,
-                        prompt: `[Target File: ${activeTab.name}]\n\`\`\`${activeTab.language || 'text'}\n${activeCode}\n\`\`\`\n\nTask: ${prompt}`,
-                        maxTokens: 1536
-                    });
-
-                    if (statusBanner) statusBanner.style.display = 'none';
-
-                    const codeMatch = nativeRes.full_text.match(/```(?:[a-zA-Z0-9_-]*)\n([\s\S]*?)```/);
-                    const proposedCode = codeMatch ? codeMatch[1].trim() : nativeRes.full_text.trim();
-
-                    if (proposedCode && proposedCode.length > 10) {
-                        pendingIdeAgentDiffCode = proposedCode;
-                        showMonacoAgentDiff(activeCode, proposedCode, activeTab);
-                    } else {
-                        showToast("✨ Native agent generated code without diff.");
-                    }
-                    return;
-                } catch(tauriErr) {
-                    console.warn("Native IDE agent error, falling back to worker:", tauriErr);
-                }
-            }
 
             if (modelWorker) {
                 modelWorker.addEventListener('message', ideWorkerHandler);

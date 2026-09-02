@@ -14,7 +14,8 @@ try {
 }
 
 if (env.backends && env.backends.onnx && env.backends.onnx.wasm) {
-    env.backends.onnx.wasm.numThreads = Math.min(8, (typeof navigator !== 'undefined' && navigator.hardwareConcurrency) ? navigator.hardwareConcurrency : 4);
+    const isIsolated = (typeof self !== 'undefined' && self.crossOriginIsolated);
+    env.backends.onnx.wasm.numThreads = isIsolated ? Math.min(8, (typeof navigator !== 'undefined' && navigator.hardwareConcurrency) ? navigator.hardwareConcurrency : 4) : 1;
     env.backends.onnx.wasm.simd = true;
 }
 
