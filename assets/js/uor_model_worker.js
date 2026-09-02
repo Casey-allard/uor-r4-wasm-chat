@@ -1,5 +1,5 @@
 // =====================================================================
-// UOR-R4 SOVEREIGN IN-BROWSER MODEL WORKER (Web Worker v3.4.0)
+// UOR-R4 SOVEREIGN IN-BROWSER MODEL WORKER (Web Worker v3.4.1)
 // 100% Sovereign Local Transformers Engine, Zero Hangs, Full Offline Execution
 // =====================================================================
 
@@ -386,19 +386,14 @@ self.onmessage = async (e) => {
                         try { pipe.model.reset_kv_cache(); } catch(e) {}
                     }
 
-                    const isWebGPU = (pipe.model?.device === 'webgpu' || pipe.device === 'webgpu' || typeof navigator !== 'undefined' && !!navigator.gpu);
+                    const isWebGPU = (pipe.model?.device === 'webgpu' || pipe.device === 'webgpu' || (typeof navigator !== 'undefined' && !!navigator.gpu));
                     
-                    const genConfig = isWebGPU ? {
-                        max_new_tokens: maxTokens,
-                        do_sample: false,
-                        eos_token_id: [151643, 151645],
-                        streamer: streamer
-                    } : {
+                    const genConfig = {
                         max_new_tokens: maxTokens,
                         do_sample: useSampling,
-                        temperature: temp,
-                        top_p: topP,
-                        repetition_penalty: repPenalty,
+                        temperature: useSampling ? temp : undefined,
+                        top_p: useSampling ? topP : undefined,
+                        repetition_penalty: repPenalty || 1.18,
                         eos_token_id: [151643, 151645],
                         streamer: streamer
                     };

@@ -5611,10 +5611,11 @@
                 function scrollDown() {
             const scrollArea = document.getElementById('chatScrollArea');
             if (scrollArea) {
-                scrollArea.scrollTop = scrollArea.scrollHeight;
+                // Ensure scroll container is always pinned to bottom
+                scrollArea.scrollTop = scrollArea.scrollHeight + 500;
                 const lastRow = scrollArea.querySelector('.message-row:last-child');
                 if (lastRow) {
-                    lastRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    lastRow.scrollIntoView({ behavior: 'auto', block: 'end' });
                 }
             }
         }
@@ -5792,7 +5793,7 @@
         function initModelWorker() {
             if (modelWorker) return; // Keep existing active worker and compiled shaders warm!
             try {
-                modelWorker = new Worker(new URL('./assets/js/uor_model_worker.js?v=3.4.0', import.meta.url), { type: 'module' });
+                modelWorker = new Worker(new URL('./assets/js/uor_model_worker.js?v=3.4.1', import.meta.url), { type: 'module' });
                 window.modelWorker = modelWorker;
 
                 modelWorker.onmessage = (e) => {
