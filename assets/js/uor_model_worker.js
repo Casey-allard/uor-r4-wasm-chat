@@ -352,8 +352,25 @@ self.onmessage = async function(e) {
                     }
                 });
 
+                // Format messages into ChatML string using tokenizer to avoid WebGPU tensor caching bugs
+                let formattedPrompt = '';
+                try {
+                    if (pipe.tokenizer && typeof pipe.tokenizer.apply_chat_template === 'function') {
+                        formattedPrompt = pipe.tokenizer.apply_chat_template(cleanMessages, {
+                            tokenize: false,
+                            add_generation_prompt: true
+                        });
+                    }
+                } catch(templateErr) {
+                    console.warn("apply_chat_template fallback:", templateErr);
+                }
+
+                if (!formattedPrompt || typeof formattedPrompt !== 'string') {
+                    formattedPrompt = cleanMessages.map(m => `<|im_start|>${m.role}\n${m.content}<|im_end|>`).join('\n') + '\n<|im_start|>assistant\n';
+                }
+
                 // Generate with explicit stop token IDs for Qwen 2.5
-                const out = await pipe(cleanMessages, {
+                const out = await pipe(formattedPrompt, {
                     max_new_tokens: maxTokens,
                     do_sample: useSampling,
                     temperature: temp,
