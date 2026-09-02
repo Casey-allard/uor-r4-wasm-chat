@@ -2618,7 +2618,7 @@
                         <span style="color:var(--accent-cyan);">●</span>
                         <span id="activeDomainName">Neural Synaptic Core</span>
                     </div>
-                    <span class="active-phase-tag" id="activePhaseTag">⚡ Ready</span>
+                    <span class="active-phase-tag ready" id="activePhaseTag">⚡ Neural Substrate Ready</span>
                 </div>
                 <div class="token-trace-pill" id="tokenTracePill">
                     "Awaiting semantic thought stream..."
@@ -5751,9 +5751,16 @@
                     if (action === 'compile_stage') {
                         const phaseTag = document.getElementById('activePhaseTag');
                         if (phaseTag) {
-                            if (stage === 'compiling') phaseTag.innerText = `⚡ Compiling Graph (${progress || 99}%)`;
-                            else if (stage === 'ready') phaseTag.innerText = `⚡ Neural Substrate Ready`;
-                            else phaseTag.innerText = `📥 Downloading (${progress || 0}%)`;
+                            if (stage === 'ready') {
+                                phaseTag.className = 'active-phase-tag ready';
+                                phaseTag.innerText = `⚡ Neural Substrate Ready`;
+                            } else if (stage === 'compiling') {
+                                phaseTag.className = 'active-phase-tag compiling';
+                                phaseTag.innerText = `⚡ Compiling Shaders (${progress || 99}%)`;
+                            } else {
+                                phaseTag.className = 'active-phase-tag downloading';
+                                phaseTag.innerText = `📥 Downloading (${progress || 0}%)`;
+                            }
                         }
 
                         const thinkingLabel = document.getElementById(`thinkingLabel_${id}`);

@@ -403,7 +403,7 @@ function handleProgressCallback(p, id, targetModelId) {
             modelId: targetModelId,
             stage: 'downloading',
             progress: 1,
-            text: `📥 Connecting for ${p.file || 'model components'}...`,
+            text: `📥 Fetching ${p.file || 'model weights'}...`,
             file: p.file
         });
         return;
@@ -435,15 +435,17 @@ function handleProgressCallback(p, id, targetModelId) {
             });
         }
     } else if (p.status === 'done') {
-        self.postMessage({
-            action: 'compile_stage',
-            id,
-            modelId: targetModelId,
-            stage: 'compiling',
-            progress: 99,
-            text: `⚡ Compiling ONNX execution graph & shaders (99%)...`,
-            file: p.file
-        });
+        if (p.file && (p.file.includes('.onnx') || p.file.includes('model'))) {
+            self.postMessage({
+                action: 'compile_stage',
+                id,
+                modelId: targetModelId,
+                stage: 'compiling',
+                progress: 99,
+                text: `⚡ Finalizing execution graph & WebGPU shaders...`,
+                file: p.file
+            });
+        }
     } else if (p.status === 'ready') {
         self.postMessage({
             action: 'compile_stage',
@@ -451,7 +453,7 @@ function handleProgressCallback(p, id, targetModelId) {
             modelId: targetModelId,
             stage: 'ready',
             progress: 100,
-            text: `⚡ Neural substrate ready.`
+            text: `⚡ Neural Substrate Ready.`
         });
     }
 }
