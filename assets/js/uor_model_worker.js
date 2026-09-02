@@ -116,19 +116,23 @@ async function purgeAllCaches() {
 async function resolveModelSource(modelId) {
     const model = MODEL_REGISTRY[modelId] || MODEL_REGISTRY['qwen2.5-coder-0.5b'];
     
-    // Check local repo path first
+    // Check local repo path first - verify it's actual JSON and not an HTML fallback
     if (model.localPath) {
         try {
             const checkUrl = `${model.localPath}/config.json`;
-            const checkRes = await fetch(checkUrl, { method: 'HEAD' });
-            if (checkRes.ok) {
-                return {
-                    source: model.localPath,
-                    isLocal: true,
-                    dtype: model.dtype || 'q4',
-                    device: 'webgpu',
-                    model
-                };
+            const checkRes = await fetch(checkUrl);
+            const contentType = checkRes.headers.get('content-type') || '';
+            if (checkRes.ok && !contentType.includes('text/html')) {
+                const testJson = await checkRes.json();
+                if (testJson && (testJson.model_type || testJson.architectures)) {
+                    return {
+                        source: model.localPath,
+                        isLocal: true,
+                        dtype: model.dtype || 'q4',
+                        device: 'webgpu',
+                        model
+                    };
+                }
             }
         } catch(e) {}
     }
@@ -369,16 +373,41 @@ self.onmessage = async function(e) {
                     formattedPrompt = cleanMessages.map(m => `<|im_start|>${m.role}\n${m.content}<|im_end|>`).join('\n') + '\n<|im_start|>assistant\n';
                 }
 
-                // Generate with explicit stop token IDs for Qwen 2.5
-                const out = await pipe(formattedPrompt, {
-                    max_new_tokens: maxTokens,
-                    do_sample: useSampling,
-                    temperature: temp,
-                    top_p: topP,
-                    repetition_penalty: repPenalty,
-                    eos_token_id: [151643, 151645], // <|im_end|>, <|endoftext|>
-                    streamer: streamer
-                });
+                // Reset KV cache if supported to avoid GPU tensor CPU mismatches
+                if (pipe && pipe.model && typeof pipe.model.reset_kv_cache === 'function') {
+                    try { pipe.model.reset_kv_cache(); } catch(e) {}
+                }
+
+                // Generate with explicit stop token IDs and automatic GPU-CPU tensor recovery
+                let out = null;
+                try {
+                    out = await pipe(formattedPrompt, {
+                        max_new_tokens: maxTokens,
+                        do_sample: useSampling,
+                        temperature: temp,
+                        top_p: topP,
+                        repetition_penalty: repPenalty,
+                        eos_token_id: [151643, 151645], // <|im_end|>, <|endoftext|>
+                        streamer: streamer
+                    });
+                } catch(pipeErr) {
+                    if (String(pipeErr).includes('The data is not on CPU') || String(pipeErr).includes('getData')) {
+                        console.warn("🔄 Recovering from WebGPU KV tensor state mismatch, resetting pipeline instance...");
+                        activePipeline = null;
+                        const freshPipe = await getOrLoadPipeline(targetModelId, null);
+                        out = await freshPipe(formattedPrompt, {
+                            max_new_tokens: maxTokens,
+                            do_sample: useSampling,
+                            temperature: temp,
+                            top_p: topP,
+                            repetition_penalty: repPenalty,
+                            eos_token_id: [151643, 151645],
+                            streamer: streamer
+                        });
+                    } else {
+                        throw pipeErr;
+                    }
+                }
 
                 const totalStreamSec = Math.max(0.01, ((lastTokenTime || performance.now()) - (firstTokenTime || performance.now())) / 1000);
                 const finalTps = (generatedTokenCount / totalStreamSec).toFixed(1);
