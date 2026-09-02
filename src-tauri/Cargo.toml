@@ -17,3 +17,7 @@ tokio = { version = "1", features = ["full"] }
 [features]
 default = ["custom-protocol"]
 custom-protocol = ["tauri/custom-protocol"]
+
+[[bin]]
+name = "test_tauri_backend"
+path = "src/bin/test_tauri_backend.rs"
