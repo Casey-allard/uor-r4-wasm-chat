@@ -2168,25 +2168,32 @@
 
         <!-- 2. WORKSPACE FILE TREE DRAWER -->
         <div class="sidebar-pane" id="paneFiles">
-            <div class="workspace-header-card">
-                <div class="workspace-name-row">
-                    <span id="activeWorkspaceName" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">No Workspace</span>
-                    <span class="workspace-badge" id="activeWorkspaceBadge">Browser</span>
+            <div class="workspace-header-card" style="padding:0.75rem; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:8px; margin-bottom:0.75rem;">
+                <div class="workspace-name-row" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem;">
+                    <span id="activeWorkspaceName" style="font-weight:600; font-size:0.85rem; color:#ffffff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">No Folder Connected</span>
+                    <span class="workspace-badge" id="activeWorkspaceBadge" style="font-size:0.65rem; padding:2px 6px; border-radius:4px; background:rgba(255,255,255,0.08); color:var(--accent-cyan);">Browser</span>
                 </div>
-                <button class="btn-open-workspace" onclick="openLocalDirectory()">
+                
+                <div id="sidebarGitStatusRow" style="display:none; align-items:center; gap:0.5rem; margin-bottom:0.5rem; font-size:0.72rem; color:var(--text-muted);">
+                    <span id="sidebarGitBranch">🌿 main</span>
+                    <span>•</span>
+                    <span id="sidebarGitStatusText" style="color:#86efac;">🟢 Clean</span>
+                </div>
+
+                <button class="btn-open-workspace" onclick="openLocalDirectory()" style="width:100%; display:flex; align-items:center; justify-content:center; gap:0.4rem; padding:0.45rem; background:rgba(6,182,212,0.15); border:1px solid rgba(6,182,212,0.3); color:var(--accent-cyan); border-radius:6px; font-size:0.75rem; font-weight:600; cursor:pointer;">
                     <span>📂</span>
-                    <span>Mount Local Folder</span>
+                    <span id="btnConnectFolderSidebarLabel">Connect Local Folder</span>
                 </button>
             </div>
 
-            <div class="sidebar-section-label">
-                <span>Project Files</span>
-                <span style="font-size:0.6rem; color:var(--text-muted);" id="fileCountLabel">0 items</span>
+            <div class="sidebar-section-label" style="display:flex; justify-content:space-between; align-items:center; padding:0 0.25rem 0.4rem; font-size:0.7rem; color:var(--text-muted); font-weight:600; text-transform:uppercase; letter-spacing:0.05em;">
+                <span>File Explorer</span>
+                <span id="fileCountLabel">0 items</span>
             </div>
 
-            <div class="file-tree-container" id="fileTreeContainer">
-                <div style="padding:1rem 0.5rem; text-align:center; color:var(--text-muted); font-size:0.72rem;">
-                    Mount a local folder or connect a GitHub repository to browse files.
+            <div class="file-tree-container" id="fileTreeContainer" style="overflow-y:auto; max-height:calc(100vh - 280px); font-size:0.8rem; font-family:var(--font-mono);">
+                <div style="padding:1.5rem 0.5rem; text-align:center; color:var(--text-muted); font-size:0.75rem; line-height:1.5;">
+                    Connect your local project directory to inspect files, edit code in Monaco, and track Git diffs.
                 </div>
             </div>
         </div>
@@ -2244,9 +2251,9 @@
                     <span>Clear Cache</span>
                 </button>
 
-                <button class="btn-github-auth" id="btnGithubAuth" onclick="openGithubModal()">
-                    <span>🐙</span>
-                    <span id="githubAuthLabel">Connect GitHub</span>
+                <button class="header-action-btn primary-btn" id="btnConnectFolderNavbar" onclick="openLocalDirectory()" title="Connect Local Folder & Git Worktree" style="display:inline-flex; align-items:center; gap:0.4rem; background:linear-gradient(135deg, rgba(6,182,212,0.2), rgba(59,130,246,0.2)); border:1px solid rgba(6,182,212,0.4); color:var(--accent-cyan); padding:0.35rem 0.85rem; border-radius:8px; font-size:0.75rem; font-weight:600; cursor:pointer; transition:all 0.15s ease;">
+                    <span id="navFolderIcon">📂</span>
+                    <span id="navFolderLabel">Connect Local Folder</span>
                 </button>
 
                 <button class="btn-sidecar-toggle active" id="btnSidecarToggle" onclick="toggleSidecar()" title="Toggle 3D Brain Telemetry">
@@ -2396,18 +2403,30 @@
                     <div id="monacoDiffRoot" style="display:none; width:100%; height:100%;"></div>
                 </div>
 
-                <!-- EMBEDDED CODING AGENT PROMPT CAPSULE AT BOTTOM OF IDE -->
-                <div class="editor-agent-bottom-bar" style="padding:0.75rem 1rem; background:rgba(15,23,42,0.9); backdrop-filter:blur(16px); border-top:1px solid rgba(255,255,255,0.08); display:flex; flex-direction:column; gap:0.5rem;">
-                    <div style="display:flex; align-items:center; gap:0.5rem; justify-content:space-between;">
-                        <div class="quick-refactor-bar" style="display:flex; gap:6px;">
-                            <button class="quick-pill" onclick="triggerQuickAction('optimize')">⚡ Optimize</button>
-                            <button class="quick-pill" onclick="triggerQuickAction('test')">🧪 Add Unit Tests</button>
-                            <button class="quick-pill" onclick="triggerQuickAction('explain')">🔍 Explain Code</button>
-                            <button class="quick-pill" onclick="triggerQuickAction('fix')">🐛 Fix Bugs</button>
+                <!-- EMBEDDED AGENTIC CODING HARNESS AT BOTTOM OF MONACO IDE -->
+                <div class="editor-agent-bottom-bar" style="padding:0.65rem 1rem; background:rgba(15,23,42,0.92); backdrop-filter:blur(20px); border-top:1px solid rgba(255,255,255,0.08); display:flex; flex-direction:column; gap:0.45rem;">
+                    <div style="display:flex; align-items:center; gap:0.5rem; justify-content:space-between; flex-wrap:wrap;">
+                        <div class="quick-refactor-bar" style="display:flex; gap:6px; align-items:center;">
+                            <button class="quick-pill" onclick="triggerQuickAction('optimize')" title="Optimize for Performance & Zero Allocations">⚡ Optimize</button>
+                            <button class="quick-pill" onclick="triggerQuickAction('test')" title="Generate Unit Tests">🧪 Unit Tests</button>
+                            <button class="quick-pill" onclick="triggerQuickAction('explain')" title="Explain Function & Architecture">🔍 Explain</button>
+                            <button class="quick-pill" onclick="triggerQuickAction('fix')" title="Detect & Fix Bugs">🐛 Fix Bugs</button>
                         </div>
-                        <span style="font-size:0.72rem; color:var(--text-muted); font-family:var(--font-mono);">
-                            Coding Agent attached to <b id="agentActiveFileLabel" style="color:var(--accent-cyan);">index.html</b>
-                        </span>
+
+                        <div style="display:flex; align-items:center; gap:0.5rem;">
+                            <!-- In-IDE Model Selector Pill -->
+                            <select id="ideAgentModelSelect" class="ide-model-select" onchange="selectModelFromInput(this.value)" style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15); color:var(--text-primary); padding:0.2rem 0.5rem; border-radius:6px; font-size:0.72rem; font-family:var(--font-mono); cursor:pointer;">
+                                <option value="qwen2.5-coder-1.5b" selected>🚀 Qwen 2.5 Coder 1.5B (Power SOTA)</option>
+                                <option value="qwen2.5-coder-0.5b">💻 Qwen 2.5 Coder 0.5B (Turbo)</option>
+                                <option value="glm5.3-flash">📐 GLM-5.3 Flash (Fast Logic)</option>
+                                <option value="qwen2.5-1.5b">🧠 Qwen 2.5 1.5B (Deep Reasoning)</option>
+                                <option value="qwen2.5-0.5b">💬 Qwen 2.5 Instant (0.5B)</option>
+                            </select>
+
+                            <span style="font-size:0.72rem; color:var(--text-muted); font-family:var(--font-mono);">
+                                Target: <b id="agentActiveFileLabel" style="color:var(--accent-cyan);">index.html</b>
+                            </span>
+                        </div>
                     </div>
 
                     <div style="display:flex; gap:8px; align-items:center;">
@@ -2415,11 +2434,11 @@
                             type="text" 
                             id="editorAgentPromptInput" 
                             class="chat-textarea" 
-                            style="flex:1; min-height:40px !important; height:40px; padding:0.4rem 0.85rem; font-size:0.85rem; border-radius:8px;" 
-                            placeholder="Ask Coding Agent to refactor, write new functions, or edit this file..." 
+                            style="flex:1; min-height:42px !important; height:42px; padding:0.4rem 0.85rem; font-size:0.85rem; border-radius:8px;" 
+                            placeholder="Ask Agent: 'Refactor this module', 'Add SIMD vectorization', 'Write tests'..." 
                             onkeydown="if(event.key==='Enter') executeEditorAgentPrompt()"
                         />
-                        <button class="send-btn" style="width:40px; height:40px; font-size:0.9rem;" onclick="executeEditorAgentPrompt()" title="Run Coding Agent">
+                        <button class="send-btn" style="width:42px; height:42px; font-size:0.95rem; background:linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));" onclick="executeEditorAgentPrompt()" title="Run Agentic Code Synthesis">
                             ⚡
                         </button>
                     </div>
@@ -2764,22 +2783,34 @@
             marked.use({ renderer: renderer });
         }        // --- MODEL DEFINITIONS ---
         window.MODEL_CONFIGS = {
+            'qwen2.5-coder-1.5b': {
+                id: 'qwen2.5-coder-1.5b',
+                name: 'Qwen 2.5 Coder 1.5B',
+                fullName: 'Qwen 2.5 Coder 1.5B (Power SOTA)',
+                icon: '🚀',
+                source: 'onnx-community/Qwen2.5-Coder-1.5B-Instruct',
+                localPath: './assets/models/qwen2.5-coder-1.5b',
+                size_mb: 880,
+                tier: '1.5B Flagship Power',
+                dtype: 'q4',
+                desc: 'State-of-the-art 1.5B coding foundation model. Exceptional multi-file reasoning, refactoring, and code architecture intelligence.'
+            },
             'qwen2.5-coder-0.5b': {
                 id: 'qwen2.5-coder-0.5b',
-                name: 'Qwen 2.5 Coder',
-                fullName: 'Qwen 2.5 Coder (0.5B Code Specialist)',
+                name: 'Qwen 2.5 Coder 0.5B',
+                fullName: 'Qwen 2.5 Coder 0.5B (Turbo Code)',
                 icon: '💻',
                 source: 'onnx-community/Qwen2.5-0.5B-Instruct',
                 localPath: './assets/models/qwen2.5-coder-0.5b',
                 size_mb: 290,
-                tier: '0.5B Code SOTA',
+                tier: '0.5B Turbo Code',
                 dtype: 'q4',
-                desc: 'Specialized 0.5B coding and mathematical analysis model. Exceptionally fast, reliable in-browser code synthesis.'
+                desc: 'Specialized 0.5B coding model. Ultra-fast (60+ tok/s on Apple Silicon), ideal for quick edits and single-file functions.'
             },
             'glm5.3-flash': {
                 id: 'glm5.3-flash',
-                name: 'GLM-5.3',
-                fullName: 'GLM-5.3 (Flash 0.5B)',
+                name: 'GLM-5.3 Flash',
+                fullName: 'GLM-5.3 Flash (0.5B Logic)',
                 icon: '📐',
                 source: 'onnx-community/Qwen2.5-0.5B-Instruct',
                 localPath: './assets/models/glm5.3-flash',
@@ -2788,15 +2819,27 @@
                 dtype: 'q4',
                 desc: 'Ultra-fast, lightweight neural substrate for continuous mathematical reasoning on any device.'
             },
+            'qwen2.5-1.5b': {
+                id: 'qwen2.5-1.5b',
+                name: 'Qwen 2.5 1.5B',
+                fullName: 'Qwen 2.5 1.5B (Power General)',
+                icon: '🧠',
+                source: 'onnx-community/Qwen2.5-1.5B-Instruct',
+                localPath: './assets/models/qwen2.5-1.5b',
+                size_mb: 880,
+                tier: '1.5B Deep Reasoning',
+                dtype: 'q4',
+                desc: 'Deep conversational and logical reasoning model with high factual fidelity.'
+            },
             'qwen2.5-0.5b': {
                 id: 'qwen2.5-0.5b',
-                name: 'Qwen 2.5',
-                fullName: 'Qwen 2.5 (0.5B Instant)',
+                name: 'Qwen 2.5 Instant',
+                fullName: 'Qwen 2.5 Instant (0.5B)',
                 icon: '💬',
                 source: 'onnx-community/Qwen2.5-0.5B-Instruct',
                 localPath: './assets/models/qwen2.5-0.5b',
                 size_mb: 280,
-                tier: '0.5B Lightweight',
+                tier: '0.5B Instant',
                 dtype: 'q4',
                 desc: 'Fast, compact instruction-tuned model for instant responses on mobile and low-power devices.'
             }
@@ -3013,80 +3056,391 @@
         }
         window.renderEditorTabsBar = renderEditorTabsBar;
 
-        async function openWorkspaceFileInEditor(fileItem) {
-            try {
-                let text = '';
-                if (fileItem.handle) {
-                    const file = await fileItem.handle.getFile();
-                    text = await file.text();
-                } else if (fileItem.isRemote && window.activeRepo) {
-                    showToast(`Fetching ${fileItem.name} from GitHub...`);
-                    const ownerLogin = window.activeRepo.owner ? (window.activeRepo.owner.login || window.activeRepo.owner) : window.activeRepo.full_name.split('/')[0];
-                    const repoName = window.activeRepo.name || window.activeRepo.full_name.split('/')[1];
-                    const data = await callGithubApi(`/repos/${ownerLogin}/${repoName}/contents/${fileItem.path}?ref=${window.activeGitBranch || 'main'}`);
-                    
-                    if (data.content) {
-                        const binaryStr = atob(data.content.replace(/\s/g, ''));
-                        const bytes = Uint8Array.from(binaryStr, c => c.charCodeAt(0));
-                        text = new TextDecoder('utf-8').decode(bytes);
-                    } else {
-                        text = '// Empty file or binary data\n';
-                    }
-                    
-                    window.remoteOriginalFiles[fileItem.name] = text;
-                }
-                
-                const ext = fileItem.name.split('.').pop() || 'txt';
-                window.workspaceFiles[fileItem.name] = { 
-                    content: text, 
-                    lang: getLangForExt(fileItem.name), 
-                    remotePath: fileItem.path, 
-                    sha: fileItem.sha 
-                };
-                
-                switchEditorTab(fileItem.name);
-                switchStudioView('editor');
-                showToast(`📂 Opened ${fileItem.name}`);
-            } catch(e) {
-                console.error("Failed to open file:", e);
-                showToast(`Could not open file: ${e.message}`);
-            }
-        }
-        window.openWorkspaceFileInEditor = openWorkspaceFileInEditor;
+        // =====================================================================
+        // 📂 SEAMLESS LOCAL FOLDER & DIRECT GIT WORKTREE INTEGRATION
+        // Native Git CLI Detection (Tauri) + Recursive Tree + File System Access API
+        // =====================================================================
 
-        function renderWorkspaceTree() {
+        window.localWorkspaceTree = [];
+        window.activeGitRepoInfo = { isGit: false, branch: 'main', isClean: true, modified: [], remoteUrl: '' };
+
+        window.openLocalDirectory = async function() {
+            // Check for Tauri native environment first
+            if (window.__TAURI__ && window.__TAURI__.core) {
+                try {
+                    const folderPath = prompt("Enter local repository directory path:", "/Users/casey.allard/Downloads/uor-r4-project");
+                    if (!folderPath) return;
+
+                    showToast(`Connecting to native Git repo: ${folderPath}...`);
+                    await loadTauriGitWorkspace(folderPath);
+                    return;
+                } catch(e) {
+                    console.warn("Tauri open directory failed, falling back to Web File System Access", e);
+                }
+            }
+
+            if (!('showDirectoryPicker' in window)) {
+                alert("File System Access API is supported in modern Chrome, Edge, and Opera browsers.");
+                return;
+            }
+
+            try {
+                const dirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
+                window.localDirectoryHandle = dirHandle;
+                
+                showToast(`📂 Connected local folder: ${dirHandle.name}`);
+                await inspectAndLoadLocalWorkspace(dirHandle);
+            } catch(err) {
+                if (err.name !== 'AbortError') {
+                    console.error("Open directory error:", err);
+                    showToast("❌ Could not connect folder: " + err.message);
+                }
+            }
+        };
+
+        async function inspectAndLoadLocalWorkspace(dirHandle) {
+            const workspaceNameEl = document.getElementById('activeWorkspaceName');
+            if (workspaceNameEl) workspaceNameEl.innerText = dirHandle.name;
+
+            const badge = document.getElementById('activeWorkspaceBadge');
+            if (badge) badge.innerText = "Mounted Disk";
+
+            const navLabel = document.getElementById('navFolderLabel');
+            if (navLabel) navLabel.innerText = `📂 ${dirHandle.name}`;
+
+            const sidebarBtnLabel = document.getElementById('btnConnectFolderSidebarLabel');
+            if (sidebarBtnLabel) sidebarBtnLabel.innerText = "Switch Local Folder";
+
+            // 1. Detect and inspect .git folder
+            window.activeGitRepoInfo = { isGit: false, branch: 'main', isClean: true, modified: [], remoteUrl: '' };
+            try {
+                const gitHandle = await dirHandle.getDirectoryHandle('.git');
+                window.activeGitRepoInfo.isGit = true;
+
+                // Read .git/HEAD for active branch
+                try {
+                    const headFileHandle = await gitHandle.getFileHandle('HEAD');
+                    const headFile = await headFileHandle.getFile();
+                    const headText = await headFile.text();
+                    const branchMatch = headText.match(/ref:\s+refs\/heads\/(.+)/);
+                    if (branchMatch) {
+                        window.activeGitRepoInfo.branch = branchMatch[1].trim();
+                    }
+                } catch(e) {}
+
+                // Read .git/config for remote origin
+                try {
+                    const cfgFileHandle = await gitHandle.getFileHandle('config');
+                    const cfgFile = await cfgFileHandle.getFile();
+                    const cfgText = await cfgFile.text();
+                    const urlMatch = cfgText.match(/url\s*=\s*(.+)/);
+                    if (urlMatch) {
+                        window.activeGitRepoInfo.remoteUrl = urlMatch[1].trim();
+                    }
+                } catch(e) {}
+            } catch(e) {
+                // Not a git repo
+            }
+
+            updateGitStatusUI();
+
+            // 2. Recursively traverse all project files & folders
+            const container = document.getElementById('fileTreeContainer');
+            if (container) container.innerHTML = '<div style="padding:1rem; text-align:center; color:var(--text-muted); font-size:0.75rem;"><span class="pulse-dot"></span> Scanning directory structure...</div>';
+
+            window.localWorkspaceTree = await scanDirectoryRecursive(dirHandle, '');
+            
+            // Count total files
+            let totalFileCount = 0;
+            function countFiles(nodes) {
+                for (const n of nodes) {
+                    if (n.kind === 'file') totalFileCount++;
+                    else if (n.children) countFiles(n.children);
+                }
+            }
+            countFiles(window.localWorkspaceTree);
+
+            const countLabel = document.getElementById('fileCountLabel');
+            if (countLabel) countLabel.innerText = `${totalFileCount} files`;
+
+            // Render interactive file tree in sidebar
+            renderSidebarFileTree(window.localWorkspaceTree);
+
+            // Switch sidebar tab to Workspace
+            switchSidebarTab('files');
+
+            // If index.html, main.rs, or src/lib.rs exists, open it in Monaco
+            const priorityFile = findFileInTree(window.localWorkspaceTree, 'index.html') || 
+                                 findFileInTree(window.localWorkspaceTree, 'src/lib.rs') || 
+                                 findFileInTree(window.localWorkspaceTree, 'main.rs');
+            if (priorityFile) {
+                await openWorkspaceFileInEditor(priorityFile);
+            }
+
+            showToast(`✅ Loaded workspace (${totalFileCount} files, Git: 🌿 ${window.activeGitRepoInfo.branch})`);
+        }
+
+        async function scanDirectoryRecursive(dirHandle, relPath = '') {
+            const entries = [];
+            for await (const entry of dirHandle.values()) {
+                if (entry.name === '.git' || entry.name === 'node_modules' || entry.name === 'target' || entry.name === 'dist' || entry.name === '.DS_Store') {
+                    continue;
+                }
+                const currentRelPath = relPath ? `${relPath}/${entry.name}` : entry.name;
+                if (entry.kind === 'directory') {
+                    const children = await scanDirectoryRecursive(entry, currentRelPath);
+                    entries.push({
+                        name: entry.name,
+                        path: currentRelPath,
+                        kind: 'directory',
+                        handle: entry,
+                        children: children,
+                        isOpen: (relPath === '' || relPath === 'src' || relPath === 'assets')
+                    });
+                } else if (entry.kind === 'file') {
+                    const ext = entry.name.split('.').pop().toLowerCase();
+                    entries.push({
+                        name: entry.name,
+                        path: currentRelPath,
+                        kind: 'file',
+                        ext: ext,
+                        handle: entry
+                    });
+                }
+            }
+
+            entries.sort((a, b) => {
+                if (a.kind === b.kind) return a.name.localeCompare(b.name);
+                return a.kind === 'directory' ? -1 : 1;
+            });
+            return entries;
+        }
+
+        function findFileInTree(nodes, targetNameOrPath) {
+            for (const n of nodes) {
+                if (n.kind === 'file' && (n.name === targetNameOrPath || n.path === targetNameOrPath)) {
+                    return n;
+                }
+                if (n.kind === 'directory' && n.children) {
+                    const found = findFileInTree(n.children, targetNameOrPath);
+                    if (found) return found;
+                }
+            }
+            return null;
+        }
+
+        function renderSidebarFileTree(nodes) {
             const container = document.getElementById('fileTreeContainer');
             if (!container) return;
             container.innerHTML = '';
 
-            const list = window.workspaceFilesArray && window.workspaceFilesArray.length > 0 
-                ? window.workspaceFilesArray 
-                : (Array.isArray(window.workspaceFiles) ? window.workspaceFiles : []);
+            if (!nodes || nodes.length === 0) {
+                container.innerHTML = '<div style="padding:1rem; text-align:center; color:var(--text-muted); font-size:0.75rem;">No files found.</div>';
+                return;
+            }
 
-            list.forEach((item) => {
-                const depth = item.path.split('/').length - 1;
-                const node = document.createElement('div');
-                node.className = 'tree-node';
-                node.style.paddingLeft = `${depth * 12 + 6}px`;
+            const treeRoot = document.createElement('div');
+            treeRoot.className = 'tree-nodes-list';
+            treeRoot.style.display = 'flex';
+            treeRoot.style.flexDirection = 'column';
+            treeRoot.style.gap = '2px';
 
-                const icon = item.kind === 'directory' ? '📁' : getFileIcon(item.name);
+            buildTreeDom(nodes, treeRoot, 0);
+            container.appendChild(treeRoot);
+        }
 
-                node.innerHTML = `
-                    <span class="tree-icon">${icon}</span>
-                    <span class="tree-name">${escapeHtml(item.name)}</span>
-                    ${item.kind === 'file' ? `<button class="tree-tag-btn" onclick="tagFileToContext(event, '${item.path}')">+Tag</button>` : ''}
-                `;
+        function buildTreeDom(nodes, parentEl, depth = 0) {
+            nodes.forEach(node => {
+                const row = document.createElement('div');
+                row.className = 'file-tree-node-row';
+                row.style.display = 'flex';
+                row.style.alignItems = 'center';
+                row.style.gap = '6px';
+                row.style.padding = '0.25rem 0.5rem';
+                row.style.paddingLeft = `${0.5 + depth * 0.85}rem`;
+                row.style.borderRadius = '4px';
+                row.style.cursor = 'pointer';
+                row.style.userSelect = 'none';
+                row.style.transition = 'background 0.1s ease';
 
-                node.onclick = (e) => {
-                    if (e.target.classList.contains('tree-tag-btn')) return;
-                    if (item.kind === 'file') {
-                        openWorkspaceFileInEditor(item);
-                    }
+                row.onmouseenter = () => { row.style.background = 'rgba(255,255,255,0.06)'; };
+                row.onmouseleave = () => { 
+                    if (!row.classList.contains('active-file')) row.style.background = 'transparent'; 
                 };
 
-                container.appendChild(node);
+                if (node.kind === 'directory') {
+                    const arrow = document.createElement('span');
+                    arrow.style.fontSize = '0.65rem';
+                    arrow.style.color = 'var(--text-muted)';
+                    arrow.style.width = '12px';
+                    arrow.innerText = node.isOpen ? '▼' : '▶';
+
+                    const icon = document.createElement('span');
+                    icon.innerText = node.isOpen ? '📂' : '📁';
+
+                    const label = document.createElement('span');
+                    label.style.fontWeight = '500';
+                    label.style.color = '#ffffff';
+                    label.innerText = node.name;
+
+                    row.appendChild(arrow);
+                    row.appendChild(icon);
+                    row.appendChild(label);
+                    parentEl.appendChild(row);
+
+                    const childrenContainer = document.createElement('div');
+                    childrenContainer.className = 'tree-children-container';
+                    childrenContainer.style.display = node.isOpen ? 'block' : 'none';
+                    parentEl.appendChild(childrenContainer);
+
+                    row.onclick = (e) => {
+                        e.stopPropagation();
+                        node.isOpen = !node.isOpen;
+                        arrow.innerText = node.isOpen ? '▼' : '▶';
+                        icon.innerText = node.isOpen ? '📂' : '📁';
+                        childrenContainer.style.display = node.isOpen ? 'block' : 'none';
+                    };
+
+                    if (node.children && node.children.length > 0) {
+                        buildTreeDom(node.children, childrenContainer, depth + 1);
+                    }
+                } else {
+                    const fileIcon = getFileIconForExt(node.ext);
+                    const iconSpan = document.createElement('span');
+                    iconSpan.style.fontSize = '0.85rem';
+                    iconSpan.innerText = fileIcon;
+
+                    const labelSpan = document.createElement('span');
+                    labelSpan.style.color = 'var(--text-primary)';
+                    labelSpan.style.overflow = 'hidden';
+                    labelSpan.style.textOverflow = 'ellipsis';
+                    labelSpan.style.whiteSpace = 'nowrap';
+                    labelSpan.innerText = node.name;
+
+                    row.appendChild(iconSpan);
+                    row.appendChild(labelSpan);
+                    parentEl.appendChild(row);
+
+                    row.onclick = async (e) => {
+                        e.stopPropagation();
+                        document.querySelectorAll('.file-tree-node-row').forEach(r => {
+                            r.classList.remove('active-file');
+                            r.style.background = 'transparent';
+                        });
+                        row.classList.add('active-file');
+                        row.style.background = 'rgba(6,182,212,0.15)';
+                        await openWorkspaceFileInEditor(node);
+                    };
+                }
             });
         }
+
+        function getFileIconForExt(ext) {
+            const map = {
+                'rs': '🦀', 'html': '🌐', 'css': '🎨', 'js': '⚡', 'ts': '📘',
+                'json': '📦', 'toml': '⚙️', 'md': '📝', 'tex': '📜', 'txt': '📄',
+                'png': '🖼️', 'jpg': '🖼️', 'svg': '🎨', 'wasm': '⚡'
+            };
+            return map[ext] || '📄';
+        }
+
+        async function openWorkspaceFileInEditor(fileNode) {
+            try {
+                let text = '';
+                if (fileNode.handle && fileNode.handle.getFile) {
+                    const file = await fileNode.handle.getFile();
+                    text = await file.text();
+                } else if (fileNode.content) {
+                    text = fileNode.content;
+                }
+
+                const lang = getLangForExt(fileNode.ext || fileNode.name.split('.').pop());
+                
+                // Add or switch Monaco tab
+                let existingTab = openEditorTabs.find(t => t.name === fileNode.name || t.path === fileNode.path);
+                if (!existingTab) {
+                    existingTab = {
+                        name: fileNode.name,
+                        path: fileNode.path,
+                        content: text,
+                        language: lang,
+                        handle: fileNode.handle,
+                        isLocal: true
+                    };
+                    openEditorTabs.push(existingTab);
+                } else {
+                    existingTab.content = text;
+                    existingTab.handle = fileNode.handle;
+                }
+
+                activeEditorTab = existingTab.name;
+                renderEditorTabs();
+                switchEditorTab(existingTab.name);
+
+                // Update agent target label
+                const agentTarget = document.getElementById('agentActiveFileLabel');
+                if (agentTarget) agentTarget.innerText = fileNode.name;
+
+                switchStudioView('editor');
+                showToast(`Opened ${fileNode.name} in Monaco IDE`);
+            } catch(err) {
+                console.error("Open workspace file error:", err);
+                showToast(`❌ Could not read file: ${err.message}`);
+            }
+        }
+        window.openWorkspaceFileInEditor = openWorkspaceFileInEditor;
+        window.renderSidebarFileTree = renderSidebarFileTree;
+        window.buildTreeDom = buildTreeDom;
+        window.scanDirectoryRecursive = scanDirectoryRecursive;
+        window.findFileInTree = findFileInTree;
+
+        function updateGitStatusUI() {
+            const gitRow = document.getElementById('sidebarGitStatusRow');
+            const branchLabel = document.getElementById('sidebarGitBranch');
+            const statusLabel = document.getElementById('sidebarGitStatusText');
+
+            const activeBranchBadge = document.getElementById('activeGitBranchName');
+            const gitStatusBadge = document.getElementById('gitStatusBadge');
+            const gitStatusIndicator = document.getElementById('gitStatusIndicator');
+            const gitStatusText = document.getElementById('gitStatusText');
+
+            if (window.activeGitRepoInfo.isGit) {
+                if (gitRow) gitRow.style.display = 'flex';
+                if (branchLabel) branchLabel.innerText = `🌿 ${window.activeGitRepoInfo.branch}`;
+                if (statusLabel) statusLabel.innerText = window.activeGitRepoInfo.isClean ? '🟢 Clean' : `🟡 Modified (${window.activeGitRepoInfo.modified.length})`;
+
+                if (activeBranchBadge) activeBranchBadge.innerText = window.activeGitRepoInfo.branch;
+                if (gitStatusIndicator) gitStatusIndicator.innerText = window.activeGitRepoInfo.isClean ? '🟢' : '🟡';
+                if (gitStatusText) gitStatusText.innerText = window.activeGitRepoInfo.isClean ? 'Clean' : `${window.activeGitRepoInfo.modified.length} Modified`;
+            } else {
+                if (gitRow) gitRow.style.display = 'none';
+                if (activeBranchBadge) activeBranchBadge.innerText = 'workspace';
+                if (gitStatusIndicator) gitStatusIndicator.innerText = '⚪';
+                if (gitStatusText) gitStatusText.innerText = 'Local';
+            }
+        }
+        window.updateGitStatusUI = updateGitStatusUI;
+
+        async function loadTauriGitWorkspace(folderPath) {
+            if (!window.__TAURI__ || !window.__TAURI__.core) return;
+            try {
+                const status = await window.__TAURI__.core.invoke('native_git_status', { repoPath: folderPath });
+                window.activeGitRepoInfo = {
+                    isGit: true,
+                    branch: status.branch || 'main',
+                    isClean: status.is_clean,
+                    modified: status.modified_files || [],
+                    untracked: status.untracked_files || [],
+                    remoteUrl: ''
+                };
+                updateGitStatusUI();
+                showToast(`🌿 Connected native Git repo: ${status.branch} (${status.is_clean ? 'Clean' : 'Modified'})`);
+            } catch(err) {
+                console.error("Tauri native git status error:", err);
+                showToast("❌ Native Git error: " + String(err));
+            }
+        }
+        window.loadTauriGitWorkspace = loadTauriGitWorkspace;
 
         function getFileIcon(name) {
             if (name.endsWith('.rs')) return '🦀';
@@ -5110,7 +5464,7 @@
                 modelWorker = new Worker(new URL('./assets/js/uor_model_worker.js?v=3.0.2', import.meta.url), { type: 'module' });
 
                 modelWorker.onmessage = (e) => {
-                    const { action, id, chunk, fullText, tokenCount, durationSec, tps, storage, error, stage, text, progress } = e.data;
+                    const { action, id, modelId, chunk, fullText, tokenCount, durationSec, tps, storage, error, stage, text, progress } = e.data;
 
                     if (action === 'prewarm_complete') {
                         const cMeta = MODEL_CONFIGS[modelId];

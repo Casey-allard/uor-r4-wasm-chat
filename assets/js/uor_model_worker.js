@@ -1,6 +1,6 @@
 // =====================================================================
-// UOR-R4 SOVEREIGN IN-BROWSER MODEL WORKER (Web Worker)
-// High-Speed WebGPU Hardware-Accelerated Inference & Specialized Substrates
+// UOR-R4 SOVEREIGN IN-BROWSER MODEL WORKER (Web Worker v3.2.0)
+// High-Speed WebGPU Hardware Inference, 1.5B Power Tier, Multi-Threaded WASM SIMD
 // =====================================================================
 
 import { pipeline, env, TextStreamer } from 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.3.3';
@@ -15,11 +15,21 @@ if (env.backends && env.backends.onnx && env.backends.onnx.wasm) {
 }
 
 const MODEL_REGISTRY = {
+    'qwen2.5-coder-1.5b': {
+        id: 'qwen2.5-coder-1.5b',
+        name: 'Qwen 2.5 Coder 1.5B (Power SOTA)',
+        source: 'onnx-community/Qwen2.5-Coder-1.5B-Instruct',
+        systemPrompt: 'You are Qwen 2.5 Coder 1.5B, an advanced sovereign code synthesis engine. Answer concisely with clean markdown code blocks.',
+        localPath: './assets/models/qwen2.5-coder-1.5b',
+        size_mb: 880,
+        dtype: 'q4',
+        device: 'webgpu'
+    },
     'qwen2.5-coder-0.5b': {
         id: 'qwen2.5-coder-0.5b',
-        name: 'Qwen 2.5 Coder (0.5B Turbo Code)',
+        name: 'Qwen 2.5 Coder 0.5B (Turbo Code)',
         source: 'onnx-community/Qwen2.5-0.5B-Instruct',
-        systemPrompt: 'You are Qwen 2.5 Coder, a precision code synthesis engine specialized in Rust, TypeScript, Python, WebAssembly, and continuous mathematical algorithms. Write concise, clean, production-grade code with markdown blocks.',
+        systemPrompt: 'You are Qwen 2.5 Coder, a precision code synthesis engine. Answer concisely with clean markdown code blocks.',
         localPath: './assets/models/qwen2.5-coder-0.5b',
         size_mb: 280,
         dtype: 'q4',
@@ -27,19 +37,29 @@ const MODEL_REGISTRY = {
     },
     'glm5.3-flash': {
         id: 'glm5.3-flash',
-        name: 'GLM-5.3 (0.5B Fast Logic)',
+        name: 'GLM-5.3 Flash (0.5B Logic)',
         source: 'onnx-community/Qwen2.5-0.5B-Instruct',
-        systemPrompt: 'You are GLM-5.3, an ultra-fast logical reasoning and mathematical physics AI.',
+        systemPrompt: 'You are GLM-5.3, an ultra-fast logical reasoning and conversational AI. Be direct, accurate, and concise.',
         localPath: './assets/models/glm5.3-flash',
         size_mb: 280,
         dtype: 'q4',
         device: 'webgpu'
     },
+    'qwen2.5-1.5b': {
+        id: 'qwen2.5-1.5b',
+        name: 'Qwen 2.5 1.5B (Power General)',
+        source: 'onnx-community/Qwen2.5-1.5B-Instruct',
+        systemPrompt: 'You are Qwen 2.5 1.5B, an advanced reasoning and conversational AI. Answer questions thoughtfully, concisely, and accurately.',
+        localPath: './assets/models/qwen2.5-1.5b',
+        size_mb: 880,
+        dtype: 'q4',
+        device: 'webgpu'
+    },
     'qwen2.5-0.5b': {
         id: 'qwen2.5-0.5b',
-        name: 'Qwen 2.5 (0.5B Instant)',
+        name: 'Qwen 2.5 Instant (0.5B)',
         source: 'onnx-community/Qwen2.5-0.5B-Instruct',
-        systemPrompt: 'You are Qwen 2.5, a fast, helpful, and sovereign conversational assistant.',
+        systemPrompt: 'You are Qwen 2.5, a helpful, precise, and sovereign AI assistant. Answer questions directly and accurately.',
         localPath: './assets/models/qwen2.5-0.5b',
         size_mb: 280,
         dtype: 'q4',
@@ -55,9 +75,11 @@ async function getStorageEstimate() {
     let usageBytes = 0;
     let quotaBytes = 0;
     if (typeof navigator !== 'undefined' && navigator.storage && navigator.storage.estimate) {
-        const est = await navigator.storage.estimate();
-        usageBytes = est.usage || 0;
-        quotaBytes = est.quota || 0;
+        try {
+            const est = await navigator.storage.estimate();
+            usageBytes = est.usage || 0;
+            quotaBytes = est.quota || 0;
+        } catch(e) {}
     }
     return {
         usageMB: (usageBytes / (1024 * 1024)).toFixed(1),
@@ -76,17 +98,19 @@ async function purgeAllCaches() {
         activeModelId = null;
     }
     if ('caches' in self) {
-        const keys = await caches.keys();
-        for (const key of keys) {
-            await caches.delete(key);
-        }
+        try {
+            const keys = await caches.keys();
+            for (const key of keys) {
+                await caches.delete(key);
+            }
+        } catch(e) {}
     }
 }
 
 async function resolveModelSource(modelId) {
-    const model = MODEL_REGISTRY[modelId] || MODEL_REGISTRY['glm5.3-flash'];
+    const model = MODEL_REGISTRY[modelId] || MODEL_REGISTRY['qwen2.5-coder-0.5b'];
     
-    // 1. Check local repo path
+    // Check local repo path first
     if (model.localPath) {
         try {
             const checkUrl = `${model.localPath}/config.json`;
@@ -103,7 +127,7 @@ async function resolveModelSource(modelId) {
         } catch(e) {}
     }
 
-    // 2. Hugging Face ONNX source
+    // Fallback to Hugging Face ONNX Community source
     return {
         source: model.source,
         isLocal: false,
@@ -192,27 +216,29 @@ self.onmessage = async function(e) {
         }
 
         case 'prewarm': {
+            const targetId = modelId || 'qwen2.5-coder-0.5b';
             try {
-                await getOrLoadPipeline(modelId || 'glm5.3-flash', (p) => {
-                    handleProgressCallback(p, id, modelId || 'glm5.3-flash');
+                await getOrLoadPipeline(targetId, (p) => {
+                    handleProgressCallback(p, id, targetId);
                 });
-                self.postMessage({ action: 'prewarm_complete', id, modelId });
+                self.postMessage({ action: 'prewarm_complete', id, modelId: targetId });
             } catch(err) {
-                self.postMessage({ action: 'prewarm_error', id, modelId, error: err.message || String(err) });
+                self.postMessage({ action: 'prewarm_error', id, modelId: targetId, error: err.message || String(err) });
             }
             break;
         }
 
         case 'generate': {
             const { messages, options = {} } = payload;
-            const targetModelId = modelId || 'glm5.3-flash';
-            const modelConfig = MODEL_REGISTRY[targetModelId] || MODEL_REGISTRY['glm5.3-flash'];
+            const targetModelId = modelId || 'qwen2.5-coder-0.5b';
+            const modelConfig = MODEL_REGISTRY[targetModelId] || MODEL_REGISTRY['qwen2.5-coder-0.5b'];
             isGenerating = true;
 
             let firstTokenTime = null;
             let lastTokenTime = null;
             let generatedTokenCount = 0;
             let fullText = '';
+            let hasStoppedEarly = false;
 
             try {
                 const pipe = await getOrLoadPipeline(targetModelId, (p) => {
@@ -228,22 +254,40 @@ self.onmessage = async function(e) {
                     text: '✓ Neural Substrate Ready. Streaming tokens...'
                 });
 
-                // Sanitize input messages & insert model system prompt if none provided
-                let cleanMessages = messages.slice(-8).map(m => ({
-                    role: m.role,
-                    content: (m.content || '')
+                // Build clean message list
+                let cleanMessages = [];
+                
+                // Add system prompt if not present
+                const userProvidedSystem = messages.find(m => m.role === 'system');
+                if (userProvidedSystem && userProvidedSystem.content) {
+                    cleanMessages.push({ role: 'system', content: userProvidedSystem.content.trim() });
+                } else if (modelConfig.systemPrompt) {
+                    cleanMessages.push({ role: 'system', content: modelConfig.systemPrompt });
+                }
+
+                // Add conversation history (up to last 6 messages)
+                for (const m of messages) {
+                    if (m.role === 'system') continue;
+                    const content = (m.content || '')
                         .replace(/<\|im_start\|>/g, '')
                         .replace(/<\|im_end\|>/g, '')
                         .replace(/<\|endoftext\|>/g, '')
-                        .trim()
-                })).filter(m => m.content.length > 0);
-
-                if (!cleanMessages.some(m => m.role === 'system') && modelConfig.systemPrompt) {
-                    cleanMessages.unshift({ role: 'system', content: modelConfig.systemPrompt });
+                        .trim();
+                    if (content.length > 0) {
+                        cleanMessages.push({
+                            role: (m.role === 'ai' || m.role === 'assistant') ? 'assistant' : 'user',
+                            content: content
+                        });
+                    }
                 }
 
-                let hasStoppedEarly = false;
-                const maxTokens = Math.min(options.max_new_tokens || 1024, 2048);
+                // Determine dynamic token budget & temperature
+                const isMathOrFact = options.is_math_or_fact || (options.temperature === 0);
+                const maxTokens = Math.min(options.max_new_tokens || (isMathOrFact ? 256 : 1024), 2048);
+                const useSampling = !isMathOrFact && (options.temperature !== 0) && (options.temperature > 0.1);
+                const temp = useSampling ? Math.max(0.2, Math.min(options.temperature || 0.6, 0.8)) : undefined;
+                const topP = useSampling ? (options.top_p || 0.9) : undefined;
+                const repPenalty = isMathOrFact ? 1.15 : (options.repetition_penalty || 1.1);
 
                 const streamer = new TextStreamer(pipe.tokenizer, {
                     skip_prompt: true,
@@ -255,13 +299,14 @@ self.onmessage = async function(e) {
                         }
                         lastTokenTime = now;
 
-                        // Check for standard ChatML stop sequences or prompt boundary leaks
-                        if (chunk.includes('<|im_end|>') || chunk.includes('<|endoftext|>') || chunk.includes('<|im_start|>') || chunk.includes('\nUser:') || chunk.includes('\nHuman:')) {
+                        // Check for standard ChatML stop tokens or role leaks
+                        if (chunk.includes('<|im_end|>') || chunk.includes('<|endoftext|>') || chunk.includes('<|im_start|>') || chunk.includes('\nUser:') || chunk.includes('\nHuman:') || chunk.includes('\nAssistant:')) {
                             chunk = chunk.replace(/<\|im_end\|>/g, '')
                                          .replace(/<\|endoftext\|>/g, '')
                                          .replace(/<\|im_start\|>/g, '')
-                                         .replace(/\nUser:.*$/g, '')
-                                         .replace(/\nHuman:.*$/g, '');
+                                         .replace(/\nUser:[\s\S]*$/g, '')
+                                         .replace(/\nHuman:[\s\S]*$/g, '')
+                                         .replace(/\nAssistant:[\s\S]*$/g, '');
                             hasStoppedEarly = true;
                         }
 
@@ -287,24 +332,31 @@ self.onmessage = async function(e) {
                     }
                 });
 
-                const useSampling = options.temperature && options.temperature > 0.3;
-                
+                // Generate with explicit stop token IDs for Qwen 2.5
                 const out = await pipe(cleanMessages, {
                     max_new_tokens: maxTokens,
                     do_sample: useSampling,
-                    temperature: useSampling ? options.temperature : undefined,
-                    top_p: useSampling ? (options.top_p || 0.9) : undefined,
-                    repetition_penalty: 1.08,
+                    temperature: temp,
+                    top_p: topP,
+                    repetition_penalty: repPenalty,
+                    eos_token_id: [151643, 151645], // <|im_end|>, <|endoftext|>
                     streamer: streamer
                 });
 
                 const totalStreamSec = Math.max(0.01, ((lastTokenTime || performance.now()) - (firstTokenTime || performance.now())) / 1000);
                 const finalTps = (generatedTokenCount / totalStreamSec).toFixed(1);
 
+                // Sanitize final text
+                let cleanFinalText = fullText
+                    .replace(/<\|im_end\|>/g, '')
+                    .replace(/<\|endoftext\|>/g, '')
+                    .replace(/<\|im_start\|>/g, '')
+                    .trim();
+
                 self.postMessage({
                     action: 'generate_complete',
                     id,
-                    fullText,
+                    fullText: cleanFinalText,
                     tokenCount: generatedTokenCount,
                     tps: finalTps
                 });
