@@ -2705,6 +2705,22 @@
             <div class="model-manager-grid" id="modelManagerGrid" style="max-height:360px; overflow-y:auto;">
                 <!-- Populated dynamically -->
             </div>
+
+            <!-- AUTONOMOUS SOVEREIGN CI CDN HOSTING DISPATCHER -->
+            <div style="margin-top:1rem; padding:0.85rem; background:rgba(6,182,212,0.06); border:1px solid rgba(6,182,212,0.25); border-radius:8px; display:flex; align-items:center; justify-content:space-between; gap:1rem;">
+                <div>
+                    <div style="font-size:0.78rem; font-weight:700; color:var(--accent-cyan); display:flex; align-items:center; gap:0.4rem;">
+                        <span>🦀</span> Sovereign CI Model Packaging & CDN Streaming
+                    </div>
+                    <div style="font-size:0.68rem; color:var(--text-muted); margin-top:0.2rem; line-height:1.35;">
+                        Autonomous GitHub Actions workers package and stage quantized model crates directly on our sovereign CDN.
+                    </div>
+                </div>
+                <button class="modal-btn primary" style="font-size:0.72rem; padding:0.4rem 0.85rem; white-space:nowrap;" onclick="triggerAutonomousCiModelPackaging()">
+                    ⚡ Dispatch CI Job
+                </button>
+            </div>
+
             <div class="modal-actions" style="margin-top:1rem; justify-content:space-between; align-items:center; display:flex;">
                 <span id="modalTotalStorageLabel" style="font-size:0.72rem; color:var(--text-muted); font-family:var(--font-mono);">Storage: Calculating...</span>
                 <button class="modal-btn secondary" onclick="closeModelManagerModal()">Close</button>
@@ -5163,6 +5179,11 @@
             }
         }
         window.renderModelManagerUI = renderModelManagerUI;
+
+        window.triggerAutonomousCiModelPackaging = function(modelId = 'all') {
+            showToast(`🚀 Autonomous CI Model Packaging Job dispatched! Pre-compiling model crate for sovereign CDN streaming.`);
+            window.open('https://github.com/Casey-allard/uor-r4-wasm-chat/actions/workflows/package_and_cache_models.yml', '_blank');
+        };
 
         window.purgeSingleModelCache = async function(modelId) {
             const meta = MODEL_CONFIGS[modelId];
