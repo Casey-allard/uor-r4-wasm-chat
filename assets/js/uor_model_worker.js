@@ -164,8 +164,8 @@ async function getOrLoadPipeline(modelId, onProgress) {
         device = 'wasm';
     }
 
-    env.allowLocalModels = isLocal;
-    env.allowRemoteModels = !isLocal;
+    env.allowLocalModels = true;
+    env.allowRemoteModels = true;
 
     try {
         const pipe = await pipeline('text-generation', source, {

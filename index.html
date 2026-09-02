@@ -5447,7 +5447,8 @@
 
         function initModelWorker() {
             try {
-                modelWorker = new Worker(new URL('./assets/js/uor_model_worker.js?v=3.0.2', import.meta.url), { type: 'module' });
+                modelWorker = new Worker(new URL('./assets/js/uor_model_worker.js?v=3.0.3', import.meta.url), { type: 'module' });
+                window.modelWorker = modelWorker;
 
                 modelWorker.onmessage = (e) => {
                     const { action, id, modelId, chunk, fullText, tokenCount, durationSec, tps, storage, error, stage, text, progress } = e.data;
@@ -6616,22 +6617,194 @@
             showToast(`💾 Exported ${activeTab.name}`);
         };
 
-        window.executeEditorAgentPrompt = function() {
+        let pendingIdeAgentDiffCode = null;
+        let activeIdeGenerationId = null;
+
+        window.executeEditorAgentPrompt = async function(customPrompt = null) {
             const input = document.getElementById('editorAgentPromptInput');
-            const prompt = (input ? input.value : '').trim();
+            const prompt = (customPrompt || (input ? input.value : '')).trim();
             if (!prompt) return;
 
-            const activeTab = openEditorTabs.find(t => t.name === activeEditorTab);
+            const activeTab = openEditorTabs.find(t => t.name === activeEditorTab) || { name: 'main.rs', language: 'rust', content: '' };
             const activeCode = monacoEditorInstance ? monacoEditorInstance.getValue() : (activeTab ? activeTab.content : '');
+            const selectedModelId = document.getElementById('ideAgentModelSelect')?.value || activeModelId || 'qwen2.5-coder-0.5b';
 
-            window.pendingCodeActionPayload = `[Coding Agent Request for file: ${activeTab ? activeTab.name : 'active file'}]\n\`\`\`${activeTab ? activeTab.language : 'text'}\n${activeCode.slice(0, 4000)}\n\`\`\``;
-
-            // Switch to Chat Studio and send
-            switchStudioView('chat');
-            const chatInput = document.getElementById('chatInput');
-            if (chatInput) chatInput.value = prompt;
             if (input) input.value = '';
-            sendChat();
+
+            // 1. Show in-IDE Agent Activity Status Bar
+            let statusBanner = document.getElementById('ideAgentStatusBar');
+            if (!statusBanner) {
+                statusBanner = document.createElement('div');
+                statusBanner.id = 'ideAgentStatusBar';
+                statusBanner.className = 'ide-agent-status-bar';
+                const parent = document.querySelector('.editor-agent-bottom-bar');
+                if (parent) parent.insertBefore(statusBanner, parent.firstChild);
+            }
+            statusBanner.style.display = 'flex';
+            statusBanner.innerHTML = `
+                <div style="display:flex; align-items:center; gap:0.5rem;">
+                    <span class="pulse-dot"></span>
+                    <span id="ideAgentStatusText" style="font-size:0.75rem; color:var(--accent-cyan); font-weight:600;">⚡ Agent synthesizing refactor for ${escapeHtml(activeTab.name)}...</span>
+                </div>
+                <button onclick="cancelIdeAgent()" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:0.8rem; margin-left:auto;">✕</button>
+            `;
+
+            activeIdeGenerationId = 'ide_gen_' + Date.now();
+            let accumulatedText = '';
+
+            const systemPrompt = 'You are an expert AI Coding Copilot and Software Engineer in Monaco IDE. You have full authority to refactor, optimize, debug, and implement complete code for the workspace. When asked to refactor or write code, you MUST output the complete updated code inside clean markdown code blocks (e.g. ```' + (activeTab.language || 'rust') + ' ... ```). Do not truncate code with "// rest of code remains unchanged". Always output complete, production-ready code.';
+
+            const userPromptFull = `[Target File: ${activeTab.name}]\n\`\`\`${activeTab.language || 'text'}\n${activeCode.slice(0, 4000)}\n\`\`\`\n\nTask: ${prompt}`;
+
+            const messagesPayload = [
+                { role: 'system', content: systemPrompt },
+                { role: 'user', content: userPromptFull }
+            ];
+
+            const ideWorkerHandler = (e) => {
+                const { action, id, fullText, chunk, tps, error, stage, text, progress } = e.data;
+                if (id !== activeIdeGenerationId) return;
+
+                const statusText = document.getElementById('ideAgentStatusText');
+
+                if (action === 'compile_stage') {
+                    if (statusText && text) statusText.innerText = text;
+                }
+
+                if (action === 'stream_token') {
+                    accumulatedText = fullText;
+                    if (statusText) statusText.innerText = `⚡ Generating code (${tps || 12} tok/s)...`;
+                }
+
+                if (action === 'generate_complete') {
+                    modelWorker.removeEventListener('message', ideWorkerHandler);
+                    if (statusBanner) statusBanner.style.display = 'none';
+
+                    // Extract code block from output
+                    const codeMatch = accumulatedText.match(/```(?:[a-zA-Z0-9_-]*)\n([\s\S]*?)```/);
+                    const proposedCode = codeMatch ? codeMatch[1].trim() : accumulatedText.trim();
+
+                    if (proposedCode && proposedCode.length > 10) {
+                        pendingIdeAgentDiffCode = proposedCode;
+                        showMonacoAgentDiff(activeCode, proposedCode, activeTab);
+                    } else {
+                        showToast("✨ Agent generated explanation without code changes.");
+                    }
+                }
+
+                if (action === 'generate_error') {
+                    modelWorker.removeEventListener('message', ideWorkerHandler);
+                    if (statusBanner) statusBanner.style.display = 'none';
+                    showToast(`❌ Agent error: ${error}`);
+                }
+            };
+
+            if (modelWorker) {
+                modelWorker.addEventListener('message', ideWorkerHandler);
+                modelWorker.postMessage({
+                    action: 'generate',
+                    id: activeIdeGenerationId,
+                    modelId: selectedModelId,
+                    payload: {
+                        messages: messagesPayload,
+                        options: {
+                            max_new_tokens: 1536,
+                            temperature: 0.2
+                        }
+                    }
+                });
+            }
+        };
+
+        window.cancelIdeAgent = function() {
+            if (activeIdeGenerationId && modelWorker) {
+                modelWorker.postMessage({ action: 'stop_generation' });
+            }
+            const statusBanner = document.getElementById('ideAgentStatusBar');
+            if (statusBanner) statusBanner.style.display = 'none';
+            showToast("🛑 Cancelled agent refactor.");
+        };
+
+        window.triggerQuickAction = function(actionType) {
+            const activeTab = openEditorTabs.find(t => t.name === activeEditorTab) || { name: 'main.rs', language: 'rust' };
+            const actionPrompts = {
+                'optimize': `Optimize this ${activeTab.name} module for maximum execution performance and zero unnecessary memory allocations.`,
+                'test': `Write a comprehensive, standalone unit test suite for all functions in ${activeTab.name}.`,
+                'explain': `Explain the architecture, algorithms, and key functions in ${activeTab.name} clearly and concisely.`,
+                'fix': `Analyze ${activeTab.name} for any edge cases, off-by-one errors, or potential bugs and provide the corrected version.`
+            };
+            const prompt = actionPrompts[actionType] || `Refactor ${activeTab.name}`;
+            executeEditorAgentPrompt(prompt);
+        };
+
+        window.showMonacoAgentDiff = function(originalCode, proposedCode, activeTab) {
+            pendingIdeAgentDiffCode = proposedCode;
+            isDiffModeActive = true;
+            const editorEl = document.getElementById('monacoEditorRoot');
+            const diffEl = document.getElementById('monacoDiffRoot');
+            const label = document.getElementById('diffModeLabel');
+
+            if (editorEl) editorEl.style.display = 'none';
+            if (diffEl) diffEl.style.display = 'block';
+            if (label) label.innerText = "Close Diff";
+
+            // Show Apply Diff Bar
+            let applyBar = document.getElementById('ideDiffApplyBar');
+            if (!applyBar) {
+                applyBar = document.createElement('div');
+                applyBar.id = 'ideDiffApplyBar';
+                applyBar.className = 'ide-diff-apply-bar';
+                const parent = document.querySelector('.editor-view-layout');
+                if (parent) parent.insertBefore(applyBar, parent.children[1]);
+            }
+            applyBar.style.display = 'flex';
+            applyBar.innerHTML = `
+                <span style="font-size:0.75rem; color:#86efac; font-weight:600;">✨ Agent proposed changes for <b>${escapeHtml(activeTab.name)}</b></span>
+                <div style="margin-left:auto; display:flex; gap:6px;">
+                    <button class="editor-btn success" onclick="applyIdeAgentDiff()" style="background:rgba(34,197,94,0.2); border:1px solid rgba(34,197,94,0.4); color:#86efac; padding:0.25rem 0.75rem; border-radius:6px; font-size:0.75rem; font-weight:600; cursor:pointer;">✓ Apply to File</button>
+                    <button class="editor-btn danger" onclick="discardIdeAgentDiff()" style="background:rgba(239,68,68,0.2); border:1px solid rgba(239,68,68,0.4); color:#fca5a5; padding:0.25rem 0.75rem; border-radius:6px; font-size:0.75rem; font-weight:600; cursor:pointer;">✕ Discard</button>
+                </div>
+            `;
+
+            if (monacoDiffInstance && typeof monaco !== 'undefined') {
+                const lang = activeTab.language || 'rust';
+                const originalModel = monaco.editor.createModel(originalCode, lang);
+                const modifiedModel = monaco.editor.createModel(proposedCode, lang);
+                monacoDiffInstance.setModel({ original: originalModel, modified: modifiedModel });
+            }
+        };
+
+        window.applyIdeAgentDiff = function() {
+            const newCode = pendingIdeAgentDiffCode;
+            if (!newCode) return;
+            const activeTab = openEditorTabs.find(t => t.name === activeEditorTab);
+            if (activeTab) {
+                activeTab.content = newCode;
+            }
+            if (monacoEditorInstance) {
+                const model = monacoEditorInstance.getModel();
+                if (model) {
+                    model.setValue(newCode);
+                } else {
+                    monacoEditorInstance.setValue(newCode);
+                }
+            }
+            discardIdeAgentDiff();
+            showToast(`🎉 Applied agent refactor to ${activeTab ? activeTab.name : 'file'}!`);
+        };
+
+        window.discardIdeAgentDiff = function() {
+            pendingIdeAgentDiffCode = null;
+            isDiffModeActive = false;
+            const editorEl = document.getElementById('monacoEditorRoot');
+            const diffEl = document.getElementById('monacoDiffRoot');
+            const label = document.getElementById('diffModeLabel');
+            const applyBar = document.getElementById('ideDiffApplyBar');
+
+            if (editorEl) editorEl.style.display = 'block';
+            if (diffEl) diffEl.style.display = 'none';
+            if (label) label.innerText = "View Diff";
+            if (applyBar) applyBar.style.display = 'none';
         };
 
         // --- INITIALIZATION (INSTANT SYNCHRONOUS UI STARTUP) ---
