@@ -6758,15 +6758,24 @@
         };
 
         window.triggerQuickAction = function(actionType) {
-            const activeTab = openEditorTabs.find(t => t.name === activeEditorTab) || { name: 'main.rs', language: 'rust' };
+            const activeTab = openEditorTabs.find(t => t.name === activeEditorTab) || { name: 'index.html', language: 'html' };
+            const input = document.getElementById('editorAgentPromptInput');
+            if (!input) return;
+
             const actionPrompts = {
-                'optimize': `Optimize this ${activeTab.name} module for maximum execution performance and zero unnecessary memory allocations.`,
+                'optimize': `Optimize ${activeTab.name} for maximum execution performance and zero unnecessary memory allocations.`,
                 'test': `Write a comprehensive, standalone unit test suite for all functions in ${activeTab.name}.`,
                 'explain': `Explain the architecture, algorithms, and key functions in ${activeTab.name} clearly and concisely.`,
                 'fix': `Analyze ${activeTab.name} for any edge cases, off-by-one errors, or potential bugs and provide the corrected version.`
             };
-            const prompt = actionPrompts[actionType] || `Refactor ${activeTab.name}`;
-            executeEditorAgentPrompt(prompt);
+
+            const promptText = actionPrompts[actionType] || `Refactor ${activeTab.name}`;
+            input.value = promptText;
+            input.focus();
+            if (typeof autoResizeTextarea === 'function') {
+                autoResizeTextarea(input);
+            }
+            showToast(`📝 Built prompt: "${promptText.slice(0, 40)}..."`);
         };
 
         window.showMonacoAgentDiff = function(originalCode, proposedCode, activeTab) {
