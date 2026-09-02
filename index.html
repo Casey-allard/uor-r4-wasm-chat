@@ -7209,6 +7209,84 @@
 
             console.log("⚡ UOR-R4 Sovereign AI Developer Studio Initialized.");
         });
-    </script>
+    
+        // =====================================================================
+        // ⚡ AGENTIC LOCAL TERMINAL & WORKSPACE TOOL RUNNER
+        // =====================================================================
+
+        window.runTerminalCommand = async function(cmd, targetOutputId = null) {
+            cmd = (cmd || '').trim();
+            if (!cmd) return;
+
+            showToast(`💻 Executing terminal command: ${cmd}...`);
+
+            let outputContainer = null;
+            if (targetOutputId) {
+                outputContainer = document.getElementById(targetOutputId);
+            }
+
+            if (outputContainer) {
+                outputContainer.style.display = 'block';
+                outputContainer.innerHTML = `<div style="font-family:var(--font-mono); font-size:0.72rem; color:var(--accent-cyan); padding:0.5rem; background:rgba(0,0,0,0.4); border-radius:6px; border:1px solid rgba(6,182,212,0.2);">⚡ Running: <code>${escapeHtml(cmd)}</code>...</div>`;
+            }
+
+            if (window.__TAURI__ && window.__TAURI__.core) {
+                try {
+                    const cwd = "/Users/casey.allard/Downloads/uor-r4-project";
+                    const result = await window.__TAURI__.core.invoke('native_run_terminal_command', { cwd, command: cmd });
+                    if (outputContainer) {
+                        outputContainer.innerHTML = `
+                            <div style="font-family:var(--font-mono); font-size:0.72rem; color:var(--accent-green); padding:0.5rem; background:rgba(0,0,0,0.6); border-radius:6px; border:1px solid rgba(16,185,129,0.3); margin-top:0.4rem; white-space:pre-wrap; max-height:200px; overflow-y:auto;">
+                                <div style="color:var(--text-muted); font-size:0.65rem; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:0.25rem; margin-bottom:0.35rem;">$ ${escapeHtml(cmd)}</div>
+                                <div>${escapeHtml(result || '(exited with code 0)')}</div>
+                            </div>
+                        `;
+                    }
+                    showToast(`✅ Command '${cmd.slice(0, 20)}...' finished successfully`);
+                    return result;
+                } catch(err) {
+                    if (outputContainer) {
+                        outputContainer.innerHTML = `
+                            <div style="font-family:var(--font-mono); font-size:0.72rem; color:var(--accent-magenta); padding:0.5rem; background:rgba(0,0,0,0.6); border-radius:6px; border:1px solid rgba(236,72,153,0.3); margin-top:0.4rem; white-space:pre-wrap;">
+                                <div style="color:var(--text-muted); font-size:0.65rem;">$ ${escapeHtml(cmd)}</div>
+                                <div>❌ ${escapeHtml(String(err))}</div>
+                            </div>
+                        `;
+                    }
+                    showToast(`❌ Command failed: ${err}`);
+                    return null;
+                }
+            } else {
+                // Sovereign Web Simulation
+                if (outputContainer) {
+                    outputContainer.innerHTML = `
+                        <div style="font-family:var(--font-mono); font-size:0.72rem; color:var(--accent-cyan); padding:0.5rem; background:rgba(0,0,0,0.6); border-radius:6px; border:1px solid rgba(6,182,212,0.3); margin-top:0.4rem; white-space:pre-wrap;">
+                            <div style="color:var(--text-muted); font-size:0.65rem;">$ ${escapeHtml(cmd)}</div>
+                            <div>⚡ [Sovereign In-Browser Emulation]: Command executed in client sandbox. Use native macOS app for raw system terminal subprocesses.</div>
+                        </div>
+                    `;
+                }
+                showToast(`💻 In-browser command: ${cmd}`);
+            }
+        };
+
+        window.runCodeBlockInTerminal = function(btn) {
+            const container = btn.closest('.code-block-container');
+            if (!container) return;
+            const codeEl = container.querySelector('code');
+            if (!codeEl) return;
+            const cmd = codeEl.innerText.trim();
+
+            let outBox = container.querySelector('.inline-terminal-output');
+            if (!outBox) {
+                outBox = document.createElement('div');
+                outBox.className = 'inline-terminal-output';
+                outBox.id = 'term_out_' + Date.now();
+                container.appendChild(outBox);
+            }
+            runTerminalCommand(cmd, outBox.id);
+        };
+
+</script>
 </body>
 </html>
