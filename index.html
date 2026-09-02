@@ -2126,6 +2126,32 @@
             color: #ef4444;
         }
 
+    
+        .ide-agent-status-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 0.5rem 0.85rem;
+            background: rgba(14, 165, 233, 0.12);
+            border: 1px solid rgba(14, 165, 233, 0.3);
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            font-size: 0.8rem;
+            font-family: var(--font-mono);
+            color: #38bdf8;
+            backdrop-filter: blur(12px);
+            animation: fadeIn 0.2s ease-out;
+        }
+        .ide-agent-status-bar .spinner {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(56, 189, 248, 0.3);
+            border-radius: 50%;
+            border-top-color: #38bdf8;
+            animation: spin 0.8s linear infinite;
+        }
+
     </style>
 </head>
 <body>
@@ -2416,18 +2442,11 @@
                     <div id="monacoDiffRoot" style="display:none; width:100%; height:100%;"></div>
                 </div>
 
-                <!-- HARMONIZED FLOATING INPUT CAPSULE FOR MONACO IDE -->
+                <!-- CLEAN MINIMALIST FLOATING INPUT CAPSULE FOR MONACO IDE -->
                 <div class="input-floating-wrapper" style="position:relative; bottom:auto; left:auto; transform:none; max-width:100%; width:100%; padding:0.75rem 1.25rem; background:rgba(15,23,42,0.95); backdrop-filter:blur(24px); border-top:1px solid rgba(255,255,255,0.08); z-index:10;">
-                    <!-- QUICK ACTION PILLS & TARGET FILE BAR -->
-                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:0.45rem; flex-wrap:wrap; gap:6px;">
-                        <div class="quick-refactor-bar" style="display:flex; gap:6px; align-items:center;">
-                            <button class="quick-pill" onclick="triggerQuickAction('optimize')" title="Optimize for Performance & Zero Allocations">⚡ Optimize</button>
-                            <button class="quick-pill" onclick="triggerQuickAction('test')" title="Generate Unit Tests">🧪 Unit Tests</button>
-                            <button class="quick-pill" onclick="triggerQuickAction('explain')" title="Explain Function & Architecture">🔍 Explain</button>
-                            <button class="quick-pill" onclick="triggerQuickAction('fix')" title="Detect & Fix Bugs">🐛 Fix Bugs</button>
-                        </div>
+                    <div style="display:flex; align-items:center; justify-content:flex-end; margin-bottom:0.35rem;">
                         <div style="font-size:0.72rem; color:var(--text-muted); font-family:var(--font-mono);">
-                            Target: <b id="agentActiveFileLabel" style="color:var(--accent-cyan);">index.html</b>
+                            Active File: <b id="agentActiveFileLabel" style="color:var(--accent-cyan);">index.html</b>
                         </div>
                     </div>
 
@@ -2452,12 +2471,68 @@
                                     <span>Search</span>
                                 </button>
 
-                                <div class="input-model-selector-wrapper" style="position:relative; display:inline-flex;">
+                                <div class="input-model-selector-wrapper" id="ideModelSelectorWrapper" style="position:relative; display:inline-flex;">
                                     <button type="button" class="input-model-pill-btn" onclick="toggleInputModelDropdown(event)" title="Select Neural Model">
                                         <span id="ideActiveModelIcon">💻</span>
                                         <span id="ideActiveModelName">Qwen 2.5 Coder</span>
                                         <span class="pill-arrow">▼</span>
                                     </button>
+                                    
+                                    <div class="input-model-dropdown-menu" id="ideModelDropdownMenu">
+                                        <div class="input-model-opt active" id="ide-opt-qwen2.5-coder-0.5b" onclick="selectModelFromInput('qwen2.5-coder-0.5b')">
+                                            <div class="opt-left">
+                                                <span class="opt-icon">💻</span>
+                                                <div class="opt-info">
+                                                    <span class="opt-name">Qwen 2.5 Coder Turbo</span>
+                                                    <span class="opt-tier">0.5B Fast Specialist (~280MB)</span>
+                                                </div>
+                                            </div>
+                                            <span class="opt-check" id="ide-check-qwen2.5-coder-0.5b">✓</span>
+                                        </div>
+                                        <div class="input-model-opt" id="ide-opt-glm5.3-flash" onclick="selectModelFromInput('glm5.3-flash')">
+                                            <div class="opt-left">
+                                                <span class="opt-icon">📐</span>
+                                                <div class="opt-info">
+                                                    <span class="opt-name">GLM-5.3 Flash</span>
+                                                    <span class="opt-tier">0.5B Logical Reasoning (~280MB)</span>
+                                                </div>
+                                            </div>
+                                            <span class="opt-check" id="ide-check-glm5.3-flash" style="display:none;">✓</span>
+                                        </div>
+                                        <div class="input-model-opt" id="ide-opt-qwen2.5-0.5b" onclick="selectModelFromInput('qwen2.5-0.5b')">
+                                            <div class="opt-left">
+                                                <span class="opt-icon">💬</span>
+                                                <div class="opt-info">
+                                                    <span class="opt-name">Qwen 2.5 Instant</span>
+                                                    <span class="opt-tier">0.5B Conversational (~280MB)</span>
+                                                </div>
+                                            </div>
+                                            <span class="opt-check" id="ide-check-qwen2.5-0.5b" style="display:none;">✓</span>
+                                        </div>
+                                        <div class="input-model-opt" id="ide-opt-qwen2.5-coder-1.5b" onclick="selectModelFromInput('qwen2.5-coder-1.5b')">
+                                            <div class="opt-left">
+                                                <span class="opt-icon">🚀</span>
+                                                <div class="opt-info">
+                                                    <span class="opt-name">Qwen 2.5 Coder Power</span>
+                                                    <span class="opt-tier">1.5B High-Precision SOTA (~880MB)</span>
+                                                </div>
+                                            </div>
+                                            <span class="opt-check" id="ide-check-qwen2.5-coder-1.5b" style="display:none;">✓</span>
+                                        </div>
+                                        <div class="input-model-opt" id="ide-opt-qwen2.5-1.5b" onclick="selectModelFromInput('qwen2.5-1.5b')">
+                                            <div class="opt-left">
+                                                <span class="opt-icon">🧠</span>
+                                                <div class="opt-info">
+                                                    <span class="opt-name">Qwen 2.5 General</span>
+                                                    <span class="opt-tier">1.5B Deep General (~880MB)</span>
+                                                </div>
+                                            </div>
+                                            <span class="opt-check" id="ide-check-qwen2.5-1.5b" style="display:none;">✓</span>
+                                        </div>
+                                        <div style="padding:0.4rem 0.65rem; border-top:1px solid rgba(255,255,255,0.08); font-size:0.7rem; color:var(--accent-cyan); cursor:pointer; text-align:center; font-weight:600;" onclick="openModelManagerModal()">
+                                            ⚙️ Manage Caches & Models...
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
@@ -4001,6 +4076,32 @@
             color: #ef4444;
         }
 
+    
+        .ide-agent-status-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 0.5rem 0.85rem;
+            background: rgba(14, 165, 233, 0.12);
+            border: 1px solid rgba(14, 165, 233, 0.3);
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            font-size: 0.8rem;
+            font-family: var(--font-mono);
+            color: #38bdf8;
+            backdrop-filter: blur(12px);
+            animation: fadeIn 0.2s ease-out;
+        }
+        .ide-agent-status-bar .spinner {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(56, 189, 248, 0.3);
+            border-radius: 50%;
+            border-top-color: #38bdf8;
+            animation: spin 0.8s linear infinite;
+        }
+
     </style>
 </head>
 <body>
@@ -4178,6 +4279,32 @@
             color: #ef4444;
         }
 
+    
+        .ide-agent-status-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 0.5rem 0.85rem;
+            background: rgba(14, 165, 233, 0.12);
+            border: 1px solid rgba(14, 165, 233, 0.3);
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            font-size: 0.8rem;
+            font-family: var(--font-mono);
+            color: #38bdf8;
+            backdrop-filter: blur(12px);
+            animation: fadeIn 0.2s ease-out;
+        }
+        .ide-agent-status-bar .spinner {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(56, 189, 248, 0.3);
+            border-radius: 50%;
+            border-top-color: #38bdf8;
+            animation: spin 0.8s linear infinite;
+        }
+
     </style>\n</head>`);
                 }
                 if (jsCode && !bundledDoc.includes(jsCode) && bundledDoc.includes('</body>')) {
@@ -4259,6 +4386,32 @@
         }
         .image-attachment-chip .chip-remove-btn:hover {
             color: #ef4444;
+        }
+
+    
+        .ide-agent-status-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 0.5rem 0.85rem;
+            background: rgba(14, 165, 233, 0.12);
+            border: 1px solid rgba(14, 165, 233, 0.3);
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            font-size: 0.8rem;
+            font-family: var(--font-mono);
+            color: #38bdf8;
+            backdrop-filter: blur(12px);
+            animation: fadeIn 0.2s ease-out;
+        }
+        .ide-agent-status-bar .spinner {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(56, 189, 248, 0.3);
+            border-radius: 50%;
+            border-top-color: #38bdf8;
+            animation: spin 0.8s linear infinite;
         }
 
     </style>
@@ -4358,6 +4511,32 @@
             color: #ef4444;
         }
 
+    
+        .ide-agent-status-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 0.5rem 0.85rem;
+            background: rgba(14, 165, 233, 0.12);
+            border: 1px solid rgba(14, 165, 233, 0.3);
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            font-size: 0.8rem;
+            font-family: var(--font-mono);
+            color: #38bdf8;
+            backdrop-filter: blur(12px);
+            animation: fadeIn 0.2s ease-out;
+        }
+        .ide-agent-status-bar .spinner {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(56, 189, 248, 0.3);
+            border-radius: 50%;
+            border-top-color: #38bdf8;
+            animation: spin 0.8s linear infinite;
+        }
+
     </style>
 </head>
 <body>
@@ -4446,6 +4625,32 @@
         }
         .image-attachment-chip .chip-remove-btn:hover {
             color: #ef4444;
+        }
+
+    
+        .ide-agent-status-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 0.5rem 0.85rem;
+            background: rgba(14, 165, 233, 0.12);
+            border: 1px solid rgba(14, 165, 233, 0.3);
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            font-size: 0.8rem;
+            font-family: var(--font-mono);
+            color: #38bdf8;
+            backdrop-filter: blur(12px);
+            animation: fadeIn 0.2s ease-out;
+        }
+        .ide-agent-status-bar .spinner {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(56, 189, 248, 0.3);
+            border-radius: 50%;
+            border-top-color: #38bdf8;
+            animation: spin 0.8s linear infinite;
         }
 
     </style>
@@ -4825,7 +5030,15 @@
         // --- IN-PROMPT MODEL SELECTOR ---
         window.toggleInputModelDropdown = function(event) {
             event.stopPropagation();
-            const menu = document.getElementById('inputModelDropdownMenu');
+            const btn = event.currentTarget || event.target.closest('button');
+            const wrapper = btn ? btn.closest('.input-model-selector-wrapper') : null;
+            const menu = wrapper ? wrapper.querySelector('.input-model-dropdown-menu') : document.getElementById('inputModelDropdownMenu');
+            
+            // Close other dropdowns
+            document.querySelectorAll('.input-model-dropdown-menu.show').forEach(m => {
+                if (m !== menu) m.classList.remove('show');
+            });
+
             if (menu) menu.classList.toggle('show');
         };
 
@@ -4977,29 +5190,36 @@
             window.activeModelId = modelId;
             localStorage.setItem('uor_active_model', activeModelId);
 
-            // If model is not yet in cache, spawn detached compiler
-            if (window.modelCacheStatus && window.modelCacheStatus[modelId] === false) {
-                triggerBackgroundCompile(modelId);
-            }
+            // Update Chat Studio selector
+            const chatNameEl = document.getElementById('inputActiveModelName');
+            const chatIconEl = document.getElementById('inputActiveModelIcon');
+            if (chatNameEl) chatNameEl.innerText = meta.name;
+            if (chatIconEl) chatIconEl.innerText = meta.icon;
 
-            const nameEl = document.getElementById('inputActiveModelName');
-            const iconEl = document.getElementById('inputActiveModelIcon');
-            if (nameEl) nameEl.innerText = meta.name;
-            if (iconEl) iconEl.innerText = meta.icon;
+            // Update Monaco IDE selector
+            const ideNameEl = document.getElementById('ideActiveModelName');
+            const ideIconEl = document.getElementById('ideActiveModelIcon');
+            if (ideNameEl) ideNameEl.innerText = meta.name;
+            if (ideIconEl) ideIconEl.innerText = meta.icon;
 
+            // Update options in both menus
             Object.keys(MODEL_CONFIGS).forEach(id => {
-                const opt = document.getElementById(`opt-${id}`);
-                const chk = document.getElementById(`check-${id}`);
-                if (opt) opt.classList.toggle('active', id === modelId);
-                if (chk) chk.style.display = (id === modelId) ? 'inline' : 'none';
+                const optChat = document.getElementById(`opt-${id}`);
+                const chkChat = document.getElementById(`check-${id}`);
+                if (optChat) optChat.classList.toggle('active', id === modelId);
+                if (chkChat) chkChat.style.display = (id === modelId) ? 'inline' : 'none';
+
+                const optIde = document.getElementById(`ide-opt-${id}`);
+                const chkIde = document.getElementById(`ide-check-${id}`);
+                if (optIde) optIde.classList.toggle('active', id === modelId);
+                if (chkIde) chkIde.style.display = (id === modelId) ? 'inline' : 'none';
             });
 
-            const menu = document.getElementById('inputModelDropdownMenu');
-            if (menu) menu.classList.remove('show');
+            // Close all open dropdown menus
+            document.querySelectorAll('.input-model-dropdown-menu.show').forEach(m => m.classList.remove('show'));
 
             showToast(`⚡ Model: ${meta.fullName}`);
             initModelWorker();
-            initImagePasteAndFocus();
         };
 
         window.addEventListener('click', (e) => {
@@ -5011,17 +5231,33 @@
         });
 
         function updateInputModelDisplay() {
-            const meta = MODEL_CONFIGS[activeModelId] || MODEL_CONFIGS['glm5.3-flash'];
-            const nameEl = document.getElementById('inputActiveModelName');
-            const iconEl = document.getElementById('inputActiveModelIcon');
-            if (nameEl) nameEl.innerText = meta.name;
-            if (iconEl) iconEl.innerText = meta.icon;
+            const meta = MODEL_CONFIGS[activeModelId] || MODEL_CONFIGS['qwen2.5-coder-0.5b'];
+            
+            // Update Chat Studio selector
+            const chatName = document.getElementById('inputActiveModelName');
+            const chatIcon = document.getElementById('inputActiveModelIcon');
+            if (chatName) chatName.innerText = meta.name;
+            if (chatIcon) chatIcon.innerText = meta.icon;
 
+            // Update Monaco IDE selector
+            const ideName = document.getElementById('ideActiveModelName');
+            const ideIcon = document.getElementById('ideActiveModelIcon');
+            if (ideName) ideName.innerText = meta.name;
+            if (ideIcon) ideIcon.innerText = meta.icon;
+
+            // Update active checkmarks in both menus
             Object.keys(MODEL_CONFIGS).forEach(id => {
-                const opt = document.getElementById(`opt-${id}`);
-                const chk = document.getElementById(`check-${id}`);
-                if (opt) opt.classList.toggle('active', id === activeModelId);
-                if (chk) chk.style.display = (id === activeModelId) ? 'inline' : 'none';
+                // Chat menu
+                const optChat = document.getElementById(`opt-${id}`);
+                const chkChat = document.getElementById(`check-${id}`);
+                if (optChat) optChat.classList.toggle('active', id === activeModelId);
+                if (chkChat) chkChat.style.display = (id === activeModelId) ? 'inline' : 'none';
+
+                // IDE menu
+                const optIde = document.getElementById(`ide-opt-${id}`);
+                const chkIde = document.getElementById(`ide-check-${id}`);
+                if (optIde) optIde.classList.toggle('active', id === activeModelId);
+                if (chkIde) chkIde.style.display = (id === activeModelId) ? 'inline' : 'none';
             });
         }
 
