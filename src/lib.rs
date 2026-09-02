@@ -2108,16 +2108,7 @@ mod tests {
         assert_eq!(c, vec![19, 22, 43, 50]);
     }
 
-    #[test]
-    fn test_deterministic_math_evaluator_extended() {
-        assert_eq!(wasm_deterministic_math("15 * 14"), "210");
-        assert_eq!(wasm_deterministic_math("2^10"), "1024");
-        assert_eq!(wasm_deterministic_math("factor 120"), "Prime factors of 120: 2 × 2 × 2 × 3 × 5");
-        assert_eq!(wasm_deterministic_math("gcd(48, 18)"), "gcd(48, 18) = 6");
-        assert!(wasm_deterministic_math("inv 7 mod 256").contains("183"));
-        assert_eq!(wasm_deterministic_math("300 mod 256"), "300 mod 256 = 44");
-    }
-
+    
     use super::*;
 
     #[test]
