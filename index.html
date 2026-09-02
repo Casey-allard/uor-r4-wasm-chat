@@ -6669,7 +6669,7 @@
                 statusBanner = document.createElement('div');
                 statusBanner.id = 'ideAgentStatusBar';
                 statusBanner.className = 'ide-agent-status-bar';
-                const parent = document.querySelector('.editor-agent-bottom-bar');
+                const parent = document.querySelector('#viewEditor .input-floating-wrapper') || document.querySelector('#viewEditor');
                 if (parent) parent.insertBefore(statusBanner, parent.firstChild);
             }
             statusBanner.style.display = 'flex';
@@ -6758,9 +6758,8 @@
         };
 
         window.triggerQuickAction = function(actionType) {
-            const activeTab = openEditorTabs.find(t => t.name === activeEditorTab) || { name: 'index.html', language: 'html' };
+            const activeTab = openEditorTabs.find(t => t.name === activeEditorTab) || { name: 'index.html', language: 'html', content: '' };
             const input = document.getElementById('editorAgentPromptInput');
-            if (!input) return;
 
             const actionPrompts = {
                 'optimize': `Optimize ${activeTab.name} for maximum execution performance and zero unnecessary memory allocations.`,
@@ -6770,12 +6769,12 @@
             };
 
             const promptText = actionPrompts[actionType] || `Refactor ${activeTab.name}`;
-            input.value = promptText;
-            input.focus();
-            if (typeof autoResizeTextarea === 'function') {
-                autoResizeTextarea(input);
+            if (input) {
+                input.value = promptText;
+                if (typeof autoResizeTextarea === 'function') autoResizeTextarea(input);
             }
-            showToast(`📝 Built prompt: "${promptText.slice(0, 40)}..."`);
+            showToast(`⚡ Executing: "${promptText.slice(0, 45)}..."`);
+            executeEditorAgentPrompt(promptText);
         };
 
         window.showMonacoAgentDiff = function(originalCode, proposedCode, activeTab) {
@@ -6795,8 +6794,8 @@
                 applyBar = document.createElement('div');
                 applyBar.id = 'ideDiffApplyBar';
                 applyBar.className = 'ide-diff-apply-bar';
-                const parent = document.querySelector('.editor-view-layout');
-                if (parent) parent.insertBefore(applyBar, parent.children[1]);
+                const parent = document.querySelector('#viewEditor .editor-view-layout') || document.querySelector('#viewEditor');
+                if (parent) parent.insertBefore(applyBar, parent.children[1] || parent.firstChild);
             }
             applyBar.style.display = 'flex';
             applyBar.innerHTML = `

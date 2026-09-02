@@ -158,17 +158,8 @@ async function getOrLoadPipeline(modelId, onProgress) {
 
     const { source, isLocal, dtype, model } = await resolveModelSource(modelId);
 
-    let device = 'webgpu';
-    if (typeof navigator !== 'undefined' && navigator.gpu) {
-        try {
-            const adapter = await navigator.gpu.requestAdapter({ powerPreference: 'high-performance' });
-            if (!adapter) device = 'wasm';
-        } catch(e) {
-            device = 'wasm';
-        }
-    } else {
-        device = 'wasm';
-    }
+    // Default to WebGPU for Apple Silicon Metal hardware acceleration
+    let device = (typeof navigator !== 'undefined' && navigator.gpu) ? 'webgpu' : 'wasm';
 
     env.allowLocalModels = true;
     env.allowRemoteModels = true;
