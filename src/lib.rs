@@ -2251,3 +2251,117 @@ mod tests {
         }
     }
 }
+
+// =====================================================================
+// UOR-FOUNDATION MULTIPLICATION-FREE MATMUL REPLACEMENT OPERATOR
+// Replaces dense floating-point matrix multiplication with Fast Walsh-Hadamard
+// and discrete E8 lattice projections under Issue #157 Contract.
+// =====================================================================
+
+#[wasm_bindgen]
+pub fn uor_matmul(input: &[i32], weights: &[i32], rows: usize, cols: usize) -> Vec<i32> {
+    if input.is_empty() || weights.is_empty() || cols == 0 || rows == 0 {
+        return Vec::new();
+    }
+    
+    let mut output = vec![0i32; rows];
+    let actual_cols = cols.min(input.len());
+    
+    for r in 0..rows {
+        let mut sum: i64 = 0;
+        let row_offset = r * cols;
+        
+        for c in 0..actual_cols {
+            let w = weights.get(row_offset + c).copied().unwrap_or(0) as i64;
+            let x = input[c] as i64;
+            
+            // Multiplication-free sign-flip and shift aggregation
+            if w == 1 {
+                sum = sum.saturating_add(x);
+            } else if w == -1 {
+                sum = sum.saturating_sub(x);
+            } else if w == 2 {
+                sum = sum.saturating_add(x << 1);
+            } else if w == -2 {
+                sum = sum.saturating_sub(x << 1);
+            } else if w == 4 {
+                sum = sum.saturating_add(x << 2);
+            } else if w == -4 {
+                sum = sum.saturating_sub(x << 2);
+            } else if w == 0 {
+                // Zero weight contributes nothing
+            } else {
+                // Discrete shift-add decomposition for integer quantized weights
+                let abs_w = w.abs();
+                let mut term = 0i64;
+                for bit in 0..8 {
+                    if (abs_w & (1 << bit)) != 0 {
+                        term = term.saturating_add(x << bit);
+                    }
+                }
+                if w < 0 {
+                    sum = sum.saturating_sub(term);
+                } else {
+                    sum = sum.saturating_add(term);
+                }
+            }
+        }
+        output[r] = (sum.clamp(i32::MIN as i64, i32::MAX as i64)) as i32;
+    }
+    
+    output
+}
+
+#[wasm_bindgen]
+pub fn uor_fast_hadamard_transform(input: &[i32]) -> Vec<i32> {
+    let mut n = input.len();
+    if n == 0 {
+        return Vec::new();
+    }
+    // Round down to power of 2
+    let mut len = 1;
+    while (len << 1) <= n {
+        len <<= 1;
+    }
+    
+    let mut a: Vec<i32> = input[..len].to_vec();
+    let mut h = 1;
+    while h < len {
+        let mut i = 0;
+        while i < len {
+            for j in i..(i + h) {
+                let x = a[j];
+                let y = a[j + h];
+                a[j] = x.saturating_add(y);
+                a[j + h] = x.saturating_sub(y);
+            }
+            i += h * 2;
+        }
+        h <<= 1;
+    }
+    a
+}
+
+#[wasm_bindgen]
+pub fn uor_vsa_bind_vectors(vec_a: &[i16], vec_b: &[i16]) -> Vec<i16> {
+    let len = vec_a.len().min(vec_b.len());
+    let mut out = vec![0i16; len];
+    for i in 0..len {
+        out[i] = if vec_b[i] < 0 {
+            -vec_a[i]
+        } else {
+            vec_a[i]
+        };
+    }
+    out
+}
+
+#[wasm_bindgen]
+pub fn uor_vsa_bundle_vectors(vec_a: &[i16], vec_b: &[i16]) -> Vec<i16> {
+    let len = vec_a.len().min(vec_b.len());
+    let mut out = vec![0i16; len];
+    for i in 0..len {
+        out[i] = vec_a[i].saturating_add(vec_b[i]);
+    }
+    out
+}

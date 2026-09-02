@@ -64,6 +64,14 @@ export class InteractiveChatSession {
     score_candidates_json(candidates_json: string): string;
 }
 
+export function uor_fast_hadamard_transform(input: Int32Array): Int32Array;
+
+export function uor_matmul(input: Int32Array, weights: Int32Array, rows: number, cols: number): Int32Array;
+
+export function uor_vsa_bind_vectors(vec_a: Int16Array, vec_b: Int16Array): Int16Array;
+
+export function uor_vsa_bundle_vectors(vec_a: Int16Array, vec_b: Int16Array): Int16Array;
+
 export function wasm_bundle_project(html_content: string, css_content: string, js_content: string): string;
 
 export function wasm_calculate_code_stats(code: string): string;
@@ -102,6 +110,10 @@ export interface InitOutput {
     readonly interactivechatsession_process_input_run: (a: number, b: number, c: number) => [number, number];
     readonly interactivechatsession_reset: (a: number) => void;
     readonly interactivechatsession_score_candidates_json: (a: number, b: number, c: number) => [number, number];
+    readonly uor_fast_hadamard_transform: (a: number, b: number) => [number, number];
+    readonly uor_matmul: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number];
+    readonly uor_vsa_bind_vectors: (a: number, b: number, c: number, d: number) => [number, number];
+    readonly uor_vsa_bundle_vectors: (a: number, b: number, c: number, d: number) => [number, number];
     readonly wasm_bundle_project: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number];
     readonly wasm_calculate_code_stats: (a: number, b: number) => [number, number];
     readonly wasm_canonical_uor_address: (a: number, b: number) => [number, number];

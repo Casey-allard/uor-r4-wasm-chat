@@ -273,6 +273,69 @@ export class InteractiveChatSession {
 if (Symbol.dispose) InteractiveChatSession.prototype[Symbol.dispose] = InteractiveChatSession.prototype.free;
 
 /**
+ * @param {Int32Array} input
+ * @returns {Int32Array}
+ */
+export function uor_fast_hadamard_transform(input) {
+    const ptr0 = passArray32ToWasm0(input, wasm.__wbindgen_malloc);
+    const len0 = WASM_VECTOR_LEN;
+    const ret = wasm.uor_fast_hadamard_transform(ptr0, len0);
+    var v2 = getArrayI32FromWasm0(ret[0], ret[1]).slice();
+    wasm.__wbindgen_free(ret[0], ret[1] * 4, 4);
+    return v2;
+}
+
+/**
+ * @param {Int32Array} input
+ * @param {Int32Array} weights
+ * @param {number} rows
+ * @param {number} cols
+ * @returns {Int32Array}
+ */
+export function uor_matmul(input, weights, rows, cols) {
+    const ptr0 = passArray32ToWasm0(input, wasm.__wbindgen_malloc);
+    const len0 = WASM_VECTOR_LEN;
+    const ptr1 = passArray32ToWasm0(weights, wasm.__wbindgen_malloc);
+    const len1 = WASM_VECTOR_LEN;
+    const ret = wasm.uor_matmul(ptr0, len0, ptr1, len1, rows, cols);
+    var v3 = getArrayI32FromWasm0(ret[0], ret[1]).slice();
+    wasm.__wbindgen_free(ret[0], ret[1] * 4, 4);
+    return v3;
+}
+
+/**
+ * @param {Int16Array} vec_a
+ * @param {Int16Array} vec_b
+ * @returns {Int16Array}
+ */
+export function uor_vsa_bind_vectors(vec_a, vec_b) {
+    const ptr0 = passArray16ToWasm0(vec_a, wasm.__wbindgen_malloc);
+    const len0 = WASM_VECTOR_LEN;
+    const ptr1 = passArray16ToWasm0(vec_b, wasm.__wbindgen_malloc);
+    const len1 = WASM_VECTOR_LEN;
+    const ret = wasm.uor_vsa_bind_vectors(ptr0, len0, ptr1, len1);
+    var v3 = getArrayI16FromWasm0(ret[0], ret[1]).slice();
+    wasm.__wbindgen_free(ret[0], ret[1] * 2, 2);
+    return v3;
+}
+
+/**
+ * @param {Int16Array} vec_a
+ * @param {Int16Array} vec_b
+ * @returns {Int16Array}
+ */
+export function uor_vsa_bundle_vectors(vec_a, vec_b) {
+    const ptr0 = passArray16ToWasm0(vec_a, wasm.__wbindgen_malloc);
+    const len0 = WASM_VECTOR_LEN;
+    const ptr1 = passArray16ToWasm0(vec_b, wasm.__wbindgen_malloc);
+    const len1 = WASM_VECTOR_LEN;
+    const ret = wasm.uor_vsa_bundle_vectors(ptr0, len0, ptr1, len1);
+    var v3 = getArrayI16FromWasm0(ret[0], ret[1]).slice();
+    wasm.__wbindgen_free(ret[0], ret[1] * 2, 2);
+    return v3;
+}
+
+/**
  * @param {string} html_content
  * @param {string} css_content
  * @param {string} js_content
@@ -440,13 +503,47 @@ const InteractiveChatSessionFinalization = (typeof FinalizationRegistry === 'und
     ? { register: () => {}, unregister: () => {} }
     : new FinalizationRegistry(ptr => wasm.__wbg_interactivechatsession_free(ptr, 1));
 
+function getArrayI16FromWasm0(ptr, len) {
+    ptr = ptr >>> 0;
+    return getInt16ArrayMemory0().subarray(ptr / 2, ptr / 2 + len);
+}
+
+function getArrayI32FromWasm0(ptr, len) {
+    ptr = ptr >>> 0;
+    return getInt32ArrayMemory0().subarray(ptr / 4, ptr / 4 + len);
+}
+
 function getArrayU8FromWasm0(ptr, len) {
     ptr = ptr >>> 0;
     return getUint8ArrayMemory0().subarray(ptr / 1, ptr / 1 + len);
 }
 
+let cachedInt16ArrayMemory0 = null;
+function getInt16ArrayMemory0() {
+    if (cachedInt16ArrayMemory0 === null || cachedInt16ArrayMemory0.byteLength === 0) {
+        cachedInt16ArrayMemory0 = new Int16Array(wasm.memory.buffer);
+    }
+    return cachedInt16ArrayMemory0;
+}
+
+let cachedInt32ArrayMemory0 = null;
+function getInt32ArrayMemory0() {
+    if (cachedInt32ArrayMemory0 === null || cachedInt32ArrayMemory0.byteLength === 0) {
+        cachedInt32ArrayMemory0 = new Int32Array(wasm.memory.buffer);
+    }
+    return cachedInt32ArrayMemory0;
+}
+
 function getStringFromWasm0(ptr, len) {
     return decodeText(ptr >>> 0, len);
+}
+
+let cachedUint16ArrayMemory0 = null;
+function getUint16ArrayMemory0() {
+    if (cachedUint16ArrayMemory0 === null || cachedUint16ArrayMemory0.byteLength === 0) {
+        cachedUint16ArrayMemory0 = new Uint16Array(wasm.memory.buffer);
+    }
+    return cachedUint16ArrayMemory0;
 }
 
 let cachedUint32ArrayMemory0 = null;
@@ -463,6 +560,13 @@ function getUint8ArrayMemory0() {
         cachedUint8ArrayMemory0 = new Uint8Array(wasm.memory.buffer);
     }
     return cachedUint8ArrayMemory0;
+}
+
+function passArray16ToWasm0(arg, malloc) {
+    const ptr = malloc(arg.length * 2, 2) >>> 0;
+    getUint16ArrayMemory0().set(arg, ptr / 2);
+    WASM_VECTOR_LEN = arg.length;
+    return ptr;
 }
 
 function passArray32ToWasm0(arg, malloc) {
@@ -550,6 +654,9 @@ function __wbg_finalize_init(instance, module) {
     wasmInstance = instance;
     wasm = instance.exports;
     wasmModule = module;
+    cachedInt16ArrayMemory0 = null;
+    cachedInt32ArrayMemory0 = null;
+    cachedUint16ArrayMemory0 = null;
     cachedUint32ArrayMemory0 = null;
     cachedUint8ArrayMemory0 = null;
     wasm.__wbindgen_start();

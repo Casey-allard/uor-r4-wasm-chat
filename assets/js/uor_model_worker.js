@@ -1,5 +1,5 @@
 // =====================================================================
-// UOR-R4 SOVEREIGN IN-BROWSER MODEL WORKER (Web Worker v3.4.1)
+// UOR-R4 SOVEREIGN IN-BROWSER MODEL WORKER (Web Worker v3.4.2)
 // 100% Sovereign Local Transformers Engine, Zero Hangs, Full Offline Execution
 // =====================================================================
 
@@ -35,7 +35,8 @@ async function ensureTransformersLoaded() {
 
         if (env.backends && env.backends.onnx && env.backends.onnx.wasm) {
             const isIsolated = (typeof self !== 'undefined' && self.crossOriginIsolated);
-            env.backends.onnx.wasm.numThreads = isIsolated ? Math.min(8, (typeof navigator !== 'undefined' && navigator.hardwareConcurrency) ? navigator.hardwareConcurrency : 4) : 1;
+            env.backends.onnx.wasm.numThreads = (typeof navigator !== 'undefined' && navigator.hardwareConcurrency) ? Math.min(8, navigator.hardwareConcurrency) : 8;
+            env.backends.onnx.wasm.proxy = false;
             env.backends.onnx.wasm.simd = true;
         }
     }
@@ -183,7 +184,15 @@ async function getOrLoadPipeline(modelId, onProgress) {
         activeModelId = null;
     }
 
-    let device = (typeof navigator !== 'undefined' && navigator.gpu) ? 'webgpu' : 'wasm';
+    let device = 'wasm';
+    if (typeof navigator !== 'undefined' && navigator.gpu) {
+        try {
+            const adapter = await navigator.gpu.requestAdapter({ powerPreference: 'high-performance' });
+            if (adapter) device = 'webgpu';
+        } catch(e) {
+            device = 'wasm';
+        }
+    }
     let targetDtype = 'q4';
 
     try {
