@@ -542,11 +542,14 @@
         .chat-scroll-area {
             flex: 1;
             overflow-y: auto;
-            padding: 1.5rem 1.25rem 10.5rem 1.25rem;
+            padding: 1.5rem 1.25rem 15rem 1.25rem;
             display: flex;
             flex-direction: column;
             align-items: center;
             scroll-behavior: smooth;
+        }
+        .message-row {
+            scroll-margin-bottom: 200px;
         }
 
         .ai-thinking-state {
@@ -5607,7 +5610,13 @@
 
                 function scrollDown() {
             const scrollArea = document.getElementById('chatScrollArea');
-            if (scrollArea) scrollArea.scrollTop = scrollArea.scrollHeight;
+            if (scrollArea) {
+                scrollArea.scrollTop = scrollArea.scrollHeight;
+                const lastRow = scrollArea.querySelector('.message-row:last-child');
+                if (lastRow) {
+                    lastRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
+            }
         }
 
         // --- UNICODE MATHEMATICAL CHARACTERS & BROKEN DERIVATION NORMALIZER ---
