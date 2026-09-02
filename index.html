@@ -2875,6 +2875,11 @@
                     <div class="code-block-header">
                         <span class="code-lang-label">${escapeHtml(language)}</span>
                         <div class="code-action-group">
+                            ${(language === 'bash' || language === 'sh' || language === 'zsh' || language === 'shell' || language === 'terminal' || language === 'cargo') ? `
+                                <button class="code-editor-btn" style="color:var(--accent-green); border-color:rgba(16,185,129,0.4);" onclick="runCodeBlockInTerminal(this)" title="Execute in Local Terminal">
+                                    <span>▶️</span> Run in Terminal
+                                </button>
+                            ` : ''}
                             <button class="code-editor-btn" onclick="openCodeInDiffViewer(this)" title="Compare Diff in Monaco">
                                 <span>⚖️</span> Diff
                             </button>
