@@ -1768,36 +1768,264 @@ pub fn wasm_myers_diff(original: &str, modified: &str) -> String {
 }
 
 // =====================================================================
-// DETERMINISTIC FAST MATH EVALUATOR (AST-BASED, ZERO HALLUCINATION)
+// UOR-FRAMEWORK MODULO-256 ($\mathbb{Z}_{256}$) ARITHMETIC & BLAS MATMUL KERNEL
+// =====================================================================
+
+/// High-Performance UOR Modulo-256 ($\mathbb{Z}/256\mathbb{Z}$) Arithmetic Substrate
+pub struct UorMod256;
+
+impl UorMod256 {
+    /// Byte-exact modular addition in Z_256
+    #[inline(always)]
+    pub fn add(a: u8, b: u8) -> u8 {
+        a.wrapping_add(b)
+    }
+
+    /// Byte-exact modular subtraction in Z_256
+    #[inline(always)]
+    pub fn sub(a: u8, b: u8) -> u8 {
+        a.wrapping_sub(b)
+    }
+
+    /// Byte-exact modular multiplication in Z_256
+    #[inline(always)]
+    pub fn mul(a: u8, b: u8) -> u8 {
+        a.wrapping_mul(b)
+    }
+
+    /// Fast Hensel lifting / Newton-Raphson modular inverse in Z_256
+    /// Valid for all odd numbers (coprime to 256). Returns None for even numbers.
+    pub fn inverse(a: u8) -> Option<u8> {
+        if a % 2 == 0 {
+            return None; // Even numbers are zero divisors in Z_256
+        }
+        // Hensel Lifting: x_{k+1} = x_k * (2 - a * x_k) mod 2^{2^k}
+        let mut x = a; // x = a mod 4
+        x = x.wrapping_mul(2u8.wrapping_sub(a.wrapping_mul(x))); // mod 16
+        x = x.wrapping_mul(2u8.wrapping_sub(a.wrapping_mul(x))); // mod 256
+        Some(x)
+    }
+
+    /// Exponentiation by squaring in Z_256: (base^exp) mod 256
+    pub fn pow(mut base: u8, mut exp: u64) -> u8 {
+        let mut result = 1u8;
+        while exp > 0 {
+            if exp % 2 == 1 {
+                result = result.wrapping_mul(base);
+            }
+            base = base.wrapping_mul(base);
+            exp /= 2;
+        }
+        result
+    }
+
+    /// Euclidean Greatest Common Divisor
+    pub fn gcd(mut a: u64, mut b: u64) -> u64 {
+        while b != 0 {
+            let temp = b;
+            b = a % b;
+            a = temp;
+        }
+        a
+    }
+
+    /// Prime factorization of any integer up to 64-bit
+    pub fn prime_factors(mut n: u64) -> Vec<u64> {
+        let mut factors = Vec::new();
+        if n == 0 {
+            return factors;
+        }
+        // Extract 2s (2-adic valuation)
+        while n % 2 == 0 {
+            factors.push(2);
+            n /= 2;
+        }
+        // Odd factors
+        let mut d = 3;
+        while d * d <= n {
+            while n % d == 0 {
+                factors.push(d);
+                n /= d;
+            }
+            d += 2;
+        }
+        if n > 1 {
+            factors.push(n);
+        }
+        factors
+    }
+
+    /// Residue Number System (RNS) decomposition across coprime moduli
+    pub fn rns_decompose(val: u64, moduli: &[u8]) -> Vec<u8> {
+        moduli.iter().map(|&m| (val % (m as u64)) as u8).collect()
+    }
+}
+
+// =====================================================================
+// BLAS-COMPLIANT UOR MATRIX MULTIPLICATION (GEMM & EXACT DOT PRODUCTS)
+// =====================================================================
+
+#[wasm_bindgen]
+pub fn wasm_uor_gemm_mod256(a: &[u8], b: &[u8], m: usize, k: usize, n: usize) -> Vec<u8> {
+    if a.len() != m * k || b.len() != k * n {
+        return Vec::new();
+    }
+    let mut c = vec![0u8; m * n];
+
+    // Cache-tiled blocked GEMM kernel
+    const TILE: usize = 16;
+    for i0 in (0..m).step_by(TILE) {
+        let imax = (i0 + TILE).min(m);
+        for j0 in (0..n).step_by(TILE) {
+            let jmax = (j0 + TILE).min(n);
+            for p0 in (0..k).step_by(TILE) {
+                let pmax = (p0 + TILE).min(k);
+                for i in i0..imax {
+                    for p in p0..pmax {
+                        let a_val = a[i * k + p];
+                        if a_val == 0 { continue; }
+                        for j in j0..jmax {
+                            let b_val = b[p * n + j];
+                            c[i * n + j] = c[i * n + j].wrapping_add(a_val.wrapping_mul(b_val));
+                        }
+                    }
+                }
+            }
+        }
+    }
+    c
+}
+
+#[wasm_bindgen]
+pub fn wasm_uor_dot_exact(a: &[i32], b: &[i32]) -> i64 {
+    let len = a.len().min(b.len());
+    let mut acc: i64 = 0;
+    for i in 0..len {
+        acc += (a[i] as i64) * (b[i] as i64);
+    }
+    acc
+}
+
+// =====================================================================
+// COMPREHENSIVE UOR DETERMINISTIC MATHEMATICAL EVALUATOR
+// Evaluates Arithmetic, Powers, Modulo 256, Factoring, GCD, and Inverses
 // =====================================================================
 
 #[wasm_bindgen]
 pub fn wasm_deterministic_math(expr: &str) -> String {
-    let clean: String = expr.chars().filter(|c| !c.is_whitespace()).collect();
+    let clean = expr.trim();
+    let lower = clean.to_lowercase();
+
+    // 1. Prime Factorization Query: e.g. "factor 256" or "factors of 120"
+    if lower.starts_with("factor") {
+        let num_str: String = lower.chars().filter(|c| c.is_digit(10)).collect();
+        if let Ok(num) = num_str.parse::<u64>() {
+            let factors = UorMod256::prime_factors(num);
+            let formatted_factors = if factors.is_empty() {
+                "none".to_string()
+            } else {
+                factors.iter().map(|f| f.to_string()).collect::<Vec<_>>().join(" × ")
+            };
+            return format!("Prime factors of {}: {}", num, formatted_factors);
+        }
+    }
+
+    // 2. Greatest Common Divisor (GCD): e.g. "gcd(48, 18)" or "gcd 48 18"
+    if lower.starts_with("gcd") {
+        let nums: Vec<u64> = lower
+            .replace("gcd", "")
+            .replace('(', " ")
+            .replace(')', " ")
+            .replace(',', " ")
+            .split_whitespace()
+            .filter_map(|s| s.parse::<u64>().ok())
+            .collect();
+        if nums.len() >= 2 {
+            let res = UorMod256::gcd(nums[0], nums[1]);
+            return format!("gcd({}, {}) = {}", nums[0], nums[1], res);
+        }
+    }
+
+    // 1. Modular Inverse in Z_256: e.g. "inv 7 mod 256", "inverse 7", "inv(7)"
+    if lower.contains("inv") || lower.contains("inverse") {
+        // Extract the number to invert
+        let clean_inv = lower.replace("mod 256", "").replace("256", "");
+        let num_str: String = clean_inv.chars().filter(|c| c.is_digit(10)).collect();
+        let target_num = if num_str.is_empty() {
+            // fallback to original digits
+            lower.chars().filter(|c| c.is_digit(10)).collect()
+        } else {
+            num_str
+        };
+        if let Ok(num) = target_num.parse::<u64>() {
+            let byte_val = (num % 256) as u8;
+            if let Some(inv) = UorMod256::inverse(byte_val) {
+                return format!("Modular inverse of {} in ℤ₂₅₆: {} (since {} × {} ≡ 1 mod 256)", byte_val, inv, byte_val, inv);
+            } else {
+                return format!("{} has no modular inverse in ℤ₂₅₆ (it is an even zero-divisor)", byte_val);
+            }
+        }
+    }
+
+    // 2. Modulo Arithmetic: e.g. "300 mod 256" or "300 % 256"
+    if lower.contains("mod") || lower.contains('%') {
+        let parts: Vec<&str> = if lower.contains("mod") {
+            lower.split("mod").collect()
+        } else {
+            lower.split('%').collect()
+        };
+        if parts.len() == 2 {
+            let left_str: String = parts[0].chars().filter(|c| c.is_digit(10) || *c == '-' || *c == '+' || *c == '*' || *c == '^').collect();
+            let right_str: String = parts[1].chars().filter(|c| c.is_digit(10)).collect();
+            if let Ok(m) = right_str.parse::<u64>() {
+                if m > 0 {
+                    // Evaluate left expression if power
+                    if left_str.contains('^') {
+                        let pow_parts: Vec<&str> = left_str.split('^').collect();
+                        if pow_parts.len() == 2 {
+                            if let (Ok(base), Ok(exp)) = (pow_parts[0].parse::<u64>(), pow_parts[1].parse::<u64>()) {
+                                if m == 256 {
+                                    let res = UorMod256::pow((base % 256) as u8, exp);
+                                    return format!("{}^{} mod 256 = {}", base, exp, res);
+                                }
+                            }
+                        }
+                    }
+                    if let Ok(val) = left_str.parse::<i64>() {
+                        let rem = val.rem_euclid(m as i64);
+                        return format!("{} mod {} = {}", val, m, rem);
+                    }
+                }
+            }
+        }
+    }
+
+    // 5. Standard Arithmetic & Power Expressions
+    let expr_clean: String = clean.chars().filter(|c| !c.is_whitespace()).collect();
     
     // Check for power (e.g. 2^10 or 2**10)
-    if let Some(pos) = clean.find('^') {
-        let (left, right) = clean.split_at(pos);
+    if let Some(pos) = expr_clean.find('^') {
+        let (left, right) = expr_clean.split_at(pos);
         if let (Ok(base), Ok(exp)) = (left.parse::<f64>(), right[1..].parse::<f64>()) {
             return format!("{}", base.powf(exp));
         }
     }
-    if let Some(pos) = clean.find("**") {
-        let (left, right) = clean.split_at(pos);
+    if let Some(pos) = expr_clean.find("**") {
+        let (left, right) = expr_clean.split_at(pos);
         if let (Ok(base), Ok(exp)) = (left.parse::<f64>(), right[2..].parse::<f64>()) {
             return format!("{}", base.powf(exp));
         }
     }
 
     // Multiplication / Division
-    if let Some(pos) = clean.find('*') {
-        let (left, right) = clean.split_at(pos);
+    if let Some(pos) = expr_clean.find('*') {
+        let (left, right) = expr_clean.split_at(pos);
         if let (Ok(a), Ok(b)) = (left.parse::<f64>(), right[1..].parse::<f64>()) {
             return format!("{}", a * b);
         }
     }
-    if let Some(pos) = clean.find('/') {
-        let (left, right) = clean.split_at(pos);
+    if let Some(pos) = expr_clean.find('/') {
+        let (left, right) = expr_clean.split_at(pos);
         if let (Ok(a), Ok(b)) = (left.parse::<f64>(), right[1..].parse::<f64>()) {
             if b != 0.0 {
                 return format!("{}", a / b);
@@ -1806,15 +2034,15 @@ pub fn wasm_deterministic_math(expr: &str) -> String {
     }
 
     // Addition / Subtraction
-    if let Some(pos) = clean.rfind('+') {
-        let (left, right) = clean.split_at(pos);
+    if let Some(pos) = expr_clean.rfind('+') {
+        let (left, right) = expr_clean.split_at(pos);
         if let (Ok(a), Ok(b)) = (left.parse::<f64>(), right[1..].parse::<f64>()) {
             return format!("{}", a + b);
         }
     }
-    if let Some(pos) = clean.rfind('-') {
+    if let Some(pos) = expr_clean.rfind('-') {
         if pos > 0 {
-            let (left, right) = clean.split_at(pos);
+            let (left, right) = expr_clean.split_at(pos);
             if let (Ok(a), Ok(b)) = (left.parse::<f64>(), right[1..].parse::<f64>()) {
                 return format!("{}", a - b);
             }
@@ -1823,6 +2051,7 @@ pub fn wasm_deterministic_math(expr: &str) -> String {
 
     "".to_string()
 }
+
 
 // =====================================================================
 // CANONICAL UOR 64-BIT ADDRESS ENCODER
@@ -1840,6 +2069,45 @@ pub fn wasm_canonical_uor_address(data: &str) -> String {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn test_uor_mod256_inverses_and_powers() {
+        // Test Hensel Lifting Modular Inverse in Z_256
+        assert_eq!(UorMod256::inverse(3), Some(171)); // 3 * 171 = 513 = 2 * 256 + 1
+        assert_eq!(UorMod256::inverse(7), Some(183)); // 7 * 183 = 1281 = 5 * 256 + 1
+        assert_eq!(UorMod256::inverse(4), None); // Even numbers have no inverse
+
+        // Test Powers in Z_256
+        assert_eq!(UorMod256::pow(2, 8), 0); // 2^8 = 256 = 0 mod 256
+        assert_eq!(UorMod256::pow(3, 4), 81); // 3^4 = 81 mod 256
+
+        // Test Prime Factorization
+        assert_eq!(UorMod256::prime_factors(120), vec![2, 2, 2, 3, 5]);
+        assert_eq!(UorMod256::prime_factors(256), vec![2, 2, 2, 2, 2, 2, 2, 2]);
+
+        // Test GCD
+        assert_eq!(UorMod256::gcd(48, 18), 6);
+    }
+
+    #[test]
+    fn test_uor_gemm_mod256() {
+        // 2x2 matrix multiplication in Z_256
+        let a = vec![1u8, 2u8, 3u8, 4u8];
+        let b = vec![5u8, 6u8, 7u8, 8u8];
+        // C = [[1*5 + 2*7, 1*6 + 2*8], [3*5 + 4*7, 3*6 + 4*8]] = [[19, 22], [43, 50]]
+        let c = wasm_uor_gemm_mod256(&a, &b, 2, 2, 2);
+        assert_eq!(c, vec![19, 22, 43, 50]);
+    }
+
+    #[test]
+    fn test_deterministic_math_evaluator_extended() {
+        assert_eq!(wasm_deterministic_math("15 * 14"), "210");
+        assert_eq!(wasm_deterministic_math("2^10"), "1024");
+        assert_eq!(wasm_deterministic_math("factor 120"), "Prime factors of 120: 2 × 2 × 2 × 3 × 5");
+        assert_eq!(wasm_deterministic_math("gcd(48, 18)"), "gcd(48, 18) = 6");
+        assert!(wasm_deterministic_math("inv 7 mod 256").contains("183"));
+        assert_eq!(wasm_deterministic_math("300 mod 256"), "300 mod 256 = 44");
+    }
+
     use super::*;
 
     #[test]

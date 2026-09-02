@@ -74,6 +74,10 @@ export function wasm_deterministic_math(expr: string): string;
 
 export function wasm_myers_diff(original: string, modified: string): string;
 
+export function wasm_uor_dot_exact(a: Int32Array, b: Int32Array): bigint;
+
+export function wasm_uor_gemm_mod256(a: Uint8Array, b: Uint8Array, m: number, k: number, n: number): Uint8Array;
+
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
 
 export interface InitOutput {
@@ -103,6 +107,8 @@ export interface InitOutput {
     readonly wasm_canonical_uor_address: (a: number, b: number) => [number, number];
     readonly wasm_deterministic_math: (a: number, b: number) => [number, number];
     readonly wasm_myers_diff: (a: number, b: number, c: number, d: number) => [number, number];
+    readonly wasm_uor_dot_exact: (a: number, b: number, c: number, d: number) => bigint;
+    readonly wasm_uor_gemm_mod256: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number];
     readonly __wbindgen_externrefs: WebAssembly.Table;
     readonly __wbindgen_malloc: (a: number, b: number) => number;
     readonly __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;

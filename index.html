@@ -5956,25 +5956,26 @@
             container.appendChild(aiThinkingRow);
             scrollDown();
 
-            // 2. --- ⚡ INSTANT RUST WASM DETERMINISTIC MATH FAST-PATH ---
+            // 2. --- ⚡ INSTANT RUST WASM UOR-FRAMEWORK DETERMINISTIC MATH FAST-PATH ---
             if (window.wasmModule && typeof window.wasmModule.wasm_deterministic_math === 'function') {
-                const mathMatch = userPrompt.match(/(?:what\s+is\s+|calculate\s+|solve\s+|evaluate\s+)?([0-9\.\s\+\-\*\/\^\(\)]+)/i);
-                if (mathMatch && mathMatch[1]) {
-                    const cleanExpr = mathMatch[1].trim();
-                    if (/^[\d\.\+\-\*\/\^\(\)\s]+$/.test(cleanExpr) && /[0-9]/.test(cleanExpr) && /[\+\-\*\/\^]/.test(cleanExpr)) {
-                        const mathRes = window.wasmModule.wasm_deterministic_math(cleanExpr);
-                        if (mathRes && mathRes.trim()) {
-                            setTimeout(() => {
-                                finalizeChatGeneration(activeGenerationId, `**Answer:** \`${cleanExpr} = ${mathRes}\`\n\n*(Computed deterministically with zero hallucination via UOR-R4 Rust WASM Math Substrate)*`, '1000.0', 16);
-                            }, 50);
-                            return;
-                        }
+                const promptLower = userPrompt.toLowerCase().trim();
+                const isMathQuery = /(?:what\s+is\s+|calculate\s+|solve\s+|evaluate\s+|compute\s+|factor\s+|gcd\s+|inv\s+|inverse\s+|mod\s+)/i.test(promptLower) || 
+                                    /^[0-9\.\s\+\-\*\/\^\(\)%modinvgcd]+$/i.test(promptLower);
+                
+                if (isDeterministicMath) {
+                    const cleanQuery = promptLower.replace(/^(?:what\s+is\s+|calculate\s+|solve\s+|evaluate\s+|compute\s+)/i, '').trim();
+                    const mathRes = window.wasmModule.wasm_deterministic_math(cleanQuery);
+                    if (mathRes && mathRes.trim()) {
+                        setTimeout(() => {
+                            finalizeChatGeneration(activeGenerationId, `**Answer:** \n\n${mathRes}\n\n*(Computed deterministically with zero hallucination via UOR-Framework $\\mathbb{Z}_{256}$ Substrate)*`, '1000.0', 16);
+                        }, 50);
+                        return;
                     }
                 }
             }
 
             // Check for math or factual query to enforce deterministic precision
-            const isMathQuery = /^(\s*[\d\.\+\-\*\/\^\(\)\s%]+|\s*(what\s+is|calculate|solve|evaluate)\s+[\d\.\+\-\*\/\^\(\)\s%]+)/i.test(userPrompt);
+            const isDeterministicMath = /^(\s*[\d\.\+\-\*\/\^\(\)\s%]+|\s*(what\s+is|calculate|solve|evaluate)\s+[\d\.\+\-\*\/\^\(\)\s%]+)/i.test(userPrompt);
             const isShortFact = userPrompt.length < 50 && (/^(who|when|where|what|how\s+many|is\s+it)\b/i.test(userPrompt));
 
             let dynamicMaxTokens = 1024;
@@ -5982,7 +5983,7 @@
             let dynamicTopP = 0.9;
             let dynamicRepPenalty = 1.1;
 
-            if (isMathQuery) {
+            if (isDeterministicMath) {
                 dynamicMaxTokens = 128;
                 dynamicTemp = 0.0; // Greedy / exact arithmetic
                 dynamicRepPenalty = 1.15;
@@ -6002,7 +6003,7 @@
                     payload: {
                         messages: messagesPayload,
                         options: {
-                            is_math_or_fact: (isMathQuery || isShortFact),
+                            is_math_or_fact: (isDeterministicMath || isShortFact),
                             max_new_tokens: dynamicMaxTokens,
                             temperature: dynamicTemp,
                             top_p: dynamicTopP,
