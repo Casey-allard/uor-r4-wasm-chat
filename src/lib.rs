@@ -181,21 +181,31 @@ impl VsaVector {
         Self { elements }
     }
 
-    pub const fn project_to_8d_with_matrix(&self, matrix: &[[i16; VSA_DIM]; 8]) -> [i32; 8] {
+    /// SIMD-parallelized projection from 512D VSA space to 8D E8 lattice space
+    pub fn project_to_8d_with_matrix(&self, matrix: &[[i16; VSA_DIM]; 8]) -> [i32; 8] {
         let mut output = [0i32; 8];
-        let mut b = 0;
-
-        while b < 8 {
+        for b in 0..8 {
             let mut dot_sum = 0i64;
+            let row = &matrix[b];
             let mut i = 0;
+            // 8x unrolled loop for compiler auto-vectorization into 128-bit SIMD registers
+            while i + 8 <= VSA_DIM {
+                dot_sum += (self.elements[i] as i64) * (row[i] as i64)
+                    + (self.elements[i + 1] as i64) * (row[i + 1] as i64)
+                    + (self.elements[i + 2] as i64) * (row[i + 2] as i64)
+                    + (self.elements[i + 3] as i64) * (row[i + 3] as i64)
+                    + (self.elements[i + 4] as i64) * (row[i + 4] as i64)
+                    + (self.elements[i + 5] as i64) * (row[i + 5] as i64)
+                    + (self.elements[i + 6] as i64) * (row[i + 6] as i64)
+                    + (self.elements[i + 7] as i64) * (row[i + 7] as i64);
+                i += 8;
+            }
             while i < VSA_DIM {
-                dot_sum += (self.elements[i] as i64) * (matrix[b][i] as i64);
+                dot_sum += (self.elements[i] as i64) * (row[i] as i64);
                 i += 1;
             }
             output[b] = (dot_sum << 1) as i32;
-            b += 1;
         }
-
         output
     }
 }

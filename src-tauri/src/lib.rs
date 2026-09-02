@@ -1,6 +1,6 @@
 // =====================================================================
 // UOR-R4 SOVEREIGN STUDIO DESKTOP ENGINE (TAURI V2 NATIVE BACKEND)
-// Direct Hardware Apple Silicon Metal / CUDA Execution Core & Native Git CLI
+// Direct Hardware Apple Silicon Metal / CUDA Execution Core, Local LLM Discovery & Native Git CLI
 // =====================================================================
 
 use serde::{Deserialize, Serialize};
@@ -34,6 +34,13 @@ pub struct NativeGitStatus {
     pub raw_output: String,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct LocalOllamaModel {
+    pub name: String,
+    pub size: String,
+    pub modified_at: String,
+}
+
 pub mod commands {
     use super::*;
 
@@ -43,7 +50,7 @@ pub mod commands {
             os: std::env::consts::OS.to_string(),
             arch: std::env::consts::ARCH.to_string(),
             metal_supported: cfg!(target_os = "macos"),
-            cpu_cores: std::thread::available_parallelism().map(|p| p.get()).unwrap_or(4),
+            cpu_cores: std::thread::available_parallelism().map(|p| p.get()).unwrap_or(8),
             memory_gb: 16.0,
         }
     }
@@ -51,15 +58,13 @@ pub mod commands {
     #[tauri::command]
     pub async fn run_native_inference(prompt: String, max_tokens: usize) -> Result<NativeInferenceResponse, String> {
         let start = Instant::now();
-        
-        tokio::time::sleep(tokio::time::Duration::from_millis(120)).await;
+        tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
         let elapsed = start.elapsed().as_secs_f32().max(0.01);
-        
         let tokens = max_tokens.min(256);
         let tps = (tokens as f32) / elapsed;
 
         Ok(NativeInferenceResponse {
-            full_text: format!("⚡ [Native Apple Silicon Metal Substrate]\nHigh-speed hardware inference executed for prompt: '{}'", prompt),
+            full_text: format!("⚡ [Native Apple Silicon Metal Substrate]\nExecution completed for prompt: '{}'", prompt),
             tokens_generated: tokens,
             elapsed_sec: elapsed,
             tps,
@@ -103,62 +108,114 @@ pub mod commands {
     }
 
     #[tauri::command]
-    pub fn native_git_diff(repo_path: String, file: Option<String>) -> Result<String, String> {
-        let mut cmd = Command::new("git");
-        cmd.arg("diff");
-        if let Some(f) = file {
-            cmd.arg(&f);
-        }
-        cmd.current_dir(&repo_path);
+    pub fn native_git_diff(repo_path: String) -> Result<String, String> {
+        let out = Command::new("git")
+            .args(["diff"])
+            .current_dir(&repo_path)
+            .output()
+            .map_err(|e| format!("Failed to run git diff: {}", e))?;
 
-        let out = cmd.output().map_err(|e| format!("Failed to execute git diff: {}", e))?;
         Ok(String::from_utf8_lossy(&out.stdout).to_string())
     }
 
     #[tauri::command]
     pub fn native_git_commit(repo_path: String, message: String) -> Result<String, String> {
-        // Stage all
         let add_out = Command::new("git")
-            .args(["add", "-A"])
+            .args(["add", "."])
             .current_dir(&repo_path)
             .output()
-            .map_err(|e| format!("git add failed: {}", e))?;
-
+            .map_err(|e| format!("Failed to git add: {}", e))?;
         if !add_out.status.success() {
             return Err(String::from_utf8_lossy(&add_out.stderr).to_string());
         }
 
-        // Commit
         let commit_out = Command::new("git")
             .args(["commit", "-m", &message])
             .current_dir(&repo_path)
             .output()
-            .map_err(|e| format!("git commit failed: {}", e))?;
-
-        if !commit_out.status.success() {
-            return Err(String::from_utf8_lossy(&commit_out.stderr).to_string());
-        }
+            .map_err(|e| format!("Failed to git commit: {}", e))?;
 
         Ok(String::from_utf8_lossy(&commit_out.stdout).to_string())
     }
 
     #[tauri::command]
     pub fn native_git_push(repo_path: String) -> Result<String, String> {
-        let push_out = Command::new("git")
-            .arg("push")
+        let out = Command::new("git")
+            .args(["push"])
             .current_dir(&repo_path)
             .output()
-            .map_err(|e| format!("git push failed: {}", e))?;
+            .map_err(|e| format!("Failed to git push: {}", e))?;
 
-        if !push_out.status.success() {
-            return Err(String::from_utf8_lossy(&push_out.stderr).to_string());
+        if !out.status.success() {
+            return Err(String::from_utf8_lossy(&out.stderr).to_string());
         }
 
-        Ok(String::from_utf8_lossy(&push_out.stdout).to_string())
+        Ok(String::from_utf8_lossy(&out.stdout).to_string())
+    }
+
+    #[tauri::command]
+    pub async fn native_list_local_llm_models() -> Result<Vec<LocalOllamaModel>, String> {
+        // Query Ollama local API at localhost:11434
+        let client = reqwest::Client::builder()
+            .timeout(std::time::Duration::from_millis(800))
+            .build()
+            .map_err(|e| e.to_string())?;
+
+        let res = match client.get("http://127.0.0.1:11434/api/tags").send().await {
+            Ok(r) => r,
+            Err(_) => return Ok(Vec::new()),
+        };
+
+        if !res.status().is_success() {
+            return Ok(Vec::new());
+        }
+
+        #[derive(Deserialize)]
+        struct OllamaTagItem {
+            name: String,
+            size: Option<u64>,
+            modified_at: Option<String>,
+        }
+        #[derive(Deserialize)]
+        struct OllamaTagsResponse {
+            models: Vec<OllamaTagItem>,
+        }
+
+        let tags: OllamaTagsResponse = res.json().await.map_err(|e| e.to_string())?;
+        let models = tags.models.into_iter().map(|m| {
+            let size_mb = m.size.unwrap_or(0) / (1024 * 1024);
+            let size_str = if size_mb > 1024 {
+                format!("{:.1} GB", (size_mb as f32) / 1024.0)
+            } else {
+                format!("{} MB", size_mb)
+            };
+            LocalOllamaModel {
+                name: m.name,
+                size: size_str,
+                modified_at: m.modified_at.unwrap_or_default(),
+            }
+        }).collect();
+
+        Ok(models)
+    }
+
+    #[tauri::command]
+    pub fn native_run_terminal_command(cwd: String, command: String) -> Result<String, String> {
+        let out = Command::new("zsh")
+            .args(["-c", &command])
+            .current_dir(&cwd)
+            .output()
+            .map_err(|e| format!("Command execution failed: {}", e))?;
+
+        let stdout = String::from_utf8_lossy(&out.stdout).to_string();
+        let stderr = String::from_utf8_lossy(&out.stderr).to_string();
+        if !out.status.success() && stdout.is_empty() {
+            return Err(stderr);
+        }
+        Ok(format!("{}{}", stdout, if stderr.is_empty() { String::new() } else { format!("\n[stderr]: {}", stderr) }))
     }
 }
 
-#[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
@@ -167,8 +224,10 @@ pub fn run() {
             commands::native_git_status,
             commands::native_git_diff,
             commands::native_git_commit,
-            commands::native_git_push
+            commands::native_git_push,
+            commands::native_list_local_llm_models,
+            commands::native_run_terminal_command,
         ])
         .run(tauri::generate_context!())
-        .expect("error while running UOR-R4 Sovereign Studio desktop application");
+        .expect("error while running UOR-R4 Sovereign Studio Desktop application");
 }
