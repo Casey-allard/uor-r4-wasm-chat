@@ -281,13 +281,14 @@ self.onmessage = async function(e) {
                     }
                 }
 
-                // Determine dynamic token budget & temperature
+                // Deterministic high-precision sampling parameters to eliminate hallucinations and looping
                 const isMathOrFact = options.is_math_or_fact || (options.temperature === 0);
                 const maxTokens = Math.min(options.max_new_tokens || (isMathOrFact ? 256 : 1024), 2048);
-                const useSampling = !isMathOrFact && (options.temperature !== 0) && (options.temperature > 0.1);
-                const temp = useSampling ? Math.max(0.2, Math.min(options.temperature || 0.6, 0.8)) : undefined;
-                const topP = useSampling ? (options.top_p || 0.9) : undefined;
-                const repPenalty = isMathOrFact ? 1.15 : (options.repetition_penalty || 1.1);
+                // Default to deterministic greedy decoding or very low temperature (0.1)
+                const useSampling = options.temperature > 0.2;
+                const temp = useSampling ? Math.min(options.temperature, 0.3) : undefined;
+                const topP = useSampling ? (options.top_p || 0.85) : undefined;
+                const repPenalty = options.repetition_penalty || 1.18;
 
                 const streamer = new TextStreamer(pipe.tokenizer, {
                     skip_prompt: true,

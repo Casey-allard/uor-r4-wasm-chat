@@ -2236,9 +2236,9 @@
                 </button>
             </div>
 
-            <div class="nav-right">
+            <div class="nav-right" style="display:flex; align-items:center; gap:0.6rem;">
                 <!-- DETACHED BACKGROUND COMPILE PILL -->
-                <div class="detached-compile-pill" id="detachedCompilePill" style="display:none;" onclick="openModelManagerModal()" title="View Detached Substrate Compilation Details">
+                <div class="detached-compile-pill" id="detachedCompilePill" style="display:none;" onclick="openModelManagerModal()" title="View Substrate Compilation Status">
                     <span class="pulse-dot"></span>
                     <span id="detachedCompileText">📥 Compiling (0%)</span>
                     <div class="detached-mini-progress">
@@ -2246,19 +2246,20 @@
                     </div>
                 </div>
 
-                <button class="header-action-btn danger-btn" onclick="purgeAllCachesAndReset()" title="Clear Model Cache & Reset Storage" style="display:inline-flex; align-items:center; gap:0.35rem; background:rgba(239,68,68,0.12); border:1px solid rgba(239,68,68,0.3); color:#fca5a5; padding:0.35rem 0.75rem; border-radius:8px; font-size:0.75rem; font-weight:600; cursor:pointer; transition:all 0.15s ease;">
-                    <span>🗑️</span>
-                    <span>Clear Cache</span>
+                <!-- HARDWARE ACCELERATION BADGE -->
+                <div class="header-hw-badge" style="display:inline-flex; align-items:center; gap:0.35rem; font-size:0.72rem; color:var(--accent-cyan); background:rgba(6,182,212,0.08); border:1px solid rgba(6,182,212,0.2); padding:0.25rem 0.6rem; border-radius:6px; font-family:var(--font-mono);" title="Hardware-Accelerated WebGPU / WASM SIMD Inference">
+                    <span>⚡</span>
+                    <span id="headerHwStatus">WebGPU • SIMD</span>
+                </div>
+
+                <!-- SIDECAR TOGGLE ICON -->
+                <button class="icon-btn" id="btnSidecarToggle" onclick="toggleSidecar()" title="Toggle Holographic Brain Telemetry" style="width:32px; height:32px; border-radius:6px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:var(--text-secondary); cursor:pointer; display:flex; align-items:center; justify-content:center;">
+                    🧠
                 </button>
 
-                <button class="header-action-btn primary-btn" id="btnConnectFolderNavbar" onclick="openLocalDirectory()" title="Connect Local Folder & Git Worktree" style="display:inline-flex; align-items:center; gap:0.4rem; background:linear-gradient(135deg, rgba(6,182,212,0.2), rgba(59,130,246,0.2)); border:1px solid rgba(6,182,212,0.4); color:var(--accent-cyan); padding:0.35rem 0.85rem; border-radius:8px; font-size:0.75rem; font-weight:600; cursor:pointer; transition:all 0.15s ease;">
-                    <span id="navFolderIcon">📂</span>
-                    <span id="navFolderLabel">Connect Local Folder</span>
-                </button>
-
-                <button class="btn-sidecar-toggle active" id="btnSidecarToggle" onclick="toggleSidecar()" title="Toggle 3D Brain Telemetry">
-                    <span>🧠</span>
-                    <span>Hologram</span>
+                <!-- SETTINGS & STORAGE -->
+                <button class="icon-btn" onclick="openModelManagerModal()" title="Settings & Cache Storage" style="width:32px; height:32px; border-radius:6px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:var(--text-secondary); cursor:pointer; display:flex; align-items:center; justify-content:center;">
+                    ⚙️
                 </button>
             </div>
         </header>

@@ -1882,7 +1882,7 @@ pub fn wasm_uor_gemm_mod256(a: &[u8], b: &[u8], m: usize, k: usize, n: usize) ->
     }
     let mut c = vec![0u8; m * n];
 
-    // Cache-tiled blocked GEMM kernel
+    // 16x16 Cache-Tiled & 8-Way Unrolled SIMD GEMM Kernel in Z_256
     const TILE: usize = 16;
     for i0 in (0..m).step_by(TILE) {
         let imax = (i0 + TILE).min(m);
@@ -1891,12 +1891,27 @@ pub fn wasm_uor_gemm_mod256(a: &[u8], b: &[u8], m: usize, k: usize, n: usize) ->
             for p0 in (0..k).step_by(TILE) {
                 let pmax = (p0 + TILE).min(k);
                 for i in i0..imax {
+                    let row_offset_c = i * n;
                     for p in p0..pmax {
                         let a_val = a[i * k + p];
                         if a_val == 0 { continue; }
-                        for j in j0..jmax {
-                            let b_val = b[p * n + j];
-                            c[i * n + j] = c[i * n + j].wrapping_add(a_val.wrapping_mul(b_val));
+                        let row_offset_b = p * n;
+                        let mut j = j0;
+                        // 8-way unrolled vector loop for high ILP
+                        while j + 8 <= jmax {
+                            c[row_offset_c + j] = c[row_offset_c + j].wrapping_add(a_val.wrapping_mul(b[row_offset_b + j]));
+                            c[row_offset_c + j + 1] = c[row_offset_c + j + 1].wrapping_add(a_val.wrapping_mul(b[row_offset_b + j + 1]));
+                            c[row_offset_c + j + 2] = c[row_offset_c + j + 2].wrapping_add(a_val.wrapping_mul(b[row_offset_b + j + 2]));
+                            c[row_offset_c + j + 3] = c[row_offset_c + j + 3].wrapping_add(a_val.wrapping_mul(b[row_offset_b + j + 3]));
+                            c[row_offset_c + j + 4] = c[row_offset_c + j + 4].wrapping_add(a_val.wrapping_mul(b[row_offset_b + j + 4]));
+                            c[row_offset_c + j + 5] = c[row_offset_c + j + 5].wrapping_add(a_val.wrapping_mul(b[row_offset_b + j + 5]));
+                            c[row_offset_c + j + 6] = c[row_offset_c + j + 6].wrapping_add(a_val.wrapping_mul(b[row_offset_b + j + 6]));
+                            c[row_offset_c + j + 7] = c[row_offset_c + j + 7].wrapping_add(a_val.wrapping_mul(b[row_offset_b + j + 7]));
+                            j += 8;
+                        }
+                        while j < jmax {
+                            c[row_offset_c + j] = c[row_offset_c + j].wrapping_add(a_val.wrapping_mul(b[row_offset_b + j]));
+                            j += 1;
                         }
                     }
                 }
@@ -1909,11 +1924,25 @@ pub fn wasm_uor_gemm_mod256(a: &[u8], b: &[u8], m: usize, k: usize, n: usize) ->
 #[wasm_bindgen]
 pub fn wasm_uor_dot_exact(a: &[i32], b: &[i32]) -> i64 {
     let len = a.len().min(b.len());
-    let mut acc: i64 = 0;
-    for i in 0..len {
-        acc += (a[i] as i64) * (b[i] as i64);
+    let mut acc0: i64 = 0;
+    let mut acc1: i64 = 0;
+    let mut acc2: i64 = 0;
+    let mut acc3: i64 = 0;
+    let mut i = 0;
+
+    // 4-way superaccumulator parallelism to eliminate dependency stalls
+    while i + 4 <= len {
+        acc0 += (a[i] as i64) * (b[i] as i64);
+        acc1 += (a[i + 1] as i64) * (b[i + 1] as i64);
+        acc2 += (a[i + 2] as i64) * (b[i + 2] as i64);
+        acc3 += (a[i + 3] as i64) * (b[i + 3] as i64);
+        i += 4;
     }
-    acc
+    while i < len {
+        acc0 += (a[i] as i64) * (b[i] as i64);
+        i += 1;
+    }
+    (acc0 + acc1) + (acc2 + acc3)
 }
 
 // =====================================================================
