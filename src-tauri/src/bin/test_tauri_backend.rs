@@ -24,7 +24,15 @@ async fn main() {
     assert!(hw.metal_supported, "Metal GPU must be supported on macOS");
 
     // 2. Local Repository Git Status
-    let repo_path = "/Users/casey.allard/Downloads/uor-r4-project".to_string();
+    let manifest_dir = std::path::PathBuf::from(
+        std::env::var("CARGO_MANIFEST_DIR").unwrap_or_else(|_| ".".to_string())
+    );
+    let root_path = if manifest_dir.ends_with("src-tauri") {
+        manifest_dir.parent().unwrap().to_path_buf()
+    } else {
+        manifest_dir
+    };
+    let repo_path = root_path.to_string_lossy().to_string();
     let t1 = Instant::now();
     let git_status = native_git_status(repo_path.clone()).expect("Failed native git status");
     let git_time = t1.elapsed();

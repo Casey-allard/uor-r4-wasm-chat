@@ -1,151 +1,83 @@
 {
-  "throughput_stats": {
-    "UOR-R4 (WebGPU WGSL)": {
-      "Qwen 2.5 Coder (0.5B)": {
-        "mean": 15.579224444679502,
-        "std": 0.2743623721177985,
-        "ci95_low": 15.233389136635065,
-        "ci95_high": 16.026628659884015
-      },
-      "GLM-5.3 Flash (0.5B)": {
-        "mean": 14.523269617896156,
-        "std": 0.25079739077078084,
-        "ci95_low": 14.145185454326173,
-        "ci95_high": 14.904294117852293
-      },
-      "Qwen 2.5 Instant (0.5B)": {
-        "mean": 17.489078217665273,
-        "std": 0.3860656258921067,
-        "ci95_low": 16.918423300382276,
-        "ci95_high": 18.210204925020992
-      },
-      "Qwen 2.5 Power (1.5B)": {
-        "mean": 11.106968000164407,
-        "std": 0.3259394913141818,
-        "ci95_low": 10.654724137897308,
-        "ci95_high": 11.686176459465294
-      }
+  "geometric_core": {
+    "fast_walsh_hadamard_transform_512d": {
+      "iterations": 25000,
+      "mean_latency_us": 0.6204,
+      "throughput_transforms_sec": 1611789
     },
-    "Transformers.js (WASM SIMD)": {
-      "Qwen 2.5 Coder (0.5B)": {
-        "mean": 4.749435565478212,
-        "std": 0.17087808502955767,
-        "ci95_low": 4.460195286352242,
-        "ci95_high": 4.997084941163726
-      },
-      "GLM-5.3 Flash (0.5B)": {
-        "mean": 4.539888285571552,
-        "std": 0.13385792473555147,
-        "ci95_low": 4.339459793886723,
-        "ci95_high": 4.703704456707379
-      },
-      "Qwen 2.5 Instant (0.5B)": {
-        "mean": 5.096235752128085,
-        "std": 0.208798744494819,
-        "ci95_low": 4.8060036242965305,
-        "ci95_high": 5.419220231042023
-      },
-      "Qwen 2.5 Power (1.5B)": {
-        "mean": 2.5928395815300624,
-        "std": 0.19277883122268852,
-        "ci95_low": 2.2283741807817874,
-        "ci95_high": 2.833798559106605
-      }
+    "gemm_modulo_256_64x64": {
+      "iterations": 2000,
+      "mean_latency_us": 57.4255,
+      "mops": 9129.426944,
+      "throughput_gemm_sec": 17413
     },
-    "WebLLM (TVM/WebGPU)": {
-      "Qwen 2.5 Coder (0.5B)": {
-        "mean": 13.94565134441676,
-        "std": 0.3156804954141357,
-        "ci95_low": 13.564399635359589,
-        "ci95_high": 14.50810001252094
-      },
-      "GLM-5.3 Flash (0.5B)": {
-        "mean": 13.140323442826134,
-        "std": 0.24760861475528437,
-        "ci95_low": 12.68312558763008,
-        "ci95_high": 13.526930772001007
-      },
-      "Qwen 2.5 Instant (0.5B)": {
-        "mean": 15.775281274179168,
-        "std": 0.4112844972093764,
-        "ci95_low": 15.161287644668032,
-        "ci95_high": 16.576352758110716
-      },
-      "Qwen 2.5 Power (1.5B)": {
-        "mean": 9.848255887718766,
-        "std": 0.39798366132995805,
-        "ci95_low": 9.187499912387597,
-        "ci95_high": 10.558151719654692
-      }
+    "myers_diff": {
+      "iterations": 1000,
+      "mean_latency_us": 0.44,
+      "throughput_diffs_sec": 2272298
     },
-    "ONNX Runtime Web (WASM)": {
-      "Qwen 2.5 Coder (0.5B)": {
-        "mean": 3.913984842324807,
-        "std": 0.2194958948819717,
-        "ci95_low": 3.6381389506363155,
-        "ci95_high": 4.302646365992671
-      },
-      "GLM-5.3 Flash (0.5B)": {
-        "mean": 3.6466666574288773,
-        "std": 0.17100763394558902,
-        "ci95_low": 3.4338324465506993,
-        "ci95_high": 3.9491632968034187
-      },
-      "Qwen 2.5 Instant (0.5B)": {
-        "mean": 4.187129513662964,
-        "std": 0.20469801630919493,
-        "ci95_low": 3.8605615061596392,
-        "ci95_high": 4.461568071758131
-      },
-      "Qwen 2.5 Power (1.5B)": {
-        "mean": 2.118392983610225,
-        "std": 0.09760880582940665,
-        "ci95_low": 1.969921286473442,
-        "ci95_high": 2.291243976969576
-      }
+    "vsa_binding_512d": {
+      "iterations": 100000,
+      "mean_latency_ns": 8.24625,
+      "throughput_ops_sec": 121267242
+    },
+    "vsa_bundling_512d": {
+      "iterations": 100000,
+      "mean_latency_ns": 0.45792,
+      "throughput_ops_sec": 2183787561
     }
   },
-  "ttft_ms": {
-    "UOR-R4 (WebGPU)": [
-      42.1,
-      58.4,
-      89.2,
-      142.6,
-      268.0
-    ],
-    "WebLLM (WebGPU)": [
-      58.3,
-      76.8,
-      118.5,
-      189.2,
-      345.1
-    ],
-    "Transformers.js (WASM)": [
-      145.2,
-      210.6,
-      360.4,
-      620.1,
-      1180.5
-    ],
-    "ONNX Runtime Web (WASM)": [
-      182.0,
-      265.4,
-      442.8,
-      780.2,
-      1490.0
-    ]
+  "hardware": {
+    "arch": "aarch64",
+    "cpu_cores": 8,
+    "memory_gb": 16.0,
+    "os": "macos",
+    "target": "aarch64-apple-darwin"
   },
-  "seq_lengths": [
-    64,
-    128,
-    256,
-    512,
-    1024
-  ],
-  "models": [
-    "Qwen 2.5 Coder (0.5B)",
-    "GLM-5.3 Flash (0.5B)",
-    "Qwen 2.5 Instant (0.5B)",
-    "Qwen 2.5 Power (1.5B)"
-  ]
+  "prefill_ttft_ms": {
+    "1024_tokens": {
+      "wasm_cpu": 1490.0,
+      "webgpu": 268.0
+    },
+    "256_tokens": {
+      "wasm_cpu": 410.0,
+      "webgpu": 88.0
+    },
+    "512_tokens": {
+      "wasm_cpu": 780.0,
+      "webgpu": 145.0
+    },
+    "64_tokens": {
+      "wasm_cpu": 165.0,
+      "webgpu": 42.0
+    }
+  },
+  "resident_memory_mb": {
+    "saving_pct": 56.8,
+    "unbounded_linear_kv": 740.0,
+    "uor_single_pipeline_quota": 320.0
+  },
+  "timestamp": "2026-09-02T23:32:15.790255+00:00",
+  "webgpu_throughput_tok_sec": {
+    "glm5.3-flash": {
+      "device": "WebGPU WGSL",
+      "mean": 14.8,
+      "std": 0.35
+    },
+    "qwen2.5-0.5b": {
+      "device": "WebGPU WGSL",
+      "mean": 17.6,
+      "std": 0.5
+    },
+    "qwen2.5-coder-0.5b": {
+      "device": "WebGPU WGSL",
+      "mean": 15.4,
+      "std": 0.4
+    },
+    "wasm_simd_cpu_baseline": {
+      "device": "WASM SIMD CPU",
+      "mean": 4.8,
+      "std": 0.2
+    }
+  }
 }

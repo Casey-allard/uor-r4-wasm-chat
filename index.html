@@ -2914,12 +2914,12 @@
                 name: 'Qwen 2.5 Coder 0.5B',
                 fullName: 'Qwen 2.5 Coder 0.5B (Turbo Code)',
                 icon: '💻',
-                source: 'onnx-community/Qwen2.5-0.5B-Instruct',
+                source: 'onnx-community/Qwen2.5-Coder-0.5B-Instruct',
                 localPath: './assets/models/qwen2.5-coder-0.5b',
                 size_mb: 290,
                 tier: '0.5B Turbo Code',
                 dtype: 'q4',
-                desc: 'Specialized 0.5B coding model. Ultra-fast (60+ tok/s on Apple Silicon), ideal for quick edits and single-file functions.'
+                desc: 'Specialized 0.5B coding foundation model. Ultra-fast code generation, bug fixing, and AST refactoring.'
             },
             'glm5.3-flash': {
                 id: 'glm5.3-flash',
@@ -3184,7 +3184,8 @@
             // Check for Tauri native environment first
             if (window.__TAURI__ && window.__TAURI__.core) {
                 try {
-                    const folderPath = prompt("Enter local repository directory path:", "/Users/casey.allard/Downloads/uor-r4-project");
+                    const defaultPath = window.activeTauriFolderPath || window.activeWorkspaceDirectory || ".";
+                    const folderPath = prompt("Enter local repository directory path:", defaultPath);
                     if (!folderPath) return;
 
                     showToast(`Connecting to native Git repo: ${folderPath}...`);
@@ -3284,6 +3285,11 @@
 
             // Switch sidebar tab to Workspace
             switchSidebarTab('files');
+
+            // Build 512D UOR Geometric Index for sub-millisecond semantic retrieval
+            if (typeof indexWorkspaceFilesGeometric === 'function') {
+                indexWorkspaceFilesGeometric(window.localWorkspaceTree).catch(e => console.warn("Geometric index error:", e));
+            }
 
             // If index.html, main.rs, or src/lib.rs exists, open it in Monaco
             const priorityFile = findFileInTree(window.localWorkspaceTree, 'index.html') || 
@@ -3468,6 +3474,9 @@
                     text = await file.text();
                 } else if (fileNode.content) {
                     text = fileNode.content;
+                } else if (window.__TAURI__ && window.__TAURI__.core && (fileNode.fullPath || window.activeTauriFolderPath)) {
+                    const p = fileNode.fullPath || `${window.activeTauriFolderPath}/${fileNode.path}`;
+                    text = await window.__TAURI__.core.invoke('native_read_file', { filePath: p });
                 }
 
                 const lang = getLangForExt(fileNode.ext || fileNode.name.split('.').pop());
@@ -3478,6 +3487,7 @@
                     existingTab = {
                         name: fileNode.name,
                         path: fileNode.path,
+                        fullPath: fileNode.fullPath,
                         content: text,
                         language: lang,
                         handle: fileNode.handle,
@@ -3487,6 +3497,7 @@
                 } else {
                     existingTab.content = text;
                     existingTab.handle = fileNode.handle;
+                    existingTab.fullPath = fileNode.fullPath || existingTab.fullPath;
                 }
 
                 activeEditorTab = existingTab.name;
@@ -3509,6 +3520,91 @@
         window.buildTreeDom = buildTreeDom;
         window.scanDirectoryRecursive = scanDirectoryRecursive;
         window.findFileInTree = findFileInTree;
+
+        // =====================================================================
+        // ⚡ UOR GEOMETRIC WORKSPACE REDUCTION ENGINE (CLIENT-SIDE RAG)
+        // Maps codebase into 512D VSA hypervectors for sub-ms AST semantic retrieval
+        // =====================================================================
+
+        window.indexWorkspaceFilesGeometric = async function(treeNodes) {
+            if (!window.wasmModule || typeof window.wasmModule.wasm_index_file !== 'function') {
+                return;
+            }
+
+            const tStart = performance.now();
+            let indexedFiles = 0;
+            let indexedChunks = 0;
+
+            window.wasmModule.wasm_clear_workspace_index();
+
+            async function traverseAndIndex(nodes) {
+                for (const node of nodes) {
+                    if (node.kind === 'file') {
+                        const ext = (node.ext || node.name.split('.').pop() || '').toLowerCase();
+                        const codeExts = ['rs', 'js', 'ts', 'jsx', 'tsx', 'py', 'html', 'css', 'json', 'md', 'toml', 'c', 'cpp', 'h', 'hpp', 'go', 'sh', 'wgsl'];
+                        if (codeExts.includes(ext)) {
+                            try {
+                                let content = '';
+                                if (node.handle && node.handle.getFile) {
+                                    const file = await node.handle.getFile();
+                                    content = await file.text();
+                                } else if (node.content) {
+                                    content = node.content;
+                                } else if (window.__TAURI__ && window.__TAURI__.core && (node.fullPath || window.activeTauriFolderPath)) {
+                                    const p = node.fullPath || `${window.activeTauriFolderPath}/${node.path}`;
+                                    content = await window.__TAURI__.core.invoke('native_read_file', { filePath: p }).catch(() => '');
+                                }
+
+                                if (content && content.length < 500000) {
+                                    const chunks = window.wasmModule.wasm_index_file(node.path, content);
+                                    indexedFiles++;
+                                    indexedChunks += chunks;
+                                }
+                            } catch(err) {
+                                console.warn(`Failed indexing ${node.path}:`, err);
+                            }
+                        }
+                    } else if (node.kind === 'directory' && node.children) {
+                        await traverseAndIndex(node.children);
+                    }
+                }
+            }
+
+            await traverseAndIndex(treeNodes);
+            const elapsed = Math.max(1, Math.round(performance.now() - tStart));
+
+            let statsStr = `${indexedFiles} files (${indexedChunks} symbols)`;
+            try {
+                const stats = JSON.parse(window.wasmModule.wasm_get_workspace_stats());
+                if (stats.file_count) {
+                    statsStr = `${stats.file_count} files (${stats.chunk_count} symbols, ${stats.memory_kb} KB)`;
+                }
+            } catch(e) {}
+
+            console.log(`⚡ [UOR Geometric VSA Indexer] Indexed ${statsStr} in ${elapsed}ms`);
+            showToast(`⚡ UOR Geometric Index: ${statsStr} mapped in ${elapsed}ms`);
+
+            // Update workspace UI badge
+            const badge = document.getElementById('activeWorkspaceBadge');
+            if (badge) {
+                badge.innerHTML = `<span>⚡ VSA Indexed</span> <span style="opacity:0.75; font-size:0.65rem;">(${indexedChunks} syms)</span>`;
+                badge.style.background = 'rgba(6, 182, 212, 0.2)';
+                badge.style.border = '1px solid rgba(6, 182, 212, 0.4)';
+            }
+        };
+
+        window.queryWorkspaceGeometric = function(query, topK = 3) {
+            if (!window.wasmModule || typeof window.wasmModule.wasm_query_workspace !== 'function') {
+                return [];
+            }
+            try {
+                const raw = window.wasmModule.wasm_query_workspace(query, topK);
+                return JSON.parse(raw) || [];
+            } catch(e) {
+                console.warn("Geometric query error:", e);
+                return [];
+            }
+        };
 
         function updateGitStatusUI() {
             const gitRow = document.getElementById('sidebarGitStatusRow');
@@ -3537,10 +3633,50 @@
         }
         window.updateGitStatusUI = updateGitStatusUI;
 
+        function buildTreeFromFlatPaths(flatPaths, rootPath) {
+            const root = [];
+            for (const relPath of flatPaths) {
+                const parts = relPath.split('/');
+                let currentLevel = root;
+                let accumulatedPath = '';
+                for (let i = 0; i < parts.length; i++) {
+                    const part = parts[i];
+                    accumulatedPath = accumulatedPath ? `${accumulatedPath}/${part}` : part;
+                    const isLast = i === parts.length - 1;
+                    if (isLast) {
+                        const ext = part.split('.').pop().toLowerCase();
+                        currentLevel.push({
+                            name: part,
+                            path: accumulatedPath,
+                            fullPath: `${rootPath}/${accumulatedPath}`,
+                            kind: 'file',
+                            ext: ext
+                        });
+                    } else {
+                        let dirNode = currentLevel.find(n => n.kind === 'directory' && n.name === part);
+                        if (!dirNode) {
+                            dirNode = {
+                                name: part,
+                                path: accumulatedPath,
+                                fullPath: `${rootPath}/${accumulatedPath}`,
+                                kind: 'directory',
+                                children: [],
+                                isOpen: (accumulatedPath === 'src' || accumulatedPath === 'assets' || parts.length <= 2)
+                            };
+                            currentLevel.push(dirNode);
+                        }
+                        currentLevel = dirNode.children;
+                    }
+                }
+            }
+            return root;
+        }
+
         async function loadTauriGitWorkspace(folderPath) {
             if (!window.__TAURI__ || !window.__TAURI__.core) return;
             try {
                 const status = await window.__TAURI__.core.invoke('native_git_status', { repoPath: folderPath });
+                window.activeTauriFolderPath = folderPath;
                 window.activeGitRepoInfo = {
                     isGit: true,
                     branch: status.branch || 'main',
@@ -3551,6 +3687,22 @@
                 };
                 updateGitStatusUI();
                 showToast(`🌿 Connected native Git repo: ${status.branch} (${status.is_clean ? 'Clean' : 'Modified'})`);
+
+                const findOut = await window.__TAURI__.core.invoke('native_run_terminal_command', {
+                    cwd: folderPath,
+                    command: "find . -maxdepth 4 -not -path '*/.*' -not -path '*/target*' -not -path '*/node_modules*' -not -path '*/dist*'"
+                }).catch(() => '');
+
+                if (findOut) {
+                    const rawPaths = findOut.split('\n').map(p => p.trim().replace(/^\.\//, '')).filter(p => p && p !== '.');
+                    const tree = buildTreeFromFlatPaths(rawPaths, folderPath);
+                    window.localWorkspaceTree = tree;
+                    renderSidebarFileTree(tree);
+                    switchSidebarTab('files');
+                    if (typeof indexWorkspaceFilesGeometric === 'function') {
+                        indexWorkspaceFilesGeometric(tree).catch(e => console.warn("Tauri geometric index error:", e));
+                    }
+                }
             } catch(err) {
                 console.error("Tauri native git status error:", err);
                 showToast("❌ Native Git error: " + String(err));
@@ -6264,13 +6416,27 @@
                 } catch(e) {}
             }
 
-            const isCodingAction = !!window.pendingCodeActionPayload || userPrompt.includes('@editor') || userPrompt.includes('@code') || userPrompt.includes('@file') || /refactor|optimize|test|function|module|class|struct|implement|fix|bug|code/i.test(userPrompt);
+            const isCodingAction = !!window.pendingCodeActionPayload || userPrompt.includes('@editor') || userPrompt.includes('@code') || userPrompt.includes('@file') || /refactor|optimize|test|function|module|class|struct|implement|fix|bug|code|create|build/i.test(userPrompt);
             
             let systemPromptText = '';
             if (isCodingAction) {
                 systemPromptText = 'You are the sovereign AI Coding Copilot and Software Engineer in Monaco IDE. You have full authority to analyze, refactor, debug, optimize, and generate complete code for the workspace. When asked to write, refactor, or fix code, provide the full updated code directly inside clean markdown code blocks (e.g. ```rust or ```javascript) with a brief, clear explanation of improvements. Always write robust, production-ready, clean code with zero fluff.';
             } else {
                 systemPromptText = 'You are the sovereign UOR-R4 AI Assistant and reasoning engine. You are knowledgeable, direct, articulate, and conversational. Answer questions accurately, concisely, and thoughtfully without boilerplate disclaimers.';
+            }
+
+            // Retrieve relevant workspace code via 512D UOR Geometric Index
+            let geoRetrievedContext = '';
+            if (typeof window.queryWorkspaceGeometric === 'function') {
+                const results = window.queryWorkspaceGeometric(userPrompt, 3);
+                if (results && results.length > 0) {
+                    geoRetrievedContext = '\n\n[RELEVANT WORKSPACE DEFINITIONS & CODE SIGNATURES (Retrieved via UOR Geometric Index)]:\n' +
+                        results.map(r => `// File: ${r.file_path} (Lines ${r.start_line}-${r.end_line}: ${r.signature})\n${r.snippet}`).join('\n\n');
+                    showToast(`⚡ UOR Geometric Index: Retrieved ${results.length} relevant code blocks in <1ms`);
+                }
+            }
+            if (geoRetrievedContext) {
+                systemPromptText += geoRetrievedContext;
             }
 
             if (activeWebSources.length > 0) {
@@ -6984,10 +7150,25 @@
                     const writable = await activeTab.handle.createWritable();
                     await writable.write(content);
                     await writable.close();
+                    if (window.wasmModule && window.wasmModule.wasm_index_file) {
+                        window.wasmModule.wasm_index_file(activeTab.path || activeTab.name, content);
+                    }
                     showToast(`💾 Saved ${activeTab.name} to disk!`);
                     return;
                 } catch(e) {
                     console.warn("Direct handle save failed:", e);
+                }
+            } else if (window.__TAURI__ && window.__TAURI__.core && (activeTab.fullPath || (window.activeTauriFolderPath && activeTab.path))) {
+                try {
+                    const p = activeTab.fullPath || `${window.activeTauriFolderPath}/${activeTab.path}`;
+                    await window.__TAURI__.core.invoke('native_write_file', { filePath: p, content });
+                    if (window.wasmModule && window.wasmModule.wasm_index_file) {
+                        window.wasmModule.wasm_index_file(activeTab.path || activeTab.name, content);
+                    }
+                    showToast(`💾 Saved ${activeTab.name} to disk!`);
+                    return;
+                } catch(e) {
+                    console.warn("Tauri native write failed:", e);
                 }
             }
 
@@ -7037,7 +7218,17 @@
 
             const systemPrompt = 'You are an expert AI Coding Copilot and Software Engineer in Monaco IDE. You have full authority to refactor, optimize, debug, and implement complete code for the workspace. When asked to refactor or write code, you MUST output the complete updated code inside clean markdown code blocks (e.g. ```' + (activeTab.language || 'rust') + ' ... ```). Do not truncate code with "// rest of code remains unchanged". Always output complete, production-ready code.';
 
-            const userPromptFull = `[Target File: ${activeTab.name}]\n\`\`\`${activeTab.language || 'text'}\n${activeCode.slice(0, 4000)}\n\`\`\`\n\nTask: ${prompt}`;
+            let crossFileContext = '';
+            if (typeof window.queryWorkspaceGeometric === 'function') {
+                const results = window.queryWorkspaceGeometric(prompt, 2);
+                const otherFiles = results.filter(r => r.file_path !== activeTab.path && r.file_path !== activeTab.name);
+                if (otherFiles.length > 0) {
+                    crossFileContext = '\n\n[Related Workspace Definitions (Retrieved via UOR Geometric Index)]:\n' + 
+                        otherFiles.map(r => `// File: ${r.file_path} (${r.signature}, Lines ${r.start_line}-${r.end_line})\n${r.snippet}`).join('\n\n');
+                }
+            }
+
+            const userPromptFull = `[Target File: ${activeTab.name}]\n\`\`\`${activeTab.language || 'text'}\n${activeCode.slice(0, 3500)}\n\`\`\`${crossFileContext}\n\nTask: ${prompt}`;
 
             const messagesPayload = [
                 { role: 'system', content: systemPrompt },
@@ -7141,6 +7332,18 @@
             if (diffEl) diffEl.style.display = 'block';
             if (label) label.innerText = "Close Diff";
 
+            // Compute Myers diff stats via UOR WASM engine
+            let diffStatsHtml = '';
+            if (window.wasmModule && typeof window.wasmModule.wasm_myers_diff === 'function') {
+                try {
+                    const diffJson = window.wasmModule.wasm_myers_diff(originalCode, proposedCode);
+                    const chunks = JSON.parse(diffJson);
+                    const ins = chunks.filter(c => c.tag === 'insert').length;
+                    const dels = chunks.filter(c => c.tag === 'delete').length;
+                    diffStatsHtml = ` <span style="font-family:var(--font-mono); font-size:0.7rem; color:var(--text-muted); margin-left:8px;">(<span style="color:#86efac; font-weight:700;">+${ins}</span> / <span style="color:#fca5a5; font-weight:700;">-${dels}</span> lines via Myers Diff)</span>`;
+                } catch(e) {}
+            }
+
             // Show Apply Diff Bar
             let applyBar = document.getElementById('ideDiffApplyBar');
             if (!applyBar) {
@@ -7152,7 +7355,7 @@
             }
             applyBar.style.display = 'flex';
             applyBar.innerHTML = `
-                <span style="font-size:0.75rem; color:#86efac; font-weight:600;">✨ Agent proposed changes for <b>${escapeHtml(activeTab.name)}</b></span>
+                <span style="font-size:0.75rem; color:#86efac; font-weight:600;">✨ Agent proposed changes for <b>${escapeHtml(activeTab.name)}</b>${diffStatsHtml}</span>
                 <div style="margin-left:auto; display:flex; gap:6px;">
                     <button class="editor-btn success" onclick="applyIdeAgentDiff()" style="background:rgba(34,197,94,0.2); border:1px solid rgba(34,197,94,0.4); color:#86efac; padding:0.25rem 0.75rem; border-radius:6px; font-size:0.75rem; font-weight:600; cursor:pointer;">✓ Apply to File</button>
                     <button class="editor-btn danger" onclick="discardIdeAgentDiff()" style="background:rgba(239,68,68,0.2); border:1px solid rgba(239,68,68,0.4); color:#fca5a5; padding:0.25rem 0.75rem; border-radius:6px; font-size:0.75rem; font-weight:600; cursor:pointer;">✕ Discard</button>
@@ -7167,7 +7370,7 @@
             }
         };
 
-        window.applyIdeAgentDiff = function() {
+        window.applyIdeAgentDiff = async function() {
             const newCode = pendingIdeAgentDiffCode;
             if (!newCode) return;
             const activeTab = openEditorTabs.find(t => t.name === activeEditorTab);
@@ -7183,7 +7386,10 @@
                 }
             }
             discardIdeAgentDiff();
-            showToast(`🎉 Applied agent refactor to ${activeTab ? activeTab.name : 'file'}!`);
+            if (typeof saveActiveFileLocal === 'function') {
+                await saveActiveFileLocal();
+            }
+            showToast(`🎉 Applied agent refactor to ${activeTab ? activeTab.name : 'file'} and saved!`);
         };
 
         window.discardIdeAgentDiff = function() {
@@ -7241,6 +7447,9 @@
                             window.wasmChatSession = new wasmModule.InteractiveChatSession();
                             console.log("⚡ Rust WASM Geometric Bridge active!");
                         }
+                        if (window.localWorkspaceTree && window.localWorkspaceTree.length > 0 && typeof window.indexWorkspaceFilesGeometric === 'function') {
+                            window.indexWorkspaceFilesGeometric(window.localWorkspaceTree).catch(() => {});
+                        }
                     }
                 } catch(wasmErr) {
                     console.warn("WASM bridge loaded in fallback mode:", wasmErr);
@@ -7272,7 +7481,7 @@
 
             if (window.__TAURI__ && window.__TAURI__.core) {
                 try {
-                    const cwd = "/Users/casey.allard/Downloads/uor-r4-project";
+                    const cwd = window.activeTauriFolderPath || window.activeWorkspaceDirectory || ".";
                     const result = await window.__TAURI__.core.invoke('native_run_terminal_command', { cwd, command: cmd });
                     if (outputContainer) {
                         outputContainer.innerHTML = `

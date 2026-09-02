@@ -398,6 +398,10 @@ export function wasm_canonical_uor_address(data) {
     }
 }
 
+export function wasm_clear_workspace_index() {
+    wasm.wasm_clear_workspace_index();
+}
+
 /**
  * @param {string} expr
  * @returns {string}
@@ -415,6 +419,36 @@ export function wasm_deterministic_math(expr) {
     } finally {
         wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
     }
+}
+
+/**
+ * @returns {string}
+ */
+export function wasm_get_workspace_stats() {
+    let deferred1_0;
+    let deferred1_1;
+    try {
+        const ret = wasm.wasm_get_workspace_stats();
+        deferred1_0 = ret[0];
+        deferred1_1 = ret[1];
+        return getStringFromWasm0(ret[0], ret[1]);
+    } finally {
+        wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
+    }
+}
+
+/**
+ * @param {string} path
+ * @param {string} content
+ * @returns {number}
+ */
+export function wasm_index_file(path, content) {
+    const ptr0 = passStringToWasm0(path, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    const len0 = WASM_VECTOR_LEN;
+    const ptr1 = passStringToWasm0(content, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    const len1 = WASM_VECTOR_LEN;
+    const ret = wasm.wasm_index_file(ptr0, len0, ptr1, len1);
+    return ret >>> 0;
 }
 
 /**
@@ -436,6 +470,26 @@ export function wasm_myers_diff(original, modified) {
         return getStringFromWasm0(ret[0], ret[1]);
     } finally {
         wasm.__wbindgen_free(deferred3_0, deferred3_1, 1);
+    }
+}
+
+/**
+ * @param {string} query
+ * @param {number} top_k
+ * @returns {string}
+ */
+export function wasm_query_workspace(query, top_k) {
+    let deferred2_0;
+    let deferred2_1;
+    try {
+        const ptr0 = passStringToWasm0(query, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.wasm_query_workspace(ptr0, len0, top_k);
+        deferred2_0 = ret[0];
+        deferred2_1 = ret[1];
+        return getStringFromWasm0(ret[0], ret[1]);
+    } finally {
+        wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
     }
 }
 

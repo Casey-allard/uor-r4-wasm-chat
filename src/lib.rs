@@ -2250,6 +2250,53 @@ mod tests {
             assert!(s >= -1.0 && s <= 1.0, "Cosine score {} must be within [-1.0, 1.0]", s);
         }
     }
+
+    #[test]
+    fn test_workspace_geometric_index_and_retrieval() {
+        let mut index = WorkspaceGeometricIndex::new();
+        
+        let file_auth = r#"
+pub fn authenticate_user(token: &str) -> Result<UserSession, AuthError> {
+    if token.is_empty() {
+        return Err(AuthError::EmptyToken);
+    }
+    validate_jwt_signature(token)
+}
+
+pub fn revoke_session(session_id: &str) -> bool {
+    sessions.remove(session_id).is_some()
+}
+"#;
+        let file_math = r#"
+pub fn compute_cordic_rotation(x: i32, y: i32, theta: i32) -> (i32, i32) {
+    let mut cur_x = x;
+    let mut cur_y = y;
+    for i in 0..16 {
+        let d = if theta >= 0 { 1 } else { -1 };
+        cur_x -= (cur_y >> i) * d;
+        cur_y += (cur_x >> i) * d;
+    }
+    (cur_x, cur_y)
+}
+"#;
+        let chunks_auth = index.index_file("src/auth.rs", file_auth);
+        assert!(chunks_auth >= 2, "Auth file must produce multiple chunks");
+
+        let chunks_math = index.index_file("src/math.rs", file_math);
+        assert!(chunks_math >= 2, "Math file must produce multiple chunks");
+
+        // Query for authentication
+        let res_auth = index.query("validate jwt authentication token error", 2);
+        assert!(!res_auth.is_empty(), "Must find auth results");
+        assert_eq!(res_auth[0].file_path, "src/auth.rs");
+        assert!(res_auth[0].symbol_name.contains("authenticate") || res_auth[0].snippet.contains("authenticate"));
+
+        // Query for math / CORDIC
+        let res_math = index.query("cordic rotation angles", 2);
+        assert!(!res_math.is_empty(), "Must find math results");
+        assert_eq!(res_math[0].file_path, "src/math.rs");
+        assert!(res_math[0].symbol_name.contains("cordic") || res_math[0].snippet.contains("cordic"));
+    }
 }
 
 // =====================================================================
@@ -2314,7 +2361,7 @@ pub fn uor_matmul(input: &[i32], weights: &[i32], rows: usize, cols: usize) -> V
 
 #[wasm_bindgen]
 pub fn uor_fast_hadamard_transform(input: &[i32]) -> Vec<i32> {
-    let mut n = input.len();
+    let n = input.len();
     if n == 0 {
         return Vec::new();
     }
@@ -2365,3 +2412,336 @@ pub fn uor_vsa_bundle_vectors(vec_a: &[i16], vec_b: &[i16]) -> Vec<i16> {
     }
     out
 }
+
+// =====================================================================
+// UOR GEOMETRIC WORKSPACE REDUCTION & AST SEMANTIC RETRIEVAL ENGINE
+// =====================================================================
+
+use std::sync::Mutex;
+
+#[derive(Clone, Debug, serde::Serialize)]
+pub struct IndexedCodeChunk {
+    pub file_path: String,
+    pub symbol_name: String,
+    pub kind: String, // "fn", "struct", "class", "impl", "import", "comment", "block"
+    pub start_line: usize,
+    pub end_line: usize,
+    pub signature: String,
+    pub content: String,
+    #[serde(skip)]
+    pub hypervector: [i16; 512],
+}
+
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
+pub struct WorkspaceQueryResult {
+    pub file_path: String,
+    pub symbol_name: String,
+    pub kind: String,
+    pub start_line: usize,
+    pub end_line: usize,
+    pub signature: String,
+    pub snippet: String,
+    pub score: i32,
+}
+
+pub struct WorkspaceGeometricIndex {
+    pub chunks: Vec<IndexedCodeChunk>,
+    pub file_count: usize,
+}
+
+impl WorkspaceGeometricIndex {
+    pub fn new() -> Self {
+        Self {
+            chunks: Vec::with_capacity(256),
+            file_count: 0,
+        }
+    }
+
+    pub fn clear(&mut self) {
+        self.chunks.clear();
+        self.file_count = 0;
+    }
+
+    pub fn index_file(&mut self, file_path: &str, content: &str) -> usize {
+        // Remove existing chunks for this file path if updating
+        self.chunks.retain(|c| c.file_path != file_path);
+        
+        let new_chunks = chunk_source_code(file_path, content);
+        let count = new_chunks.len();
+        self.chunks.extend(new_chunks);
+        self.file_count += 1;
+        count
+    }
+
+    pub fn query(&self, query: &str, top_k: usize) -> Vec<WorkspaceQueryResult> {
+        if self.chunks.is_empty() || query.trim().is_empty() {
+            return Vec::new();
+        }
+
+        let query_hv = compute_content_hypervector(query);
+        let query_lower = query.to_lowercase();
+        let query_tokens: Vec<&str> = query_lower
+            .split(|c: char| !c.is_alphanumeric() && c != '_')
+            .filter(|s| s.len() >= 2)
+            .collect();
+
+        let mut scored: Vec<(i32, &IndexedCodeChunk)> = self.chunks
+            .iter()
+            .map(|chunk| {
+                // 1. Geometric VSA Dot Product similarity in {-1, +1}^512
+                let mut sim: i32 = 0;
+                for i in 0..512 {
+                    sim += (query_hv[i] as i32) * (chunk.hypervector[i] as i32);
+                }
+
+                // 2. Lexical keyword boost (exact symbol match)
+                let sym_lower = chunk.symbol_name.to_lowercase();
+                let path_lower = chunk.file_path.to_lowercase();
+                let mut boost: i32 = 0;
+                for token in &query_tokens {
+                    if sym_lower == *token {
+                        boost += 150;
+                    } else if sym_lower.contains(token) {
+                        boost += 60;
+                    }
+                    if path_lower.contains(token) {
+                        boost += 40;
+                    }
+                }
+
+                (sim + boost, chunk)
+            })
+            .collect();
+
+        scored.sort_by(|a, b| b.0.cmp(&a.0));
+
+        scored
+            .into_iter()
+            .take(top_k)
+            .map(|(score, chunk)| {
+                // Build a concise snippet (first 15 lines of chunk)
+                let snippet_lines: Vec<&str> = chunk.content.lines().take(15).collect();
+                let snippet = snippet_lines.join("\n");
+
+                WorkspaceQueryResult {
+                    file_path: chunk.file_path.clone(),
+                    symbol_name: chunk.symbol_name.clone(),
+                    kind: chunk.kind.clone(),
+                    start_line: chunk.start_line,
+                    end_line: chunk.end_line,
+                    signature: chunk.signature.clone(),
+                    snippet,
+                    score,
+                }
+            })
+            .collect()
+    }
+}
+
+/// Computes a deterministic 512-dimensional bipolar hypervector from text
+pub fn compute_content_hypervector(text: &str) -> [i16; 512] {
+    let mut bundled = [0i16; 512];
+    let mut token_count = 0;
+
+    for word in text.split(|c: char| !c.is_alphanumeric() && c != '_') {
+        let trimmed = word.trim();
+        if trimmed.is_empty() {
+            continue;
+        }
+
+        let mut hash: u64 = 5381;
+        for b in trimmed.bytes() {
+            hash = (hash ^ (b as u64)).wrapping_add((hash ^ (b as u64)) << 5);
+        }
+
+        // Generate pseudo-random bipolar vector {-1, +1}^512 from hash state
+        let mut state = hash;
+        for i in 0..512 {
+            state ^= state << 13;
+            state ^= state >> 7;
+            state ^= state << 17;
+            let val: i16 = if (state & 1) == 0 { 1 } else { -1 };
+            bundled[i] = bundled[i].saturating_add(val);
+        }
+        token_count += 1;
+    }
+
+    if token_count == 0 {
+        return [0i16; 512];
+    }
+
+    // Threshold back into bipolar representation {-1, 0, +1}
+    let mut out = [0i16; 512];
+    for i in 0..512 {
+        out[i] = if bundled[i] > 0 { 1 } else if bundled[i] < 0 { -1 } else { 0 };
+    }
+    out
+}
+
+/// Chunks source code into semantic symbols, functions, and structured blocks
+pub fn chunk_source_code(file_path: &str, content: &str) -> Vec<IndexedCodeChunk> {
+    let mut chunks = Vec::new();
+    let lines: Vec<&str> = content.lines().collect();
+    if lines.is_empty() {
+        return chunks;
+    }
+
+    // 1. File-level overview chunk (imports + top declarations)
+    let header_lines = lines.iter().take(30).cloned().collect::<Vec<_>>().join("\n");
+    let header_hv = compute_content_hypervector(&format!("{} {}", file_path, header_lines));
+    chunks.push(IndexedCodeChunk {
+        file_path: file_path.to_string(),
+        symbol_name: format!("{}:overview", file_path),
+        kind: "overview".to_string(),
+        start_line: 1,
+        end_line: lines.len().min(30),
+        signature: format!("// File Overview: {}", file_path),
+        content: header_lines,
+        hypervector: header_hv,
+    });
+
+    // 2. Syntax-aware block / function extraction
+    let mut current_chunk_lines: Vec<&str> = Vec::new();
+    let mut current_symbol = String::new();
+    let mut current_kind = "block".to_string();
+    let mut current_sig = String::new();
+    let mut start_line = 1;
+
+    for (idx, line) in lines.iter().enumerate() {
+        let line_num = idx + 1;
+        let trimmed = line.trim();
+
+        let is_declaration = trimmed.starts_with("pub fn ")
+            || trimmed.starts_with("fn ")
+            || trimmed.starts_with("async fn ")
+            || trimmed.starts_with("function ")
+            || trimmed.starts_with("def ")
+            || trimmed.starts_with("class ")
+            || trimmed.starts_with("struct ")
+            || trimmed.starts_with("impl ")
+            || trimmed.starts_with("interface ")
+            || trimmed.starts_with("export function ")
+            || trimmed.starts_with("export default function ");
+
+        if is_declaration && !current_chunk_lines.is_empty() && current_chunk_lines.len() >= 5 {
+            // Flush preceding chunk
+            let chunk_text = current_chunk_lines.join("\n");
+            let hv = compute_content_hypervector(&format!("{} {} {}", file_path, current_symbol, chunk_text));
+            chunks.push(IndexedCodeChunk {
+                file_path: file_path.to_string(),
+                symbol_name: if current_symbol.is_empty() { format!("block_L{}", start_line) } else { current_symbol.clone() },
+                kind: current_kind.clone(),
+                start_line,
+                end_line: line_num - 1,
+                signature: if current_sig.is_empty() { format!("Line {}-{}", start_line, line_num - 1) } else { current_sig.clone() },
+                content: chunk_text,
+                hypervector: hv,
+            });
+
+            current_chunk_lines.clear();
+            start_line = line_num;
+        }
+
+        if is_declaration {
+            // Extract symbol name and kind
+            let parts: Vec<&str> = trimmed.split_whitespace().collect();
+            if parts.len() >= 2 {
+                current_kind = parts[0].to_string();
+                let raw_sym = if parts[0] == "pub" || parts[0] == "async" || parts[0] == "export" {
+                    parts.get(2).unwrap_or(&parts[1])
+                } else {
+                    parts[1]
+                };
+                current_symbol = raw_sym.split('(').next().unwrap_or(raw_sym).split('<').next().unwrap_or(raw_sym).to_string();
+            }
+            current_sig = trimmed.to_string();
+        }
+
+        current_chunk_lines.push(line);
+
+        // Limit maximum chunk size to 60 lines
+        if current_chunk_lines.len() >= 60 {
+            let chunk_text = current_chunk_lines.join("\n");
+            let hv = compute_content_hypervector(&format!("{} {} {}", file_path, current_symbol, chunk_text));
+            chunks.push(IndexedCodeChunk {
+                file_path: file_path.to_string(),
+                symbol_name: if current_symbol.is_empty() { format!("block_L{}", start_line) } else { current_symbol.clone() },
+                kind: current_kind.clone(),
+                start_line,
+                end_line: line_num,
+                signature: if current_sig.is_empty() { format!("Lines {}-{}", start_line, line_num) } else { current_sig.clone() },
+                content: chunk_text,
+                hypervector: hv,
+            });
+
+            current_chunk_lines.clear();
+            current_symbol.clear();
+            current_sig.clear();
+            current_kind = "block".to_string();
+            start_line = line_num + 1;
+        }
+    }
+
+    // Flush remaining lines
+    if !current_chunk_lines.is_empty() {
+        let chunk_text = current_chunk_lines.join("\n");
+        let hv = compute_content_hypervector(&format!("{} {} {}", file_path, current_symbol, chunk_text));
+        chunks.push(IndexedCodeChunk {
+            file_path: file_path.to_string(),
+            symbol_name: if current_symbol.is_empty() { format!("block_L{}", start_line) } else { current_symbol },
+            kind: current_kind,
+            start_line,
+            end_line: lines.len(),
+            signature: if current_sig.is_empty() { format!("Lines {}-{}", start_line, lines.len()) } else { current_sig },
+            content: chunk_text,
+            hypervector: hv,
+        });
+    }
+
+    chunks
+}
+
+static GLOBAL_WORKSPACE_INDEX: Mutex<Option<WorkspaceGeometricIndex>> = Mutex::new(None);
+
+fn with_workspace_index<F, R>(f: F) -> R
+where
+    F: FnOnce(&mut WorkspaceGeometricIndex) -> R,
+    R: Default,
+{
+    if let Ok(mut lock) = GLOBAL_WORKSPACE_INDEX.lock() {
+        let index = lock.get_or_insert_with(WorkspaceGeometricIndex::new);
+        f(index)
+    } else {
+        R::default()
+    }
+}
+
+#[wasm_bindgen]
+pub fn wasm_index_file(path: &str, content: &str) -> usize {
+    with_workspace_index(|index| index.index_file(path, content))
+}
+
+#[wasm_bindgen]
+pub fn wasm_query_workspace(query: &str, top_k: usize) -> String {
+    with_workspace_index(|index| {
+        let results = index.query(query, top_k);
+        serde_json::to_string(&results).unwrap_or_else(|_| "[]".to_string())
+    })
+}
+
+#[wasm_bindgen]
+pub fn wasm_clear_workspace_index() {
+    with_workspace_index(|index| index.clear());
+}
+
+#[wasm_bindgen]
+pub fn wasm_get_workspace_stats() -> String {
+    with_workspace_index(|index| {
+        serde_json::json!({
+            "file_count": index.file_count,
+            "chunk_count": index.chunks.len(),
+            "memory_kb": (index.chunks.len() * (std::mem::size_of::<IndexedCodeChunk>())) / 1024
+        }).to_string()
+    })
+}
+

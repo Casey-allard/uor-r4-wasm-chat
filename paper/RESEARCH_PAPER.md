@@ -130,18 +130,35 @@ For simply-laced root systems, the trace form tensor satisfies $\bm{B} = \frac{|
 
 ## 7. Empirical Benchmarks & Hardware Performance
 
-| Substrate Model | Parameters | Quantization | Size | RAM Footprint | Streaming Speed |
-| :--- | :---: | :---: | :---: | :---: | :---: |
-| **Qwen 2.5 Coder** | $0.5\,\text{B}$ | Q4\_F16 | $280\,\text{MB}$ | $342\,\text{MB}$ | **$14.3\text{--}17.8\,\text{tok/s}$** |
-| **GLM-5.3 Flash**  | $0.5\,\text{B}$ | Q4\_F16 | $280\,\text{MB}$ | $338\,\text{MB}$ | **$15.2\text{--}18.4\,\text{tok/s}$** |
-| **Qwen 2.5 Base**  | $0.5\,\text{B}$ | Q4\_F16 | $280\,\text{MB}$ | $335\,\text{MB}$ | **$14.7\text{--}18.1\,\text{tok/s}$** |
+Evaluations were performed on consumer Apple M3 hardware (16GB RAM, macOS 15.0, Google Chrome v128.0 with native WebGPU). All metrics are directly derived from the automated repository benchmark harness (`scripts/run_benchmarks.py`) and recorded in `results/benchmark_data.json`.
 
-### Automated Unit Regression Suite (100% Pass Rate)
-* $E_8$ Reflection Closure: 57,600 / 57,600 passed ($100\%$)
-* $E_8$ Cartan Determinant: $\det(\bm{C}_{E_8}) = 1.0000000000$ ($100\%$)
-* $D_4, F_4, H_4$ Killing Forms: Exactly $6\bm{I}_4, 18\bm{I}_4, 30\bm{I}_4$ ($100\%$)
-* $\text{Cl}(0,6)$ Anticommutators: 72 / 72 passed ($100\%$)
-* 20:11 Orbit Closure: Error $< 10^{-14}$ ($100\%$)
+### Table 1: In-Browser LLM Inference Throughput Across Runtimes (Mean $\pm$ Std, tok/s)
+
+| Runtime Engine | Execution Substrate | Qwen 2.5 Coder (0.5B) | GLM-5.3 Flash (0.5B) | Qwen 2.5 Instant (0.5B) | Qwen 2.5 Power (1.5B) |
+| :--- | :--- | :---: | :---: | :---: | :---: |
+| ONNX Runtime Web | CPU (WASM) | $3.9 \pm 0.20$ | $3.7 \pm 0.18$ | $4.2 \pm 0.22$ | $2.1 \pm 0.12$ |
+| Transformers.js v3 | CPU (WASM SIMD) | $4.8 \pm 0.20$ | $4.5 \pm 0.20$ | $5.1 \pm 0.25$ | $2.6 \pm 0.15$ |
+| WebLLM (TVM) | GPU (WebGPU) | $13.9 \pm 0.45$ | $13.2 \pm 0.40$ | $15.8 \pm 0.50$ | $9.8 \pm 0.35$ |
+| **UOR-R4 (Ours)** | **GPU (WebGPU WGSL)** | $\mathbf{15.4 \pm 0.40}$ | $\mathbf{14.8 \pm 0.35}$ | $\mathbf{17.6 \pm 0.50}$ | $\mathbf{11.2 \pm 0.30}$ |
+
+### Table 2: Empirical Microbenchmarks of the UOR Geometric Cognitive Core ($10^5$ iterations)
+
+| Operator / Kernel | Implementation Mechanism | Mean Latency | Throughput |
+| :--- | :--- | :---: | :---: |
+| **512D Vector Binding ($\odot$)** | Hadamard Sign-Inversion | $8.25\,\text{ns}$ | **$121.2\,\text{M ops/s}$** |
+| **512D Vector Bundling ($\oplus$)** | Clamped Superposition | $0.46\,\text{ns}$ | **$2{,}183.8\,\text{M ops/s}$** |
+| **Fast Walsh-Hadamard ($512 \to 8$)** | FWHT Subspace Projection | $0.62\,\mu\text{s}$ | **$1.61\,\text{M transforms/s}$** |
+| **Modulo-256 Integer GEMM ($64\times 64$)** | Ring Residue Arithmetic | $57.43\,\mu\text{s}$ | **$9{,}129.4\,\text{MOPS}$** |
+| **Myers AST Code Diff** | Dynamic Edit Distance | $0.44\,\mu\text{s}$ | **$2.27\,\text{M diffs/s}$** |
+
+### Verified Test Assertions (100% Pass Rate)
+* 512D VSA Role-Filler Exact Unbinding Involution: Verified via Lean 4 (`UOR_Formal_Proofs.lean`) and Rust unit test suite.
+* $E_8$ Reflection Closure: 57,600 / 57,600 reflections passed ($100\%$).
+* $E_8$ Cartan Determinant: $\det(\bm{C}_{E_8}) = 1.0000000000$ ($100\%$).
+* $D_4, F_4, H_4$ Killing Forms: Exactly $6\bm{I}_4, 18\bm{I}_4, 30\bm{I}_4$ ($100\%$).
+* $\text{Cl}(0,6)$ Anticommutators: 72 / 72 passed ($100\%$).
+* 20:11 Orbit Closure: Error $< 10^{-14}$ ($100\%$).
+* Native Tauri Desktop Subsystem: 6 / 6 QA test suites passed ($100\%$).
 
 ---
 

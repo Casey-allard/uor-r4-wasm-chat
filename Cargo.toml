@@ -39,6 +39,10 @@ path = "src/bin/uor_server.rs"
 name = "uor_chatbot"
 path = "src/bin/uor_chatbot.rs"
 
+[[bin]]
+name = "benchmark_geometric_core"
+path = "src/bin/benchmark_geometric_core.rs"
+
 [profile.release]
 opt-level = 3          # High performance native optimization
 lto = true             # Enable Link-Time Optimization

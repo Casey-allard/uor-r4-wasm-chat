@@ -28,8 +28,12 @@ export const uor_vsa_bundle_vectors: (a: number, b: number, c: number, d: number
 export const wasm_bundle_project: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number];
 export const wasm_calculate_code_stats: (a: number, b: number) => [number, number];
 export const wasm_canonical_uor_address: (a: number, b: number) => [number, number];
+export const wasm_clear_workspace_index: () => void;
 export const wasm_deterministic_math: (a: number, b: number) => [number, number];
+export const wasm_get_workspace_stats: () => [number, number];
+export const wasm_index_file: (a: number, b: number, c: number, d: number) => number;
 export const wasm_myers_diff: (a: number, b: number, c: number, d: number) => [number, number];
+export const wasm_query_workspace: (a: number, b: number, c: number) => [number, number];
 export const wasm_uor_dot_exact: (a: number, b: number, c: number, d: number) => bigint;
 export const wasm_uor_gemm_mod256: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number];
 export const __wbindgen_externrefs: WebAssembly.Table;

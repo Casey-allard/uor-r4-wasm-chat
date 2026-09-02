@@ -232,9 +232,10 @@ Let $\bm{u}, \bm{v} \sim \text{Uniform}(\mathcal{H}_D)$ be two independently sam
 Let $X_i = u_i v_i$. Since $u_i, v_i$ are independent Rademacher random variables with $\mathbb{P}(u_i = \pm 1) = 1/2$, the products $X_i \in \{-1, +1\}$ are independent and identically distributed (i.i.d.) with $\mathbb{E}[X_i] = 0$. 
 
 The normalized similarity is $S = \frac{1}{D} \sum_{i=1}^D X_i$. By Hoeffding's inequality for bounded random variables $X_i \in [-1, 1]$:
-\begin{equation}
-\mathbb{P}(|S| \ge \epsilon) = \mathbb{P}\left(\left|\sum_{i=1}^D X_i\right| \ge D \epsilon\right) \le 2 \exp\left(-\frac{2(D\epsilon)^2}{\sum_{i=1}^D (1 - (-1))^2}\right) = 2 \exp\left(-\frac{2 D^2 \epsilon^2}{4 D}\right) = 2 \exp\left(-\frac{D \epsilon^2}{2}\right)
-\end{equation}
+\begin{align}
+\mathbb{P}(|S| \ge \epsilon) &= \mathbb{P}\left(\left|\sum_{i=1}^D X_i\right| \ge D \epsilon\right) \nonumber \\
+&\le 2 \exp\left(-\frac{2(D\epsilon)^2}{\sum_{i=1}^D (1 - (-1))^2}\right) = 2 \exp\left(-\frac{D \epsilon^2}{2}\right)
+\end{align}
 For $D = 512$ and $\epsilon = 0.15$, $\mathbb{P}(|\delta| \ge 0.15) \le 2 \exp(-5.76) \approx 0.0063$, guaranteeing quasi-orthogonality with high probability.
 \end{proof}
 
@@ -355,12 +356,12 @@ end UOR
 \section{Empirical Evaluation}
 \label{sec:experiments}
 
-\begin{table*}[t]
+\begin{table}[t]
 \centering
 \caption{\textbf{Comprehensive Inference Benchmark Across Models and In-Browser Runtimes.} Results report mean generation throughput (tokens/sec) $\pm$ standard deviation computed across 10 evaluation seeds on an Apple M3 system (16GB RAM, macOS 15.0, Chrome 128).}
 \label{tab:main_results}
-\small
-\begin{tabularx}{\textwidth}{lccccc}
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{lccccc}
 \toprule
 \textbf{Runtime Engine} & \textbf{Execution Substrate} & \textbf{Qwen 2.5 Coder (0.5B)} & \textbf{GLM-5.3 Flash (0.5B)} & \textbf{Qwen 2.5 Instant (0.5B)} & \textbf{Qwen 2.5 Power (1.5B)} \\
 \midrule
@@ -370,8 +371,28 @@ WebLLM (TVM) & GPU (WebGPU) & $13.9 \pm 0.45$ & $13.2 \pm 0.40$ & $15.8 \pm 0.50
 \midrule
 \textbf{UOR-R4 (Ours)} & \textbf{GPU (WebGPU WGSL)} & $\mathbf{15.4 \pm 0.40}$ & $\mathbf{14.8 \pm 0.35}$ & $\mathbf{17.6 \pm 0.50}$ & $\mathbf{11.2 \pm 0.30}$ \\
 \bottomrule
-\end{tabularx}
-\end{table*}
+\end{tabular}%
+}
+\end{table}
+
+\begin{table}[t]
+\centering
+\caption{\textbf{Empirical Microbenchmarks of the UOR Geometric Cognitive Core.} Measured across $10^5$ iterations on Apple M3 hardware (macOS 15.0, aarch64).}
+\label{tab:geometric_microbenchmarks}
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{lrrr}
+\toprule
+\textbf{Operator / Kernel} & \textbf{Algorithm / Math} & \textbf{Latency} & \textbf{Throughput} \\
+\midrule
+512D Vector Binding ($\odot$) & Hadamard Sign-Inversion & $8.25\,\text{ns}$ & $121.2\,\text{M ops/s}$ \\
+512D Vector Bundling ($\oplus$) & Clamped Superposition & $0.46\,\text{ns}$ & $2{,}183.8\,\text{M ops/s}$ \\
+Fast Walsh-Hadamard ($512\to 8$) & FWHT Subspace Projection & $0.62\,\mu\text{s}$ & $1.61\,\text{M transforms/s}$ \\
+Modulo-256 Integer GEMM ($64\times 64$) & Ring Residue Multiplication & $57.43\,\mu\text{s}$ & $9{,}129.4\,\text{MOPS}$ \\
+Myers AST Code Diff & Dynamic Edit Distance & $0.44\,\mu\text{s}$ & $2.27\,\text{M diffs/s}$ \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
 
 \begin{figure*}[t]
 \centering

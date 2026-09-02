@@ -78,9 +78,17 @@ export function wasm_calculate_code_stats(code: string): string;
 
 export function wasm_canonical_uor_address(data: string): string;
 
+export function wasm_clear_workspace_index(): void;
+
 export function wasm_deterministic_math(expr: string): string;
 
+export function wasm_get_workspace_stats(): string;
+
+export function wasm_index_file(path: string, content: string): number;
+
 export function wasm_myers_diff(original: string, modified: string): string;
+
+export function wasm_query_workspace(query: string, top_k: number): string;
 
 export function wasm_uor_dot_exact(a: Int32Array, b: Int32Array): bigint;
 
@@ -117,8 +125,12 @@ export interface InitOutput {
     readonly wasm_bundle_project: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number];
     readonly wasm_calculate_code_stats: (a: number, b: number) => [number, number];
     readonly wasm_canonical_uor_address: (a: number, b: number) => [number, number];
+    readonly wasm_clear_workspace_index: () => void;
     readonly wasm_deterministic_math: (a: number, b: number) => [number, number];
+    readonly wasm_get_workspace_stats: () => [number, number];
+    readonly wasm_index_file: (a: number, b: number, c: number, d: number) => number;
     readonly wasm_myers_diff: (a: number, b: number, c: number, d: number) => [number, number];
+    readonly wasm_query_workspace: (a: number, b: number, c: number) => [number, number];
     readonly wasm_uor_dot_exact: (a: number, b: number, c: number, d: number) => bigint;
     readonly wasm_uor_gemm_mod256: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number];
     readonly __wbindgen_externrefs: WebAssembly.Table;
