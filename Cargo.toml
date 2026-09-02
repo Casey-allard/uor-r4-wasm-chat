@@ -26,6 +26,11 @@ futures = "0.3"
 async-stream = "0.3"
 chrono = "0.4"
 
+
+[[bin]]
+name = "package_models"
+path = "src/bin/package_models.rs"
+
 [[bin]]
 name = "uor_server"
 path = "src/bin/uor_server.rs"

@@ -71,8 +71,8 @@ jobs:
           touch dist/.nojekyll
 
       - name: Generate Static Model Catalog (/v1/models)
-        # Generates static /v1/models endpoint without downloading gigabytes of weights
-        run: python3 scripts/package_models.py
+        # Generates static /v1/models endpoint in pure Rust (<1ms)
+        run: cargo run --bin package_models
 
       - name: Setup GitHub Pages
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
