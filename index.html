@@ -2311,8 +2311,8 @@
                                         <div class="opt-left">
                                             <span class="opt-icon">💻</span>
                                             <div class="opt-info">
-                                                <span class="opt-name">Qwen 2.5 Coder</span>
-                                                <span class="opt-tier">0.5B Code Specialist (~290MB)</span>
+                                                <span class="opt-name">Qwen 2.5 Coder Turbo</span>
+                                                <span class="opt-tier">0.5B Fast Specialist (~280MB)</span>
                                             </div>
                                         </div>
                                         <span class="opt-check" id="check-qwen2.5-coder-0.5b">✓</span>
@@ -2321,8 +2321,8 @@
                                         <div class="opt-left">
                                             <span class="opt-icon">📐</span>
                                             <div class="opt-info">
-                                                <span class="opt-name">GLM-5.3</span>
-                                                <span class="opt-tier">0.5B Fast Logic (~280MB)</span>
+                                                <span class="opt-name">GLM-5.3 Flash</span>
+                                                <span class="opt-tier">0.5B Logical Reasoning (~280MB)</span>
                                             </div>
                                         </div>
                                         <span class="opt-check" id="check-glm5.3-flash" style="display:none;">✓</span>
@@ -2331,11 +2331,31 @@
                                         <div class="opt-left">
                                             <span class="opt-icon">💬</span>
                                             <div class="opt-info">
-                                                <span class="opt-name">Qwen 2.5</span>
-                                                <span class="opt-tier">0.5B Instant (~280MB)</span>
+                                                <span class="opt-name">Qwen 2.5 Instant</span>
+                                                <span class="opt-tier">0.5B Conversational (~280MB)</span>
                                             </div>
                                         </div>
                                         <span class="opt-check" id="check-qwen2.5-0.5b" style="display:none;">✓</span>
+                                    </div>
+                                    <div class="input-model-opt" id="opt-qwen2.5-coder-1.5b" onclick="selectModelFromInput('qwen2.5-coder-1.5b')">
+                                        <div class="opt-left">
+                                            <span class="opt-icon">🚀</span>
+                                            <div class="opt-info">
+                                                <span class="opt-name">Qwen 2.5 Coder Power</span>
+                                                <span class="opt-tier">1.5B High-Precision SOTA (~880MB)</span>
+                                            </div>
+                                        </div>
+                                        <span class="opt-check" id="check-qwen2.5-coder-1.5b" style="display:none;">✓</span>
+                                    </div>
+                                    <div class="input-model-opt" id="opt-qwen2.5-1.5b" onclick="selectModelFromInput('qwen2.5-1.5b')">
+                                        <div class="opt-left">
+                                            <span class="opt-icon">🧠</span>
+                                            <div class="opt-info">
+                                                <span class="opt-name">Qwen 2.5 General</span>
+                                                <span class="opt-tier">1.5B Deep General (~880MB)</span>
+                                            </div>
+                                        </div>
+                                        <span class="opt-check" id="check-qwen2.5-1.5b" style="display:none;">✓</span>
                                     </div>
                                     <div style="padding:0.4rem 0.65rem; border-top:1px solid rgba(255,255,255,0.08); font-size:0.7rem; color:var(--accent-cyan); cursor:pointer; text-align:center; font-weight:600;" onclick="openModelManagerModal()">
                                         ⚙️ Manage Caches & Models...
@@ -2396,44 +2416,55 @@
                     <div id="monacoDiffRoot" style="display:none; width:100%; height:100%;"></div>
                 </div>
 
-                <!-- EMBEDDED AGENTIC CODING HARNESS AT BOTTOM OF MONACO IDE -->
-                <div class="editor-agent-bottom-bar" style="padding:0.65rem 1rem; background:rgba(15,23,42,0.92); backdrop-filter:blur(20px); border-top:1px solid rgba(255,255,255,0.08); display:flex; flex-direction:column; gap:0.45rem;">
-                    <div style="display:flex; align-items:center; gap:0.5rem; justify-content:space-between; flex-wrap:wrap;">
+                <!-- HARMONIZED FLOATING INPUT CAPSULE FOR MONACO IDE -->
+                <div class="input-floating-wrapper" style="position:relative; bottom:auto; left:auto; transform:none; max-width:100%; width:100%; padding:0.75rem 1.25rem; background:rgba(15,23,42,0.95); backdrop-filter:blur(24px); border-top:1px solid rgba(255,255,255,0.08); z-index:10;">
+                    <!-- QUICK ACTION PILLS & TARGET FILE BAR -->
+                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:0.45rem; flex-wrap:wrap; gap:6px;">
                         <div class="quick-refactor-bar" style="display:flex; gap:6px; align-items:center;">
                             <button class="quick-pill" onclick="triggerQuickAction('optimize')" title="Optimize for Performance & Zero Allocations">⚡ Optimize</button>
                             <button class="quick-pill" onclick="triggerQuickAction('test')" title="Generate Unit Tests">🧪 Unit Tests</button>
                             <button class="quick-pill" onclick="triggerQuickAction('explain')" title="Explain Function & Architecture">🔍 Explain</button>
                             <button class="quick-pill" onclick="triggerQuickAction('fix')" title="Detect & Fix Bugs">🐛 Fix Bugs</button>
                         </div>
-
-                        <div style="display:flex; align-items:center; gap:0.5rem;">
-                            <!-- In-IDE Model Selector Pill -->
-                            <select id="ideAgentModelSelect" class="ide-model-select" onchange="selectModelFromInput(this.value)" style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15); color:var(--text-primary); padding:0.2rem 0.5rem; border-radius:6px; font-size:0.72rem; font-family:var(--font-mono); cursor:pointer;">
-                                <option value="qwen2.5-coder-1.5b" selected>🚀 Qwen 2.5 Coder 1.5B (Power SOTA)</option>
-                                <option value="qwen2.5-coder-0.5b">💻 Qwen 2.5 Coder 0.5B (Turbo)</option>
-                                <option value="glm5.3-flash">📐 GLM-5.3 Flash (Fast Logic)</option>
-                                <option value="qwen2.5-1.5b">🧠 Qwen 2.5 1.5B (Deep Reasoning)</option>
-                                <option value="qwen2.5-0.5b">💬 Qwen 2.5 Instant (0.5B)</option>
-                            </select>
-
-                            <span style="font-size:0.72rem; color:var(--text-muted); font-family:var(--font-mono);">
-                                Target: <b id="agentActiveFileLabel" style="color:var(--accent-cyan);">index.html</b>
-                            </span>
+                        <div style="font-size:0.72rem; color:var(--text-muted); font-family:var(--font-mono);">
+                            Target: <b id="agentActiveFileLabel" style="color:var(--accent-cyan);">index.html</b>
                         </div>
                     </div>
 
-                    <div style="display:flex; gap:8px; align-items:center;">
-                        <input 
-                            type="text" 
+                    <div class="input-capsule">
+                        <textarea 
                             id="editorAgentPromptInput" 
                             class="chat-textarea" 
-                            style="flex:1; min-height:42px !important; height:42px; padding:0.4rem 0.85rem; font-size:0.85rem; border-radius:8px;" 
                             placeholder="Ask Agent: 'Refactor this module', 'Add SIMD vectorization', 'Write tests'..." 
-                            onkeydown="if(event.key==='Enter') executeEditorAgentPrompt()"
-                        />
-                        <button class="send-btn" style="width:42px; height:42px; font-size:0.95rem; background:linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));" onclick="executeEditorAgentPrompt()" title="Run Agentic Code Synthesis">
-                            ⚡
-                        </button>
+                            rows="1"
+                            oninput="autoResizeTextarea(this)"
+                            onkeydown="if(event.key==='Enter' && !event.shiftKey){ event.preventDefault(); executeEditorAgentPrompt(); }"
+                        ></textarea>
+                        
+                        <div class="input-controls-row">
+                            <div class="input-tools-left">
+                                <button class="tool-icon-btn" onclick="document.getElementById('fileUploadInput').click()" title="Attach Document (PDF, Code, Text)">
+                                    📎
+                                </button>
+                                
+                                <button type="button" class="input-tool-pill-btn active" onclick="toggleWebSearch()" title="Toggle Web Grounding">
+                                    <span>🌐</span>
+                                    <span>Search</span>
+                                </button>
+
+                                <div class="input-model-selector-wrapper" style="position:relative; display:inline-flex;">
+                                    <button type="button" class="input-model-pill-btn" onclick="toggleInputModelDropdown(event)" title="Select Neural Model">
+                                        <span id="ideActiveModelIcon">💻</span>
+                                        <span id="ideActiveModelName">Qwen 2.5 Coder</span>
+                                        <span class="pill-arrow">▼</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <button class="send-btn" id="btnSendIdeAgent" onclick="executeEditorAgentPrompt()" title="Run Agentic Code Synthesis">
+                                <span style="font-size:1rem;">⚡</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>

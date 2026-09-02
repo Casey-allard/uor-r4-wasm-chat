@@ -180,17 +180,21 @@ async function getOrLoadPipeline(modelId, onProgress) {
         activeModelId = modelId;
         return pipe;
     } catch(err) {
-        console.warn(`WebGPU load failed for ${source}, falling back to multi-threaded WASM SIMD...`, err);
-        const pipe = await pipeline('text-generation', source, {
-            dtype: 'q4',
-            device: 'wasm',
-            progress_callback: (p) => {
-                if (onProgress) onProgress(p);
-            }
-        });
-        activePipeline = pipe;
-        activeModelId = modelId;
-        return pipe;
+        console.warn(`Load attempt for ${source} on ${device} encountered error:`, err);
+        if (device === 'webgpu') {
+            console.log(`Falling back to WASM for ${source}...`);
+            const pipe = await pipeline('text-generation', source, {
+                dtype: 'q4',
+                device: 'wasm',
+                progress_callback: (p) => {
+                    if (onProgress) onProgress(p);
+                }
+            });
+            activePipeline = pipe;
+            activeModelId = modelId;
+            return pipe;
+        }
+        throw err;
     }
 }
 
