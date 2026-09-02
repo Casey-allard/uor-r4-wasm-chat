@@ -5783,7 +5783,7 @@
         function initModelWorker() {
             if (modelWorker) return; // Keep existing active worker and compiled shaders warm!
             try {
-                modelWorker = new Worker(new URL('./assets/js/uor_model_worker.js?v=3.3.8', import.meta.url), { type: 'module' });
+                modelWorker = new Worker(new URL('./assets/js/uor_model_worker.js?v=3.3.9', import.meta.url), { type: 'module' });
                 window.modelWorker = modelWorker;
 
                 modelWorker.onmessage = (e) => {
@@ -5925,8 +5925,13 @@
                             `;
                             container.appendChild(aiRow);
                         }
+                        const thinkingBox = aiRow.querySelector('.ai-thinking-state');
+                        if (thinkingBox) thinkingBox.style.display = 'none';
                         const textEl = aiRow.querySelector('.ai-text');
-                        if (textEl) textEl.innerText = `Generation Error: ${error}`;
+                        if (textEl) {
+                            textEl.style.display = 'block';
+                            textEl.innerHTML = `<div style="color:var(--accent-red); font-family:var(--font-mono); padding:8px; background:rgba(239,68,68,0.1); border-radius:6px; border:1px solid rgba(239,68,68,0.3);">⚠️ <strong>Neural Execution Error:</strong> ${error}<br><small style="color:var(--text-muted);">Please try again or select another model tier.</small></div>`;
+                        }
 
                         isGenerating = false;
                         document.getElementById('btnSendChat').disabled = false;
