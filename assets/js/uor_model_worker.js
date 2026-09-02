@@ -26,7 +26,7 @@ const MODEL_REGISTRY = {
         systemPrompt: 'You are Qwen 2.5 Coder 1.5B, an advanced sovereign code synthesis engine. Answer concisely with clean markdown code blocks.',
         localPath: './assets/models/qwen2.5-coder-1.5b',
         size_mb: 880,
-        dtype: 'q4',
+        dtype: 'q4f16',
         device: 'webgpu'
     },
     'qwen2.5-coder-0.5b': {
@@ -56,7 +56,7 @@ const MODEL_REGISTRY = {
         systemPrompt: 'You are Qwen 2.5 1.5B, an advanced reasoning and conversational AI. Answer questions thoughtfully, concisely, and accurately.',
         localPath: './assets/models/qwen2.5-1.5b',
         size_mb: 880,
-        dtype: 'q4',
+        dtype: 'q4f16',
         device: 'webgpu'
     },
     'qwen2.5-0.5b': {
@@ -166,7 +166,7 @@ async function getOrLoadPipeline(modelId, onProgress) {
 
     try {
         const pipe = await pipeline('text-generation', source, {
-            dtype: dtype,
+            dtype: targetDtype,
             device: device,
             progress_callback: (p) => {
                 if (onProgress) onProgress(p);
