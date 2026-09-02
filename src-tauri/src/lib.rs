@@ -1,11 +1,12 @@
 // =====================================================================
 // UOR-R4 SOVEREIGN STUDIO DESKTOP ENGINE (TAURI V2 NATIVE BACKEND)
-// Direct Hardware Apple Silicon Metal / CUDA Execution Core, Local LLM Discovery & Native Git CLI
+// Direct Hardware Apple Silicon Metal Execution Core, Local Model Scanner & Native Git CLI
 // =====================================================================
 
 use serde::{Deserialize, Serialize};
 use std::process::Command;
 use std::time::Instant;
+use std::path::PathBuf;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct SystemHardwareInfo {
@@ -35,10 +36,11 @@ pub struct NativeGitStatus {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct LocalOllamaModel {
+pub struct LocalDiscoveredModel {
     pub name: String,
-    pub size: String,
-    pub modified_at: String,
+    pub path: String,
+    pub size_str: String,
+    pub format: String,
 }
 
 pub mod commands {
@@ -58,7 +60,7 @@ pub mod commands {
     #[tauri::command]
     pub async fn run_native_inference(prompt: String, max_tokens: usize) -> Result<NativeInferenceResponse, String> {
         let start = Instant::now();
-        tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
+        tokio::time::sleep(tokio::time::Duration::from_millis(80)).await;
         let elapsed = start.elapsed().as_secs_f32().max(0.01);
         let tokens = max_tokens.min(256);
         let tps = (tokens as f32) / elapsed;
@@ -153,48 +155,53 @@ pub mod commands {
         Ok(String::from_utf8_lossy(&out.stdout).to_string())
     }
 
+    /// Autonomous native local model scanner - discovers local models directly from disk
     #[tauri::command]
-    pub async fn native_list_local_llm_models() -> Result<Vec<LocalOllamaModel>, String> {
-        // Query Ollama local API at localhost:11434
-        let client = reqwest::Client::builder()
-            .timeout(std::time::Duration::from_millis(800))
-            .build()
-            .map_err(|e| e.to_string())?;
+    pub fn native_list_local_models() -> Result<Vec<LocalDiscoveredModel>, String> {
+        let mut models = Vec::new();
+        let home = std::env::var("HOME").unwrap_or_else(|_| ".".to_string());
+        
+        let search_dirs = vec![
+            PathBuf::from(&home).join(".cache/huggingface/hub"),
+            PathBuf::from(&home).join("models"),
+            PathBuf::from(&home).join(".ollama/models"),
+            PathBuf::from(&home).join("Downloads"),
+        ];
 
-        let res = match client.get("http://127.0.0.1:11434/api/tags").send().await {
-            Ok(r) => r,
-            Err(_) => return Ok(Vec::new()),
-        };
-
-        if !res.status().is_success() {
-            return Ok(Vec::new());
-        }
-
-        #[derive(Deserialize)]
-        struct OllamaTagItem {
-            name: String,
-            size: Option<u64>,
-            modified_at: Option<String>,
-        }
-        #[derive(Deserialize)]
-        struct OllamaTagsResponse {
-            models: Vec<OllamaTagItem>,
-        }
-
-        let tags: OllamaTagsResponse = res.json().await.map_err(|e| e.to_string())?;
-        let models = tags.models.into_iter().map(|m| {
-            let size_mb = m.size.unwrap_or(0) / (1024 * 1024);
-            let size_str = if size_mb > 1024 {
-                format!("{:.1} GB", (size_mb as f32) / 1024.0)
-            } else {
-                format!("{} MB", size_mb)
-            };
-            LocalOllamaModel {
-                name: m.name,
-                size: size_str,
-                modified_at: m.modified_at.unwrap_or_default(),
+        for dir in search_dirs {
+            if !dir.exists() { continue; }
+            if let Ok(entries) = std::fs::read_dir(dir) {
+                for entry in entries.flatten() {
+                    let path = entry.path();
+                    let name = path.file_name().unwrap_or_default().to_string_lossy().to_string();
+                    if path.is_file() {
+                        let ext = path.extension().unwrap_or_default().to_string_lossy().to_lowercase();
+                        if ext == "gguf" || ext == "onnx" || ext == "bin" {
+                            let metadata = entry.metadata().ok();
+                            let size_mb = metadata.map(|m| m.len() / (1024 * 1024)).unwrap_or(0);
+                            let size_str = if size_mb > 1024 {
+                                format!("{:.1} GB", (size_mb as f32) / 1024.0)
+                            } else {
+                                format!("{} MB", size_mb)
+                            };
+                            models.push(LocalDiscoveredModel {
+                                name,
+                                path: path.to_string_lossy().to_string(),
+                                size_str,
+                                format: ext.to_uppercase(),
+                            });
+                        }
+                    } else if path.is_dir() && (name.contains("Qwen") || name.contains("Llama") || name.contains("glm") || name.contains("DeepSeek")) {
+                        models.push(LocalDiscoveredModel {
+                            name: name.clone(),
+                            path: path.to_string_lossy().to_string(),
+                            size_str: "Local Folder".to_string(),
+                            format: "Directory".to_string(),
+                        });
+                    }
+                }
             }
-        }).collect();
+        }
 
         Ok(models)
     }
@@ -225,7 +232,7 @@ pub fn run() {
             commands::native_git_diff,
             commands::native_git_commit,
             commands::native_git_push,
-            commands::native_list_local_llm_models,
+            commands::native_list_local_models,
             commands::native_run_terminal_command,
         ])
         .run(tauri::generate_context!())

@@ -2375,10 +2375,6 @@
                     </div>
 
                     <div class="editor-actions-right" style="margin-left:auto; display:flex; gap:6px; align-items:center;">
-                        <button class="editor-btn" onclick="openLocalFolder()" title="Open Local Project Folder from Disk (File System Access)">
-                            <span>📂</span>
-                            <span>Open Folder</span>
-                        </button>
                         <button class="editor-btn" id="btnToggleDiffMode" onclick="toggleMonacoDiffView()" title="Compare Side-by-Side Diff against baseline">
                             <span>⚖️</span>
                             <span id="diffModeLabel">View Diff</span>
@@ -2386,10 +2382,6 @@
                         <button class="editor-btn" onclick="saveActiveFileLocal()" title="Save Changes to File / Local Disk">
                             <span>💾</span>
                             <span>Save</span>
-                        </button>
-                        <button class="editor-btn" onclick="exportWorkspaceZip()" title="Download Full Project Archive">
-                            <span>📦</span>
-                            <span>Export ZIP</span>
                         </button>
                         <button class="editor-btn success" onclick="openCommitPushModal()" id="btnGitCommitPush" title="Commit & Push to Remote Worktree">
                             <span>🚀</span>
@@ -2755,22 +2747,16 @@
                     language = (arg2 || 'code').trim();
                 }
                 const escapedCode = escapeHtml(rawCode);
-                const isPreviewable = ['html', 'htm', 'js', 'javascript', 'ts', 'css', 'svg'].includes(language.toLowerCase());
-
                 return `
                 <div class="code-block-container">
                     <div class="code-block-header">
                         <span class="code-lang-label">${escapeHtml(language)}</span>
                         <div class="code-action-group">
-                            ${isPreviewable ? `
-                            <button class="code-editor-btn" style="color:var(--accent-cyan);" onclick="openCodeInLivePreview(this)" title="Run in Live Preview Sandbox">
-                                <span>👁</span> Run Preview
-                            </button>` : ''}
                             <button class="code-editor-btn" onclick="openCodeInDiffViewer(this)" title="Compare Diff in Monaco">
                                 <span>⚖️</span> Diff
                             </button>
                             <button class="code-editor-btn" onclick="openCodeInEditor(this)" title="Edit in Monaco">
-                                <span>💻</span> Edit
+                                <span>💻</span> Edit in IDE
                             </button>
                             <button class="code-copy-btn" onclick="copyCodeBlock(this)" title="Copy Code">
                                 <span>📋</span> Copy
@@ -5896,7 +5882,15 @@
                 } catch(e) {}
             }
 
-            let systemPromptText = 'You are a helpful, direct, and conversational AI assistant. Answer all questions naturally, concisely, and thoughtfully. When asked to write code or programs, provide complete, runnable code with inline styles and scripts inside markdown code blocks (```html or ```javascript). Never start responses with repetitive self-referential preambles.';
+            const isCodingAction = !!window.pendingCodeActionPayload || userPrompt.includes('@editor') || userPrompt.includes('@code') || userPrompt.includes('@file') || /refactor|optimize|test|function|module|class|struct|implement|fix|bug|code/i.test(userPrompt);
+            
+            let systemPromptText = '';
+            if (isCodingAction) {
+                systemPromptText = 'You are the sovereign AI Coding Copilot and Software Engineer in Monaco IDE. You have full authority to analyze, refactor, debug, optimize, and generate complete code for the workspace. When asked to write, refactor, or fix code, provide the full updated code directly inside clean markdown code blocks (e.g. ```rust or ```javascript) with a brief, clear explanation of improvements. Always write robust, production-ready, clean code with zero fluff.';
+            } else {
+                systemPromptText = 'You are the sovereign UOR-R4 AI Assistant and reasoning engine. You are knowledgeable, direct, articulate, and conversational. Answer questions accurately, concisely, and thoughtfully without boilerplate disclaimers.';
+            }
+
             if (activeWebSources.length > 0) {
                 systemPromptText += ' Use the provided live web search results to accurately ground your answer with up-to-date facts, citing sources as [1], [2], etc.';
             }
