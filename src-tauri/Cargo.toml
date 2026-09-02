@@ -9,7 +9,7 @@ default-run = "uor-r4-sovereign-studio"
 tauri-build = { version = "2.0", features = [] }
 
 [dependencies]
-tauri = { version = "2.0", features = [] }
+tauri = { version = "2.0", features = ["devtools"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 tokio = { version = "1", features = ["full"] }
