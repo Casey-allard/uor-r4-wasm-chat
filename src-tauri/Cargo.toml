@@ -21,3 +21,7 @@ custom-protocol = ["tauri/custom-protocol"]
 [[bin]]
 name = "test_tauri_backend"
 path = "src/bin/test_tauri_backend.rs"
+
+[[bin]]
+name = "full_regression_test"
+path = "src/bin/full_regression_test.rs"
