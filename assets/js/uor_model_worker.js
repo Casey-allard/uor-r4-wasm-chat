@@ -73,6 +73,8 @@ const MODEL_REGISTRY = {
 
 let activePipeline = null;
 let activeModelId = null;
+let loadingPromise = null;
+let loadingModelId = null;
 let isGenerating = false;
 
 async function getStorageEstimate() {
