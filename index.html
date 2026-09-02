@@ -5130,7 +5130,40 @@
             const grid = document.getElementById('modelManagerGrid');
             if (!grid) return;
 
-            grid.innerHTML = Object.keys(MODEL_CONFIGS).map(mId => {
+            let localDiskSection = '';
+            // Check for native Tauri local disk models
+            if (window.__TAURI__ && window.__TAURI__.core) {
+                try {
+                    const localDiscovered = await window.__TAURI__.core.invoke('native_list_local_models');
+                    if (localDiscovered && localDiscovered.length > 0) {
+                        localDiskSection = `
+                            <div style="margin-bottom:0.85rem; padding:0.6rem 0.8rem; background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.25); border-radius:8px;">
+                                <div style="font-size:0.75rem; font-weight:700; color:var(--accent-green); display:flex; align-items:center; gap:0.4rem; margin-bottom:0.4rem;">
+                                    <span>📁</span> Discovered Local Disk Models (Native Zero-Latency)
+                                </div>
+                                <div style="display:flex; flex-direction:column; gap:0.35rem;">
+                                    ${localDiscovered.map(d => `
+                                        <div style="display:flex; align-items:center; justify-content:space-between; font-size:0.68rem; color:var(--text-primary); background:rgba(0,0,0,0.25); padding:0.3rem 0.6rem; border-radius:4px;">
+                                            <div style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:420px;">
+                                                <span style="color:var(--accent-cyan); font-weight:600;">[${escapeHtml(d.format)}]</span>
+                                                <span title="${escapeHtml(d.path)}">${escapeHtml(d.name)}</span>
+                                                <span style="color:var(--text-muted); font-size:0.62rem;">(${escapeHtml(d.size_str)})</span>
+                                            </div>
+                                            <button class="modal-btn secondary" style="padding:0.15rem 0.5rem; font-size:0.65rem;" onclick="showToast('⚡ Linked local model: ${escapeHtml(d.name)}')">
+                                                ⚡ Link Local
+                                            </button>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        `;
+                    }
+                } catch(e) {
+                    console.warn("Tauri list local models error:", e);
+                }
+            }
+
+            grid.innerHTML = localDiskSection + Object.keys(MODEL_CONFIGS).map(mId => {
                 const m = MODEL_CONFIGS[mId];
                 const isCached = window.modelCacheStatus[mId] || false;
                 const isCompiling = (window.activeCompileModelId === mId);
