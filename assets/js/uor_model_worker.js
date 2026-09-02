@@ -73,6 +73,7 @@ const MODEL_REGISTRY = {
 
 let activePipeline = null;
 let activeModelId = null;
+let activePipelineSource = null;
 let loadingPromise = null;
 let loadingModelId = null;
 let isGenerating = false;
@@ -148,7 +149,11 @@ async function resolveModelSource(modelId) {
 }
 
 async function getOrLoadPipeline(modelId, onProgress) {
-    if (activePipeline && activeModelId === modelId) {
+    const modelConfig = MODEL_REGISTRY[modelId] || MODEL_REGISTRY['qwen2.5-coder-0.5b'];
+    const { source, isLocal, dtype } = await resolveModelSource(modelId);
+
+    if (activePipeline && activePipelineSource === source) {
+        activeModelId = modelId;
         return activePipeline;
     }
 
@@ -157,11 +162,9 @@ async function getOrLoadPipeline(modelId, onProgress) {
             try { await activePipeline.model.dispose(); } catch(e) {}
         }
         activePipeline = null;
+        activePipelineSource = null;
         activeModelId = null;
     }
-
-    const modelConfig = MODEL_REGISTRY[modelId] || MODEL_REGISTRY['qwen2.5-coder-0.5b'];
-    const { source, isLocal, dtype } = await resolveModelSource(modelId);
 
     // Default to WebGPU for Apple Silicon Metal hardware acceleration
     let device = (typeof navigator !== 'undefined' && navigator.gpu) ? 'webgpu' : 'wasm';
@@ -181,6 +184,7 @@ async function getOrLoadPipeline(modelId, onProgress) {
 
         activePipeline = pipe;
         activeModelId = modelId;
+        activePipelineSource = source;
         
         // Broadcast ready stage
         self.postMessage({
@@ -373,34 +377,38 @@ self.onmessage = async function(e) {
                     formattedPrompt = cleanMessages.map(m => `<|im_start|>${m.role}\n${m.content}<|im_end|>`).join('\n') + '\n<|im_start|>assistant\n';
                 }
 
-                // Reset KV cache if supported to avoid GPU tensor CPU mismatches
+                // Reset KV cache if supported
                 if (pipe && pipe.model && typeof pipe.model.reset_kv_cache === 'function') {
                     try { pipe.model.reset_kv_cache(); } catch(e) {}
                 }
 
-                // Generate with explicit stop token IDs and automatic GPU-CPU tensor recovery
+                // Pure WebGPU generation without CPU logits processing (prevents "The data is not on CPU")
+                const isWebGPU = (pipe.model?.device === 'webgpu' || pipe.device === 'webgpu' || typeof navigator !== 'undefined' && !!navigator.gpu);
+                
+                const genConfig = isWebGPU ? {
+                    max_new_tokens: maxTokens,
+                    do_sample: false,
+                    eos_token_id: [151643, 151645],
+                    streamer: streamer
+                } : {
+                    max_new_tokens: maxTokens,
+                    do_sample: useSampling,
+                    temperature: temp,
+                    top_p: topP,
+                    repetition_penalty: repPenalty,
+                    eos_token_id: [151643, 151645],
+                    streamer: streamer
+                };
+
                 let out = null;
                 try {
-                    out = await pipe(formattedPrompt, {
-                        max_new_tokens: maxTokens,
-                        do_sample: useSampling,
-                        temperature: temp,
-                        top_p: topP,
-                        repetition_penalty: repPenalty,
-                        eos_token_id: [151643, 151645], // <|im_end|>, <|endoftext|>
-                        streamer: streamer
-                    });
+                    out = await pipe(formattedPrompt, genConfig);
                 } catch(pipeErr) {
                     if (String(pipeErr).includes('The data is not on CPU') || String(pipeErr).includes('getData')) {
-                        console.warn("🔄 Recovering from WebGPU KV tensor state mismatch, resetting pipeline instance...");
-                        activePipeline = null;
-                        const freshPipe = await getOrLoadPipeline(targetModelId, null);
-                        out = await freshPipe(formattedPrompt, {
+                        console.warn("🔄 Fallback to greedy pure-GPU decoding...");
+                        out = await pipe(formattedPrompt, {
                             max_new_tokens: maxTokens,
-                            do_sample: useSampling,
-                            temperature: temp,
-                            top_p: topP,
-                            repetition_penalty: repPenalty,
+                            do_sample: false,
                             eos_token_id: [151643, 151645],
                             streamer: streamer
                         });
