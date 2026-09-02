@@ -5219,7 +5219,11 @@
             document.querySelectorAll('.input-model-dropdown-menu.show').forEach(m => m.classList.remove('show'));
 
             showToast(`⚡ Model: ${meta.fullName}`);
-            initModelWorker();
+            if (modelWorker) {
+                modelWorker.postMessage({ action: 'prewarm', modelId: modelId });
+            } else {
+                initModelWorker();
+            }
         };
 
         window.addEventListener('click', (e) => {
@@ -5714,8 +5718,9 @@
         let activeGenerationId = null;
 
         function initModelWorker() {
+            if (modelWorker) return; // Keep existing active worker and compiled shaders warm!
             try {
-                modelWorker = new Worker(new URL('./assets/js/uor_model_worker.js?v=3.0.3', import.meta.url), { type: 'module' });
+                modelWorker = new Worker(new URL('./assets/js/uor_model_worker.js?v=3.2.1', import.meta.url), { type: 'module' });
                 window.modelWorker = modelWorker;
 
                 modelWorker.onmessage = (e) => {
@@ -5815,7 +5820,14 @@
                             const textEl = aiRow.querySelector('.ai-text');
                             if (textEl) {
                                 textEl.style.display = 'block';
-                                textEl.innerText = fullText;
+                                
+                                // Live on-the-fly markdown & code compilation
+                                let streamText = fullText;
+                                const openTicks = (streamText.match(/```/g) || []).length;
+                                if (openTicks % 2 !== 0) {
+                                    streamText += '\n```'; // Close unclosed code block for live syntax highlighting
+                                }
+                                renderRichMarkdown(textEl, streamText);
                                 scrollDown();
                             }
                         }

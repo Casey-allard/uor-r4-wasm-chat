@@ -32,7 +32,7 @@ const MODEL_REGISTRY = {
     'qwen2.5-coder-0.5b': {
         id: 'qwen2.5-coder-0.5b',
         name: 'Qwen 2.5 Coder 0.5B (Turbo Code)',
-        source: 'onnx-community/Qwen2.5-0.5B-Instruct',
+        source: 'onnx-community/Qwen2.5-Coder-0.5B-Instruct',
         systemPrompt: 'You are Qwen 2.5 Coder, a precision code synthesis engine. Answer concisely with clean markdown code blocks.',
         localPath: './assets/models/qwen2.5-coder-0.5b',
         size_mb: 280,
