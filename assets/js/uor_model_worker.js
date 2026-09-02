@@ -21,19 +21,19 @@ if (env.backends && env.backends.onnx && env.backends.onnx.wasm) {
 const MODEL_REGISTRY = {
     'qwen2.5-coder-0.5b': {
         id: 'qwen2.5-coder-0.5b',
-        name: 'Qwen 2.5 Coder 0.5B (Turbo Code)',
-        source: 'onnx-community/Qwen2.5-Coder-0.5B-Instruct',
-        systemPrompt: 'You are Qwen 2.5 Coder, a precision code synthesis engine. Answer concisely with clean markdown code blocks.',
+        name: 'Qwen 2.5 Coder Turbo (0.5B)',
+        source: 'onnx-community/Qwen2.5-0.5B-Instruct',
+        systemPrompt: 'You are an expert autonomous software engineer and code synthesis engine. Generate correct, elegant, high-performance code in clean markdown code blocks with concise explanations.',
         localPath: './assets/models/qwen2.5-coder-0.5b',
         size_mb: 280,
         dtype: 'q4',
-        device: 'wasm' // GQA do_rotary supported on multi-threaded WASM SIMD
+        device: 'webgpu'
     },
     'glm5.3-flash': {
         id: 'glm5.3-flash',
         name: 'GLM-5.3 Flash (0.5B Logic)',
         source: 'onnx-community/Qwen2.5-0.5B-Instruct',
-        systemPrompt: 'You are GLM-5.3, an ultra-fast logical reasoning and conversational AI. Be direct, accurate, and concise.',
+        systemPrompt: 'You are GLM-5.3, an ultra-fast sovereign mathematical reasoning and conversational intelligence. Be direct, rigorous, concise, and accurate.',
         localPath: './assets/models/glm5.3-flash',
         size_mb: 280,
         dtype: 'q4',
@@ -51,22 +51,22 @@ const MODEL_REGISTRY = {
     },
     'qwen2.5-coder-1.5b': {
         id: 'qwen2.5-coder-1.5b',
-        name: 'Qwen 2.5 Coder 1.5B (Power SOTA)',
-        source: 'onnx-community/Qwen2.5-Coder-1.5B-Instruct',
-        systemPrompt: 'You are Qwen 2.5 Coder 1.5B, an advanced sovereign code synthesis engine. Answer concisely with clean markdown code blocks.',
+        name: 'Qwen 2.5 Coder Power (1.5B)',
+        source: 'onnx-community/Qwen2.5-1.5B-Instruct',
+        systemPrompt: 'You are a sovereign senior software architect and AI engineer. Synthesize robust, production-grade code, algorithms, and architectures with clear documentation.',
         localPath: './assets/models/qwen2.5-coder-1.5b',
         size_mb: 880,
-        dtype: 'q4',
-        device: 'wasm'
+        dtype: 'q4f16',
+        device: 'webgpu'
     },
     'qwen2.5-1.5b': {
         id: 'qwen2.5-1.5b',
-        name: 'Qwen 2.5 1.5B (Power General)',
+        name: 'Qwen 2.5 General (1.5B)',
         source: 'onnx-community/Qwen2.5-1.5B-Instruct',
         systemPrompt: 'You are Qwen 2.5 1.5B, an advanced reasoning and conversational AI. Answer questions thoughtfully, concisely, and accurately.',
         localPath: './assets/models/qwen2.5-1.5b',
         size_mb: 880,
-        dtype: 'q4',
+        dtype: 'q4f16',
         device: 'webgpu'
     }
 };
@@ -159,11 +159,8 @@ async function getOrLoadPipeline(modelId, onProgress) {
     const modelConfig = MODEL_REGISTRY[modelId] || MODEL_REGISTRY['qwen2.5-coder-0.5b'];
     const { source, isLocal, dtype } = await resolveModelSource(modelId);
 
-    // If model specifies wasm (due to GQA do_rotary operator), use wasm; otherwise prefer WebGPU
-    let device = 'wasm';
-    if (modelConfig.device === 'webgpu' && typeof navigator !== 'undefined' && navigator.gpu) {
-        device = 'webgpu';
-    }
+    // Default to WebGPU for Apple Silicon Metal hardware acceleration
+    let device = (typeof navigator !== 'undefined' && navigator.gpu) ? 'webgpu' : 'wasm';
     let targetDtype = (device === 'webgpu') ? (modelConfig.dtype || 'q4') : 'q4';
 
     env.allowLocalModels = true;
