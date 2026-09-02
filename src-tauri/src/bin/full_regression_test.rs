@@ -81,7 +81,7 @@ async fn main() {
     // -------------------------------------------------------------------------
     println!("\n[TEST 4] Testing Autonomous Local Disk Model Discovery...");
     let t_scan = Instant::now();
-    let models = native_list_local_models().expect("Failed native_list_local_models");
+    let models = native_list_local_models();
     let scan_dur = t_scan.elapsed();
     println!("   ✔ Discovered {} local model assets on disk ({} ms):", models.len(), scan_dur.as_millis());
     for m in &models {
@@ -104,9 +104,8 @@ async fn main() {
 
     for (m_id, m_name, prompt, max_tok) in model_test_prompts {
         let t_inf = Instant::now();
-        let res = run_native_inference(prompt.to_string(), max_tok).await.expect("Inference failed");
-        let dur = t_inf.elapsed();
-        println!("   ✔ Model [{}] - {}:", m_id, m_name);
+        let res = run_native_inference(m_id.to_string(), prompt.to_string(), max_tok).await.expect("Inference failed");
+                println!("   ✔ Model [{}] - {}:", m_id, m_name);
         println!("     Tokens: {} | Elapsed: {:.3}s | TPS: {:.1} tok/s | Engine: {}", res.tokens_generated, res.elapsed_sec, res.tps, res.engine);
         println!("     Response preview: {}", res.full_text.lines().next().unwrap_or("").trim());
         assert!(res.tps > 500.0, "Native Metal inference throughput should exceed 500 tok/s");

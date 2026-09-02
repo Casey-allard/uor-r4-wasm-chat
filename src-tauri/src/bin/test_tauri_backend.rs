@@ -43,7 +43,7 @@ async fn main() {
 
     // 4. Local Model Scanner
     let t3 = Instant::now();
-    let local_models = native_list_local_models().expect("Failed local model discovery");
+    let local_models = native_list_local_models();
     let scan_time = t3.elapsed();
     println!("\n🧠 [4. Autonomous Disk Model Scanner] ({} µs)", scan_time.as_micros());
     println!("   Discovered local models ({}):", local_models.len());
@@ -60,7 +60,7 @@ async fn main() {
 
     // 6. Native Inference Core Benchmark
     let t5 = Instant::now();
-    let inf_res = run_native_inference("Write a high-performance SIMD matrix multiplier in Rust.".to_string(), 128).await.expect("Inference failed");
+    let inf_res = run_native_inference("qwen2.5-coder-0.5b".to_string(), "Write a high-performance SIMD matrix multiplier in Rust.".to_string(), 128).await.expect("Inference failed");
     let inf_time = t5.elapsed();
     println!("\n🚀 [6. Native Metal Inference Core] ({} ms)", inf_time.as_millis());
     println!("   Tokens generated: {}", inf_res.tokens_generated);
