@@ -156,10 +156,12 @@ async function getOrLoadPipeline(modelId, onProgress) {
         activeModelId = null;
     }
 
-    const { source, isLocal, dtype, model } = await resolveModelSource(modelId);
+    const modelConfig = MODEL_REGISTRY[modelId] || MODEL_REGISTRY['qwen2.5-coder-0.5b'];
+    const { source, isLocal, dtype } = await resolveModelSource(modelId);
 
     // Default to WebGPU for Apple Silicon Metal hardware acceleration
     let device = (typeof navigator !== 'undefined' && navigator.gpu) ? 'webgpu' : 'wasm';
+    let targetDtype = (device === 'webgpu') ? (modelConfig.dtype || 'q4f16') : 'q4';
 
     env.allowLocalModels = true;
     env.allowRemoteModels = true;
@@ -175,9 +177,19 @@ async function getOrLoadPipeline(modelId, onProgress) {
 
         activePipeline = pipe;
         activeModelId = modelId;
+        
+        // Broadcast ready stage
+        self.postMessage({
+            action: 'compile_stage',
+            modelId: modelId,
+            stage: 'ready',
+            progress: 100,
+            text: '⚡ Neural Substrate Ready.'
+        });
+
         return pipe;
     } catch(err) {
-        console.warn(`Primary load attempt for ${source} on ${device} failed:`, err);
+        console.warn(`Primary load attempt for ${source} on ${device} with dtype ${targetDtype} failed:`, err);
         
         // If storage or webgpu failed, try fallback with memory-only mode
         try {
