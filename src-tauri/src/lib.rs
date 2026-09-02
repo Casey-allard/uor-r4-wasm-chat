@@ -224,6 +224,14 @@ pub mod commands {
 }
 
 pub fn run() {
+    // Ensure application support & WebKit storage directories exist with full permissions
+    if let Ok(home) = std::env::var("HOME") {
+        let app_support = std::path::PathBuf::from(&home).join("Library/Application Support/io.uor.sovereign.studio");
+        let webkit_dir = std::path::PathBuf::from(&home).join("Library/WebKit/io.uor.sovereign.studio");
+        let _ = std::fs::create_dir_all(&app_support);
+        let _ = std::fs::create_dir_all(&webkit_dir);
+    }
+
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
             commands::get_native_hardware_info,

@@ -7,7 +7,11 @@ import { pipeline, env, TextStreamer } from 'https://cdn.jsdelivr.net/npm/@huggi
 
 env.allowLocalModels = true;
 env.allowRemoteModels = true;
-env.useBrowserCache = true;
+try {
+    env.useBrowserCache = typeof caches !== 'undefined';
+} catch(e) {
+    env.useBrowserCache = false;
+}
 
 if (env.backends && env.backends.onnx && env.backends.onnx.wasm) {
     env.backends.onnx.wasm.numThreads = Math.min(8, (typeof navigator !== 'undefined' && navigator.hardwareConcurrency) ? navigator.hardwareConcurrency : 4);
@@ -180,12 +184,16 @@ async function getOrLoadPipeline(modelId, onProgress) {
         activeModelId = modelId;
         return pipe;
     } catch(err) {
-        console.warn(`Load attempt for ${source} on ${device} encountered error:`, err);
-        if (device === 'webgpu') {
-            console.log(`Falling back to WASM for ${source}...`);
+        console.warn(`Primary load attempt for ${source} on ${device} failed:`, err);
+        
+        // If storage or webgpu failed, try fallback with memory-only mode
+        try {
+            env.useBrowserCache = false;
+            const fallbackDevice = (device === 'webgpu') ? 'wasm' : device;
+            console.log(`Attempting resilient fallback load for ${source} on ${fallbackDevice}...`);
             const pipe = await pipeline('text-generation', source, {
                 dtype: 'q4',
-                device: 'wasm',
+                device: fallbackDevice,
                 progress_callback: (p) => {
                     if (onProgress) onProgress(p);
                 }
@@ -193,8 +201,10 @@ async function getOrLoadPipeline(modelId, onProgress) {
             activePipeline = pipe;
             activeModelId = modelId;
             return pipe;
+        } catch(fallbackErr) {
+            console.error(`Fatal load error for ${source}:`, fallbackErr);
+            throw fallbackErr;
         }
-        throw err;
     }
 }
 
