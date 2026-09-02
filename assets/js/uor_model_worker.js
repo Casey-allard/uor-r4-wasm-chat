@@ -77,6 +77,7 @@ let activePipelineSource = null;
 let loadingPromise = null;
 let loadingModelId = null;
 let isGenerating = false;
+let generationQueue = Promise.resolve();
 
 async function getStorageEstimate() {
     let usageBytes = 0;
@@ -256,10 +257,11 @@ self.onmessage = async function(e) {
         }
 
         case 'generate': {
-            const { messages, options = {} } = payload;
-            const targetModelId = modelId || 'qwen2.5-coder-0.5b';
-            const modelConfig = MODEL_REGISTRY[targetModelId] || MODEL_REGISTRY['qwen2.5-coder-0.5b'];
-            isGenerating = true;
+            generationQueue = generationQueue.then(async () => {
+                const { messages, options = {} } = payload;
+                const targetModelId = modelId || 'qwen2.5-coder-0.5b';
+                const modelConfig = MODEL_REGISTRY[targetModelId] || MODEL_REGISTRY['qwen2.5-coder-0.5b'];
+                isGenerating = true;
 
             let firstTokenTime = null;
             let lastTokenTime = null;
